@@ -126,57 +126,61 @@ returns table (
   gold integer,
   quantity integer
 )
-language plpgsql
+language sql
 security definer
 set search_path = public
-as $$
-declare
-  v_price integer;
-  v_name text;
-  v_gold integer;
-  v_quantity integer;
-begin
-  select price, name
-  into v_price, v_name
-  from public.shop_items
-  where id = p_item_id;
-
-  if not found then
-    raise exception 'This shop item does not exist.';
-  end if;
-
-  select gold
-  into v_gold
-  from public.profiles
-  where id = p_user_id
-  for update;
-
-  if not found then
-    raise exception 'This player profile does not exist yet.';
-  end if;
-
-  if v_gold < v_price then
-    raise exception 'Not enough gold for this purchase.';
-  end if;
-
-  update public.profiles
-  set gold = gold - v_price
-  where id = p_user_id
-  returning profiles.gold into v_gold;
-
-  insert into public.inventory (user_id, item_id, quantity)
-  values (p_user_id, p_item_id, 1)
-  on conflict (user_id, item_id)
-  do update set quantity = public.inventory.quantity + 1
-  returning inventory.quantity into v_quantity;
-
-  insert into public.purchase_log (user_id, item_id, price_paid)
-  values (p_user_id, p_item_id, v_price);
-
-  return query
-  select p_item_id, v_name, v_gold, v_quantity;
-end;
-$$;
+as $function$
+  with selected_item as (
+    select id, name, price
+    from public.shop_items
+    where id = p_item_id
+  ),
+  locked_profile as (
+    select profiles.id, profiles.gold
+    from public.profiles
+    where profiles.id = p_user_id
+    for update
+  ),
+  validated_purchase as (
+    select
+      selected_item.id as item_id,
+      selected_item.name as item_name,
+      selected_item.price,
+      locked_profile.gold as current_gold
+    from selected_item
+    cross join locked_profile
+    where locked_profile.gold >= selected_item.price
+  ),
+  updated_profile as (
+    update public.profiles
+    set gold = public.profiles.gold - validated_purchase.price
+    from validated_purchase
+    where public.profiles.id = p_user_id
+    returning public.profiles.gold
+  ),
+  updated_inventory as (
+    insert into public.inventory (user_id, item_id, quantity)
+    select p_user_id, validated_purchase.item_id, 1
+    from validated_purchase
+    on conflict (user_id, item_id)
+    do update set quantity = public.inventory.quantity + 1
+    returning public.inventory.quantity
+  ),
+  logged_purchase as (
+    insert into public.purchase_log (user_id, item_id, price_paid)
+    select p_user_id, validated_purchase.item_id, validated_purchase.price
+    from validated_purchase
+    returning id
+  )
+  select
+    validated_purchase.item_id,
+    validated_purchase.item_name,
+    updated_profile.gold,
+    updated_inventory.quantity
+  from validated_purchase
+  join updated_profile on true
+  join updated_inventory on true;
+$function$;
 
 revoke all on function public.buy_shop_item(uuid, bigint) from public, anon, authenticated;
 grant execute on function public.buy_shop_item(uuid, bigint) to service_role;

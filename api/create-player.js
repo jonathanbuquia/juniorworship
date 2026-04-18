@@ -70,6 +70,7 @@ export default async function handler(req, res) {
 
     return sendJson(res, 200, {
       player: {
+        id: createdUser.user.id,
         displayName,
         loginName,
         startingGold,
