@@ -30,6 +30,7 @@
   display: grid;
   align-content: start;
   gap: 18px;
+  padding-bottom: 32px;
 }
 
 .panel {
@@ -352,12 +353,14 @@
 
 .admin-stage {
   padding-top: 6px;
+  padding-bottom: 12px;
   display: flex;
   justify-content: center;
 }
 
 .memory-stage {
   padding-top: 6px;
+  padding-bottom: 12px;
   display: flex;
   justify-content: center;
   align-items: stretch;
