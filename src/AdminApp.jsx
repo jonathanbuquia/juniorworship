@@ -9,6 +9,10 @@ const ADMIN_SECTIONS = {
   manageGold: 'manage-gold',
 }
 const QUICK_GOLD_ACTIONS = [25, 50, 100, -25, -50, -100]
+const AUTH_VIEWS = {
+  player: 'player',
+  admin: 'admin',
+}
 
 function normalizeLoginName(value) {
   return value.trim().toLowerCase().replace(/\s+/g, ' ')
@@ -31,157 +35,6 @@ function createEmptyMessage() {
 
 function formatGoldChange(amount) {
   return amount > 0 ? `+${amount}` : `${amount}`
-}
-
-function AuthCard({
-  adminStatusLoading,
-  authPending,
-  hasAdmin,
-  loginForm,
-  loginMessage,
-  onBootstrapChange,
-  onCreateAdmin,
-  onLogin,
-  onLoginChange,
-  setupForm,
-  setupMessage,
-}) {
-  return (
-    <section className="panel auth-card">
-      <div className="eyebrow">Aquarium Control</div>
-      <h1>{hasAdmin ? 'Sign in to continue' : 'Create the first admin'}</h1>
-      <p className="panel-copy">
-        {hasAdmin
-          ? 'Players and admins use the same site. Your admin account unlocks the protected dashboard.'
-          : 'Set up your owner account first. After that, you will create every player account yourself.'}
-      </p>
-
-      {adminStatusLoading ? (
-        <p className="panel-note">Checking the current setup...</p>
-      ) : hasAdmin ? (
-        <form className="stack-form" onSubmit={onLogin}>
-          <label className="field">
-            <span>Login name</span>
-            <input
-              autoComplete="username"
-              name="loginName"
-              onChange={onLoginChange}
-              placeholder="teacher maria"
-              value={loginForm.loginName}
-            />
-          </label>
-
-          <label className="field">
-            <span>Password</span>
-            <input
-              autoComplete="current-password"
-              name="password"
-              onChange={onLoginChange}
-              placeholder="Enter your password"
-              type="password"
-              value={loginForm.password}
-            />
-          </label>
-
-          {loginMessage.text ? <p className={`status-line ${loginMessage.type}`}>{loginMessage.text}</p> : null}
-
-          <button className="primary-button" disabled={authPending} type="submit">
-            {authPending ? 'Signing in...' : 'Sign in'}
-          </button>
-        </form>
-      ) : (
-        <form className="stack-form" onSubmit={onCreateAdmin}>
-          <label className="field">
-            <span>Your display name</span>
-            <input
-              name="displayName"
-              onChange={onBootstrapChange}
-              placeholder="Teacher Maria"
-              value={setupForm.displayName}
-            />
-          </label>
-
-          <label className="field">
-            <span>Admin login name</span>
-            <input
-              autoComplete="username"
-              name="loginName"
-              onChange={onBootstrapChange}
-              placeholder="teacher maria"
-              value={setupForm.loginName}
-            />
-          </label>
-
-          <label className="field">
-            <span>Password</span>
-            <input
-              autoComplete="new-password"
-              name="password"
-              onChange={onBootstrapChange}
-              placeholder="At least 6 characters"
-              type="password"
-              value={setupForm.password}
-            />
-          </label>
-
-          <label className="field">
-            <span>Confirm password</span>
-            <input
-              autoComplete="new-password"
-              name="confirmPassword"
-              onChange={onBootstrapChange}
-              placeholder="Type it again"
-              type="password"
-              value={setupForm.confirmPassword}
-            />
-          </label>
-
-          {setupMessage.text ? <p className={`status-line ${setupMessage.type}`}>{setupMessage.text}</p> : null}
-
-          <button className="primary-button" disabled={authPending} type="submit">
-            {authPending ? 'Creating admin...' : 'Create admin'}
-          </button>
-        </form>
-      )}
-    </section>
-  )
-}
-
-function PlayerHud({ isAdmin, onLogout, onOpenAdmin, profile }) {
-  return (
-    <header className="game-header">
-      <div className="game-brand">
-        <span className="eyebrow">Sunday School</span>
-        <strong>{profile?.display_name || 'Player'}</strong>
-      </div>
-
-      <div className="game-stats">
-        <div className="game-stat-pill">
-          <span>Role</span>
-          <strong>{profile?.role || 'player'}</strong>
-        </div>
-        <div className="game-stat-pill">
-          <span>Gold</span>
-          <strong>{profile?.gold ?? 0}</strong>
-        </div>
-        <div className="game-stat-pill">
-          <span>Login</span>
-          <strong>{profile?.login_name || 'not set'}</strong>
-        </div>
-      </div>
-
-      <div className="game-actions">
-        {isAdmin ? (
-          <button className="primary-button" onClick={onOpenAdmin} type="button">
-            Open admin
-          </button>
-        ) : null}
-        <button className="ghost-button" onClick={onLogout} type="button">
-          Log out
-        </button>
-      </div>
-    </header>
-  )
 }
 
 function CreatePlayerSection({
@@ -421,7 +274,7 @@ function AdminPanel({
   onGoldFormChange,
   onLogout,
   onQuickGoldAmount,
-  onReturnToPlayer,
+  onReturnToGame,
   onSectionChange,
   onSelectPlayer,
   players,
@@ -462,8 +315,8 @@ function AdminPanel({
         </nav>
 
         <div className="sidebar-footer">
-          <button className="ghost-button" onClick={onReturnToPlayer} type="button">
-            Back to player view
+          <button className="ghost-button" onClick={onReturnToGame} type="button">
+            Back to game
           </button>
           <button className="ghost-button" onClick={onLogout} type="button">
             Log out
@@ -501,23 +354,285 @@ function AdminPanel({
   )
 }
 
-function UnauthorizedPanel({ onGoPlayer, onLogout }) {
+function AuthPopover({
+  authPending,
+  authView,
+  hasAdmin,
+  loginForm,
+  loginMessage,
+  onBootstrapChange,
+  onCreateAdmin,
+  onLogin,
+  onLoginChange,
+  onSelectView,
+  setupForm,
+  setupMessage,
+}) {
+  const showingPlayer = authView === AUTH_VIEWS.player
+
   return (
-    <section className="panel auth-card">
-      <div className="eyebrow">Access Blocked</div>
-      <h2>This page is for admins only</h2>
-      <p className="panel-copy">
-        Your account can still use the player side of the site, but it does not have permission to open the admin tools.
-      </p>
-      <div className="button-row">
-        <button className="primary-button" onClick={onGoPlayer} type="button">
-          Go to player view
+    <div className="auth-popover panel">
+      <div className="auth-switcher">
+        <button
+          className={`auth-switcher-chip ${showingPlayer ? 'active' : ''}`}
+          onClick={() => onSelectView(AUTH_VIEWS.player)}
+          type="button"
+        >
+          Player
         </button>
-        <button className="ghost-button" onClick={onLogout} type="button">
-          Log out
+        <button
+          className={`auth-switcher-chip ${!showingPlayer ? 'active' : ''}`}
+          onClick={() => onSelectView(AUTH_VIEWS.admin)}
+          type="button"
+        >
+          Admin
         </button>
       </div>
-    </section>
+
+      {showingPlayer ? (
+        <form className="stack-form" onSubmit={onLogin}>
+          <div className="eyebrow">Player Sign In</div>
+          <label className="field">
+            <span>Login name</span>
+            <input
+              autoComplete="username"
+              name="loginName"
+              onChange={onLoginChange}
+              placeholder="player login name"
+              value={loginForm.loginName}
+            />
+          </label>
+
+          <label className="field">
+            <span>Password</span>
+            <input
+              autoComplete="current-password"
+              name="password"
+              onChange={onLoginChange}
+              placeholder="Enter password"
+              type="password"
+              value={loginForm.password}
+            />
+          </label>
+
+          {loginMessage.text ? <p className={`status-line ${loginMessage.type}`}>{loginMessage.text}</p> : null}
+
+          <button className="primary-button" disabled={authPending} type="submit">
+            {authPending ? 'Signing in...' : 'Enter game'}
+          </button>
+        </form>
+      ) : hasAdmin ? (
+        <form className="stack-form" onSubmit={onLogin}>
+          <div className="eyebrow">Admin Sign In</div>
+          <label className="field">
+            <span>Login name</span>
+            <input
+              autoComplete="username"
+              name="loginName"
+              onChange={onLoginChange}
+              placeholder="admin login name"
+              value={loginForm.loginName}
+            />
+          </label>
+
+          <label className="field">
+            <span>Password</span>
+            <input
+              autoComplete="current-password"
+              name="password"
+              onChange={onLoginChange}
+              placeholder="Enter password"
+              type="password"
+              value={loginForm.password}
+            />
+          </label>
+
+          {loginMessage.text ? <p className={`status-line ${loginMessage.type}`}>{loginMessage.text}</p> : null}
+
+          <button className="primary-button" disabled={authPending} type="submit">
+            {authPending ? 'Signing in...' : 'Sign in as admin'}
+          </button>
+        </form>
+      ) : (
+        <form className="stack-form" onSubmit={onCreateAdmin}>
+          <div className="eyebrow">Create First Admin</div>
+          <label className="field">
+            <span>Your display name</span>
+            <input
+              name="displayName"
+              onChange={onBootstrapChange}
+              placeholder="Teacher Maria"
+              value={setupForm.displayName}
+            />
+          </label>
+
+          <label className="field">
+            <span>Admin login name</span>
+            <input
+              autoComplete="username"
+              name="loginName"
+              onChange={onBootstrapChange}
+              placeholder="teacher maria"
+              value={setupForm.loginName}
+            />
+          </label>
+
+          <label className="field">
+            <span>Password</span>
+            <input
+              autoComplete="new-password"
+              name="password"
+              onChange={onBootstrapChange}
+              placeholder="At least 6 characters"
+              type="password"
+              value={setupForm.password}
+            />
+          </label>
+
+          <label className="field">
+            <span>Confirm password</span>
+            <input
+              autoComplete="new-password"
+              name="confirmPassword"
+              onChange={onBootstrapChange}
+              placeholder="Type it again"
+              type="password"
+              value={setupForm.confirmPassword}
+            />
+          </label>
+
+          {setupMessage.text ? <p className={`status-line ${setupMessage.type}`}>{setupMessage.text}</p> : null}
+
+          <button className="primary-button" disabled={authPending} type="submit">
+            {authPending ? 'Creating admin...' : 'Create admin'}
+          </button>
+        </form>
+      )}
+    </div>
+  )
+}
+
+function ProfileMenu({ isAdmin, onOpenAdmin, onOpenSignIn, onSignOut, viewingAdmin }) {
+  return (
+    <div className="profile-menu panel">
+      <button className="profile-menu-item" onClick={() => onOpenSignIn(AUTH_VIEWS.player)} type="button">
+        Switch player
+      </button>
+      {isAdmin ? (
+        <button className="profile-menu-item" onClick={onOpenAdmin} type="button">
+          {viewingAdmin ? 'Admin open' : 'Open admin'}
+        </button>
+      ) : (
+        <button className="profile-menu-item" onClick={() => onOpenSignIn(AUTH_VIEWS.admin)} type="button">
+          Sign in as admin
+        </button>
+      )}
+      <button className="profile-menu-item danger" onClick={onSignOut} type="button">
+        Sign out
+      </button>
+    </div>
+  )
+}
+
+function GameTopBar({
+  authMenuOpen,
+  authView,
+  hasAdmin,
+  isAdmin,
+  loginForm,
+  loginMessage,
+  onBootstrapChange,
+  onCreateAdmin,
+  onLogin,
+  onLoginChange,
+  onOpenAdmin,
+  onOpenProfileMenu,
+  onSelectAuthView,
+  onSignOut,
+  onToggleAuthMenu,
+  profile,
+  profileMenuOpen,
+  setupForm,
+  setupMessage,
+  authPending,
+  onOpenSignIn,
+  viewingAdmin,
+}) {
+  return (
+    <header className="game-header">
+      <div className="header-left">
+        {profile ? (
+          <>
+            <div className="player-identity">
+              <span className="eyebrow">Player</span>
+              <strong>{profile.display_name}</strong>
+            </div>
+            <div className="header-menu-wrap">
+              <button className="header-menu-button" onClick={onOpenProfileMenu} type="button">
+                Profiles
+              </button>
+              {profileMenuOpen ? (
+                <ProfileMenu
+                  isAdmin={isAdmin}
+                  onOpenAdmin={onOpenAdmin}
+                  onOpenSignIn={onOpenSignIn}
+                  onSignOut={onSignOut}
+                  viewingAdmin={viewingAdmin}
+                />
+              ) : null}
+            </div>
+          </>
+        ) : (
+          <div className="site-brand">
+            <span className="eyebrow">Sunday School</span>
+            <strong>Junior Worship</strong>
+          </div>
+        )}
+      </div>
+
+      <div className="header-center">
+        {profile ? (
+          <div className="gold-display-pill">
+            <span>Gold</span>
+            <strong>{profile.gold ?? 0}</strong>
+          </div>
+        ) : (
+          <div className="guest-banner">
+            <span>Choose a player or admin sign-in from the top-right menu.</span>
+          </div>
+        )}
+      </div>
+
+      <div className="header-right">
+        {isAdmin ? (
+          <button className="ghost-button" onClick={onOpenAdmin} type="button">
+            {viewingAdmin ? 'Close admin' : 'Admin'}
+          </button>
+        ) : null}
+
+        <div className="header-menu-wrap">
+          <button className="primary-button" onClick={onToggleAuthMenu} type="button">
+            {profile ? 'Switch sign in' : 'Sign in'}
+          </button>
+          {authMenuOpen ? (
+            <AuthPopover
+              authPending={authPending}
+              authView={authView}
+              hasAdmin={hasAdmin}
+              loginForm={loginForm}
+              loginMessage={loginMessage}
+              onBootstrapChange={onBootstrapChange}
+              onCreateAdmin={onCreateAdmin}
+              onLogin={onLogin}
+              onLoginChange={onLoginChange}
+              onSelectView={onSelectAuthView}
+              setupForm={setupForm}
+              setupMessage={setupMessage}
+            />
+          ) : null}
+        </div>
+      </div>
+    </header>
   )
 }
 
@@ -527,7 +642,6 @@ export default function AdminApp() {
   const [profile, setProfile] = useState(null)
   const [authLoading, setAuthLoading] = useState(true)
   const [profileLoading, setProfileLoading] = useState(false)
-  const [adminStatusLoading, setAdminStatusLoading] = useState(true)
   const [hasAdmin, setHasAdmin] = useState(false)
   const [authPending, setAuthPending] = useState(false)
   const [createPlayerPending, setCreatePlayerPending] = useState(false)
@@ -536,6 +650,9 @@ export default function AdminApp() {
   const [players, setPlayers] = useState([])
   const [adminSection, setAdminSection] = useState(ADMIN_SECTIONS.createPlayer)
   const [selectedPlayerId, setSelectedPlayerId] = useState('')
+  const [authMenuOpen, setAuthMenuOpen] = useState(false)
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false)
+  const [authView, setAuthView] = useState(AUTH_VIEWS.player)
   const [loginMessage, setLoginMessage] = useState(createEmptyMessage)
   const [setupMessage, setSetupMessage] = useState(createEmptyMessage)
   const [createPlayerResult, setCreatePlayerResult] = useState(createEmptyMessage)
@@ -603,15 +720,12 @@ export default function AdminApp() {
 
   useEffect(() => {
     if (!hasSupabaseEnv) {
-      setAdminStatusLoading(false)
       return
     }
 
     let cancelled = false
 
     const loadAdminStatus = async () => {
-      setAdminStatusLoading(true)
-
       try {
         const response = await fetch('/api/admin-status')
         const data = await readJson(response)
@@ -631,10 +745,6 @@ export default function AdminApp() {
             type: 'error',
             text: error.message,
           })
-        }
-      } finally {
-        if (!cancelled) {
-          setAdminStatusLoading(false)
         }
       }
     }
@@ -768,6 +878,24 @@ export default function AdminApp() {
     loadPlayers()
   }, [viewingAdmin, isAdmin, session?.access_token, loadPlayers])
 
+  const openAuthMenu = (view = AUTH_VIEWS.player) => {
+    setAuthView(view)
+    setAuthMenuOpen(true)
+    setProfileMenuOpen(false)
+    setLoginMessage(createEmptyMessage())
+    setSetupMessage(createEmptyMessage())
+  }
+
+  const handleToggleAuthMenu = () => {
+    setAuthMenuOpen((current) => !current)
+    setProfileMenuOpen(false)
+  }
+
+  const handleOpenProfileMenu = () => {
+    setProfileMenuOpen((current) => !current)
+    setAuthMenuOpen(false)
+  }
+
   const handleLoginChange = (event) => {
     const { name, value } = event.target
     setLoginForm((current) => ({
@@ -828,10 +956,9 @@ export default function AdminApp() {
         loginName: '',
         password: '',
       })
-      setLoginMessage({
-        type: 'success',
-        text: 'Signed in successfully.',
-      })
+      setAuthMenuOpen(false)
+      setProfileMenuOpen(false)
+      setLoginMessage(createEmptyMessage())
     } catch (error) {
       setLoginMessage({
         type: 'error',
@@ -881,10 +1008,7 @@ export default function AdminApp() {
         password: '',
         confirmPassword: '',
       })
-      setSetupMessage({
-        type: 'success',
-        text: 'Admin account created.',
-      })
+      setAuthMenuOpen(false)
       navigate(ADMIN_PATH)
     } catch (error) {
       setSetupMessage({
@@ -1022,7 +1146,7 @@ export default function AdminApp() {
     })
   }
 
-  const handleLogout = async () => {
+  const handleSignOut = async () => {
     if (supabase) {
       await supabase.auth.signOut()
     }
@@ -1030,51 +1154,70 @@ export default function AdminApp() {
     setProfile(null)
     setPlayers([])
     setSelectedPlayerId('')
+    setAuthMenuOpen(false)
+    setProfileMenuOpen(false)
     setLoginMessage(createEmptyMessage())
     setCreatePlayerResult(createEmptyMessage())
     setGoldResult(createEmptyMessage())
     navigate('/')
   }
 
+  const handleToggleAdmin = () => {
+    setAuthMenuOpen(false)
+    setProfileMenuOpen(false)
+    navigate(viewingAdmin ? '/' : ADMIN_PATH)
+  }
+
   const showSetupMessage = !hasSupabaseEnv
   const readyForProtectedView = !authLoading && !profileLoading && session && profile
-  const showGameScene = readyForProtectedView
-  const authMode = showSetupMessage || !readyForProtectedView
+  const showGameScene = readyForProtectedView || viewingAdmin
 
   return (
-    <div className={`portal-shell ${authMode ? 'auth-mode' : 'game-mode'}`}>
+    <div className={`portal-shell ${showGameScene ? 'game-mode' : 'auth-mode'}`}>
       {showGameScene ? (
         <div className="portal-scene">
           <AquariumScene />
         </div>
       ) : null}
 
-      <div className="portal-overlay">
+      <div className="portal-overlay top-layout">
+        <GameTopBar
+          authMenuOpen={authMenuOpen}
+          authPending={authPending}
+          authView={authView}
+          hasAdmin={hasAdmin}
+          isAdmin={isAdmin}
+          loginForm={loginForm}
+          loginMessage={loginMessage}
+          onBootstrapChange={handleBootstrapChange}
+          onCreateAdmin={handleCreateAdmin}
+          onLogin={handleLogin}
+          onLoginChange={handleLoginChange}
+          onOpenAdmin={handleToggleAdmin}
+          onOpenProfileMenu={handleOpenProfileMenu}
+          onOpenSignIn={openAuthMenu}
+          onSelectAuthView={setAuthView}
+          onSignOut={handleSignOut}
+          onToggleAuthMenu={handleToggleAuthMenu}
+          profile={profile}
+          profileMenuOpen={profileMenuOpen}
+          setupForm={setupForm}
+          setupMessage={setupMessage}
+          viewingAdmin={viewingAdmin}
+        />
+
         {showSetupMessage ? (
-          <section className="panel auth-card">
+          <section className="env-warning panel">
             <div className="eyebrow">Setup Needed</div>
-            <h1>Supabase environment variables are missing</h1>
             <p className="panel-copy">
               Add your `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `SUPABASE_URL`, and `SUPABASE_SERVICE_ROLE_KEY`
               values before using admin and account features.
             </p>
           </section>
-        ) : !readyForProtectedView ? (
-          <AuthCard
-            adminStatusLoading={adminStatusLoading}
-            authPending={authPending}
-            hasAdmin={hasAdmin}
-            loginForm={loginForm}
-            loginMessage={loginMessage}
-            onBootstrapChange={handleBootstrapChange}
-            onCreateAdmin={handleCreateAdmin}
-            onLogin={handleLogin}
-            onLoginChange={handleLoginChange}
-            setupForm={setupForm}
-            setupMessage={setupMessage}
-          />
-        ) : viewingAdmin ? (
-          isAdmin ? (
+        ) : null}
+
+        {viewingAdmin && readyForProtectedView && isAdmin ? (
+          <div className="admin-stage">
             <AdminPanel
               adminSection={adminSection}
               createPlayerForm={createPlayerForm}
@@ -1087,9 +1230,9 @@ export default function AdminApp() {
               onCreatePlayer={handleCreatePlayer}
               onCreatePlayerChange={handleCreatePlayerChange}
               onGoldFormChange={handleGoldFormChange}
-              onLogout={handleLogout}
+              onLogout={handleSignOut}
               onQuickGoldAmount={handleQuickGoldAmount}
-              onReturnToPlayer={() => navigate('/')}
+              onReturnToGame={() => navigate('/')}
               onSectionChange={setAdminSection}
               onSelectPlayer={setSelectedPlayerId}
               players={players}
@@ -1098,17 +1241,8 @@ export default function AdminApp() {
               profile={profile}
               selectedPlayer={selectedPlayer}
             />
-          ) : (
-            <UnauthorizedPanel onGoPlayer={() => navigate('/')} onLogout={handleLogout} />
-          )
-        ) : (
-          <PlayerHud
-            isAdmin={isAdmin}
-            onLogout={handleLogout}
-            onOpenAdmin={() => navigate(ADMIN_PATH)}
-            profile={profile}
-          />
-        )}
+          </div>
+        ) : null}
       </div>
     </div>
   )
