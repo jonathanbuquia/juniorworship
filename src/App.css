@@ -1,0 +1,862 @@
+.app-shell {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top, #fff8df 0%, #dff5ef 42%, #bee4d4 100%);
+}
+
+.garden-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.sky-decor,
+.spark {
+  position: absolute;
+}
+
+.sky-decor {
+  width: 200px;
+  height: 72px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.55);
+  filter: blur(1px);
+}
+
+.sky-decor::before,
+.sky-decor::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  background: inherit;
+}
+
+.sky-decor::before {
+  width: 86px;
+  height: 86px;
+  left: 24px;
+  top: -24px;
+}
+
+.sky-decor::after {
+  width: 92px;
+  height: 92px;
+  right: 24px;
+  top: -18px;
+}
+
+.cloud-one {
+  top: 12%;
+  left: 10%;
+}
+
+.cloud-two {
+  top: 16%;
+  right: 12%;
+  transform: scale(0.82);
+}
+
+.spark {
+  width: 14px;
+  height: 14px;
+  background: #fff8c4;
+  clip-path: polygon(50% 0, 64% 36%, 100% 50%, 64% 64%, 50% 100%, 36% 64%, 0 50%, 36% 36%);
+  opacity: 0.85;
+}
+
+.spark-one {
+  top: 20%;
+  left: 26%;
+}
+
+.spark-two {
+  top: 24%;
+  right: 24%;
+  transform: scale(0.8);
+}
+
+.spark-three {
+  top: 34%;
+  right: 18%;
+  transform: scale(0.62);
+}
+
+.garden-scene {
+  position: relative;
+  width: min(62vw, 680px);
+  aspect-ratio: 1 / 1;
+  display: grid;
+  place-items: center;
+}
+
+.farmer-boy {
+  position: absolute;
+  left: 8%;
+  bottom: 15%;
+  width: 180px;
+  height: 250px;
+}
+
+.farmer-shadow {
+  position: absolute;
+  left: 24px;
+  bottom: 8px;
+  width: 118px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(84, 118, 98, 0.18);
+  filter: blur(10px);
+}
+
+.farmer-walk {
+  position: absolute;
+  inset: 0;
+  animation: farmerBounce 1.2s ease-in-out infinite;
+}
+
+.farmer-hat,
+.farmer-head,
+.farmer-body,
+.farmer-arm,
+.farmer-leg,
+.hat-top,
+.hat-brim,
+.hair-fringe,
+.overall-pocket {
+  position: absolute;
+}
+
+.farmer-hat {
+  left: 38px;
+  top: 0;
+  width: 104px;
+  height: 54px;
+}
+
+.hat-top {
+  left: 20px;
+  top: 0;
+  width: 58px;
+  height: 34px;
+  border: 4px solid #8f6a39;
+  border-radius: 28px 28px 18px 18px;
+  background: linear-gradient(180deg, #ffd78d 0%, #f5b75a 100%);
+}
+
+.hat-brim {
+  left: 0;
+  top: 22px;
+  width: 104px;
+  height: 22px;
+  border: 4px solid #8f6a39;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ffe39f 0%, #f1c86e 100%);
+}
+
+.farmer-head {
+  left: 46px;
+  top: 28px;
+  width: 88px;
+  height: 84px;
+  border: 4px solid #8a5d46;
+  border-radius: 34px;
+  background: linear-gradient(180deg, #ffd8bf 0%, #f2b99f 100%);
+  box-shadow: inset 0 8px 0 rgba(255, 236, 225, 0.46);
+}
+
+.hair-fringe {
+  left: 8px;
+  top: 2px;
+  width: 64px;
+  height: 26px;
+  border-radius: 18px 18px 12px 12px;
+  background: linear-gradient(180deg, #7c5235 0%, #5c3823 100%);
+}
+
+.farmer-eye {
+  position: absolute;
+  top: 34px;
+  width: 10px;
+  height: 18px;
+  border-radius: 50%;
+  background: #523a34;
+}
+
+.farmer-eye.eye-left {
+  left: 22px;
+}
+
+.farmer-eye.eye-right {
+  right: 22px;
+}
+
+.farmer-mouth {
+  position: absolute;
+  left: 50%;
+  top: 54px;
+  width: 18px;
+  height: 10px;
+  margin-left: -9px;
+  border-bottom: 4px solid #8b5943;
+  border-radius: 0 0 16px 16px;
+}
+
+.farmer-cheek {
+  position: absolute;
+  top: 54px;
+  width: 12px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 171, 177, 0.74);
+}
+
+.farmer-cheek.cheek-left {
+  left: 12px;
+}
+
+.farmer-cheek.cheek-right {
+  right: 12px;
+}
+
+.farmer-body {
+  left: 34px;
+  top: 102px;
+  width: 112px;
+  height: 104px;
+}
+
+.farmer-body::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 4px solid #4b6d85;
+  border-radius: 26px;
+  background: linear-gradient(180deg, #96deff 0%, #4fb2e3 100%);
+}
+
+.farmer-body::after {
+  content: '';
+  position: absolute;
+  left: 26px;
+  right: 26px;
+  top: -6px;
+  height: 28px;
+  border: 4px solid #4b6d85;
+  border-bottom: 0;
+  border-radius: 16px 16px 0 0;
+  background: linear-gradient(180deg, #a8e7ff 0%, #70caef 100%);
+}
+
+.overall-pocket {
+  left: 38px;
+  top: 34px;
+  width: 36px;
+  height: 28px;
+  border: 4px solid #4b6d85;
+  border-radius: 10px;
+  background: #82d3f7;
+  z-index: 1;
+}
+
+.farmer-arm {
+  top: 22px;
+  width: 24px;
+  height: 64px;
+  border-radius: 18px;
+}
+
+.farmer-arm::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 4px solid #8a5d46;
+  background: linear-gradient(180deg, #ffd8bf 0%, #f2b99f 100%);
+}
+
+.arm-left {
+  left: -10px;
+  transform-origin: top center;
+  animation: armSwingLeft 1s ease-in-out infinite;
+}
+
+.arm-right {
+  right: -10px;
+  transform-origin: top center;
+  animation: armSwingRight 1s ease-in-out infinite;
+}
+
+.farmer-leg {
+  bottom: -2px;
+  width: 28px;
+  height: 72px;
+  transform-origin: top center;
+}
+
+.farmer-leg::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  top: 0;
+  height: 54px;
+  border-radius: 18px;
+  border: 4px solid #4f6d91;
+  background: linear-gradient(180deg, #6f8fc7 0%, #4c6eae 100%);
+}
+
+.farmer-leg::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: -2px;
+  width: 36px;
+  height: 16px;
+  border-radius: 18px 18px 10px 10px;
+  background: #6a4d3f;
+}
+
+.leg-left {
+  left: 22px;
+  animation: legStepLeft 1s ease-in-out infinite;
+}
+
+.leg-right {
+  right: 22px;
+  animation: legStepRight 1s ease-in-out infinite;
+}
+
+.ground-shadow {
+  position: absolute;
+  width: 62%;
+  height: 68px;
+  bottom: 15%;
+  border-radius: 50%;
+  background: rgba(83, 125, 109, 0.18);
+  filter: blur(16px);
+}
+
+.pot-wrap {
+  position: relative;
+  width: 320px;
+  height: 430px;
+  display: grid;
+  place-items: end center;
+}
+
+.butterfly {
+  position: absolute;
+  left: 50%;
+  top: 18px;
+  width: 92px;
+  height: 78px;
+  margin-left: -46px;
+  animation: butterflyOrbit 7.6s ease-in-out infinite;
+}
+
+.butterfly-wing,
+.butterfly-body,
+.butterfly-antenna {
+  position: absolute;
+}
+
+.butterfly-wing {
+  border: 3px solid #8f5f9f;
+  background: linear-gradient(180deg, #ffd3ff 0%, #f8a7ff 100%);
+  box-shadow: inset 0 4px 0 rgba(255, 255, 255, 0.32);
+  transform-origin: bottom center;
+}
+
+.wing-left-top,
+.wing-right-top {
+  top: 8px;
+  width: 30px;
+  height: 34px;
+  border-radius: 70% 70% 18% 70%;
+}
+
+.wing-left-bottom,
+.wing-right-bottom {
+  top: 30px;
+  width: 22px;
+  height: 24px;
+  border-radius: 70% 18% 70% 70%;
+}
+
+.wing-left-top {
+  left: 6px;
+  animation: flapLeftTop 0.9s ease-in-out infinite;
+}
+
+.wing-left-bottom {
+  left: 12px;
+  animation: flapLeftBottom 0.9s ease-in-out infinite;
+}
+
+.wing-right-top {
+  right: 6px;
+  transform: scaleX(-1);
+  animation: flapRightTop 0.9s ease-in-out infinite;
+}
+
+.wing-right-bottom {
+  right: 12px;
+  transform: scaleX(-1);
+  animation: flapRightBottom 0.9s ease-in-out infinite;
+}
+
+.butterfly-body {
+  left: 50%;
+  top: 16px;
+  width: 10px;
+  height: 36px;
+  margin-left: -5px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #7e5a57 0%, #4d3235 100%);
+}
+
+.butterfly-antenna {
+  top: 6px;
+  width: 16px;
+  height: 3px;
+  background: #7d5b75;
+  border-radius: 999px;
+}
+
+.antenna-left {
+  left: 30px;
+  transform: rotate(-28deg);
+}
+
+.antenna-right {
+  right: 30px;
+  transform: rotate(28deg);
+}
+
+.plant-pot {
+  position: absolute;
+  bottom: 40px;
+  width: 210px;
+  height: 170px;
+  border-radius: 22px 22px 42px 42px;
+  background: linear-gradient(180deg, #ffb88e 0%, #f5875f 60%, #da6844 100%);
+  border: 4px solid #9d533b;
+  box-shadow:
+    inset 0 8px 0 rgba(255, 226, 203, 0.45),
+    inset -12px -16px 0 rgba(166, 75, 48, 0.18);
+}
+
+.pot-rim {
+  position: absolute;
+  top: -12px;
+  left: -8px;
+  right: -8px;
+  height: 38px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #ffc8a6 0%, #ee8d64 100%);
+  border: 4px solid #9d533b;
+}
+
+.pot-face {
+  position: absolute;
+  inset: 0;
+}
+
+.pot-eye {
+  position: absolute;
+  top: 70px;
+  width: 18px;
+  height: 28px;
+  border-radius: 50%;
+  background: #5b3e34;
+}
+
+.pot-eye.left {
+  left: 64px;
+}
+
+.pot-eye.right {
+  right: 64px;
+}
+
+.pot-mouth {
+  position: absolute;
+  left: 50%;
+  top: 102px;
+  width: 30px;
+  height: 14px;
+  margin-left: -15px;
+  border-bottom: 4px solid #8c4a37;
+  border-radius: 0 0 20px 20px;
+}
+
+.pot-blush {
+  position: absolute;
+  top: 104px;
+  width: 22px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(255, 193, 192, 0.65);
+}
+
+.pot-blush.left {
+  left: 42px;
+}
+
+.pot-blush.right {
+  right: 42px;
+}
+
+.plant-stem {
+  position: absolute;
+  bottom: 180px;
+  width: 16px;
+  height: 160px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #7ee56b 0%, #349b4f 100%);
+  transform-origin: bottom center;
+  animation: sway 5.4s ease-in-out infinite;
+}
+
+.leaf {
+  position: absolute;
+  width: 72px;
+  height: 38px;
+  border: 4px solid #448e4d;
+  border-radius: 100% 0 100% 0;
+  background: linear-gradient(135deg, #b9ff8d 0%, #6ddf6e 100%);
+}
+
+.leaf-left {
+  left: -62px;
+  top: 52px;
+  transform: rotate(-30deg);
+}
+
+.leaf-right {
+  right: -62px;
+  top: 82px;
+  transform: scaleX(-1) rotate(-18deg);
+}
+
+.leaf-top {
+  left: -28px;
+  top: 18px;
+  width: 60px;
+  height: 30px;
+  transform: rotate(-78deg);
+}
+
+.flower-head {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  width: 172px;
+  height: 172px;
+  margin-left: -86px;
+  animation: bloomFloat 4.8s ease-in-out infinite;
+}
+
+.petal {
+  position: absolute;
+  width: 74px;
+  height: 74px;
+  border: 4px solid #b06a9f;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #ffd4f1 0%, #ffa9e4 100%);
+}
+
+.petal-top {
+  left: 49px;
+  top: -6px;
+}
+
+.petal-right {
+  right: -2px;
+  top: 49px;
+}
+
+.petal-bottom {
+  left: 49px;
+  bottom: -4px;
+}
+
+.petal-left {
+  left: -2px;
+  top: 49px;
+}
+
+.petal-top-left {
+  left: 14px;
+  top: 14px;
+}
+
+.petal-top-right {
+  right: 14px;
+  top: 14px;
+}
+
+.petal-bottom-left {
+  left: 14px;
+  bottom: 14px;
+}
+
+.petal-bottom-right {
+  right: 14px;
+  bottom: 14px;
+}
+
+.flower-center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 88px;
+  height: 88px;
+  margin-left: -44px;
+  margin-top: -44px;
+  border: 4px solid #b5831e;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #ffe66f 0%, #ffc23c 100%);
+  box-shadow: inset 0 6px 0 rgba(255, 248, 194, 0.6);
+}
+
+.flower-eye {
+  position: absolute;
+  top: 28px;
+  width: 12px;
+  height: 22px;
+  border-radius: 50%;
+  background: #503d32;
+}
+
+.flower-eye.left {
+  left: 23px;
+}
+
+.flower-eye.right {
+  right: 23px;
+}
+
+.flower-mouth {
+  position: absolute;
+  left: 50%;
+  top: 50px;
+  width: 18px;
+  height: 10px;
+  margin-left: -9px;
+  border-bottom: 4px solid #8f6121;
+  border-radius: 0 0 18px 18px;
+}
+
+.flower-cheek {
+  position: absolute;
+  top: 50px;
+  width: 12px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 165, 192, 0.8);
+}
+
+.flower-cheek.left {
+  left: 13px;
+}
+
+.flower-cheek.right {
+  right: 13px;
+}
+
+@keyframes sway {
+  0%,
+  100% {
+    transform: rotate(-3deg);
+  }
+
+  50% {
+    transform: rotate(4deg);
+  }
+}
+
+@keyframes bloomFloat {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-1.5deg);
+  }
+
+  50% {
+    transform: translateY(-8px) rotate(1.5deg);
+  }
+}
+
+@keyframes butterflyOrbit {
+  0%,
+  100% {
+    transform: translate3d(-130px, 40px, 0) rotate(-8deg);
+  }
+
+  25% {
+    transform: translate3d(60px, -10px, 0) rotate(10deg);
+  }
+
+  50% {
+    transform: translate3d(130px, 86px, 0) rotate(-6deg);
+  }
+
+  75% {
+    transform: translate3d(-30px, 128px, 0) rotate(12deg);
+  }
+}
+
+@keyframes flapLeftTop {
+  0%,
+  100% {
+    transform: rotate(-14deg);
+  }
+
+  50% {
+    transform: rotate(-40deg);
+  }
+}
+
+@keyframes flapLeftBottom {
+  0%,
+  100% {
+    transform: rotate(10deg);
+  }
+
+  50% {
+    transform: rotate(28deg);
+  }
+}
+
+@keyframes flapRightTop {
+  0%,
+  100% {
+    transform: scaleX(-1) rotate(-14deg);
+  }
+
+  50% {
+    transform: scaleX(-1) rotate(-40deg);
+  }
+}
+
+@keyframes flapRightBottom {
+  0%,
+  100% {
+    transform: scaleX(-1) rotate(10deg);
+  }
+
+  50% {
+    transform: scaleX(-1) rotate(28deg);
+  }
+}
+
+@keyframes farmerBounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes armSwingLeft {
+  0%,
+  100% {
+    transform: rotate(14deg);
+  }
+
+  50% {
+    transform: rotate(-16deg);
+  }
+}
+
+@keyframes armSwingRight {
+  0%,
+  100% {
+    transform: rotate(-16deg);
+  }
+
+  50% {
+    transform: rotate(14deg);
+  }
+}
+
+@keyframes legStepLeft {
+  0%,
+  100% {
+    transform: rotate(16deg);
+  }
+
+  50% {
+    transform: rotate(-14deg);
+  }
+}
+
+@keyframes legStepRight {
+  0%,
+  100% {
+    transform: rotate(-14deg);
+  }
+
+  50% {
+    transform: rotate(16deg);
+  }
+}
+
+@media (max-width: 900px) {
+  .garden-scene {
+    width: min(92vw, 520px);
+  }
+
+  .farmer-boy {
+    left: 2%;
+    bottom: 16%;
+    transform: scale(0.82);
+    transform-origin: bottom left;
+  }
+
+  .pot-wrap {
+    width: 260px;
+    height: 360px;
+  }
+
+  .butterfly {
+    transform: scale(0.82);
+    transform-origin: center;
+  }
+
+  .plant-pot {
+    width: 180px;
+    height: 146px;
+  }
+
+  .plant-stem {
+    height: 138px;
+    bottom: 156px;
+  }
+
+  .flower-head {
+    width: 146px;
+    height: 146px;
+    margin-left: -73px;
+  }
+
+  .petal {
+    width: 62px;
+    height: 62px;
+  }
+
+  .flower-center {
+    width: 76px;
+    height: 76px;
+    margin-left: -38px;
+    margin-top: -38px;
+  }
+}
