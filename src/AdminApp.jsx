@@ -620,13 +620,7 @@ function GameTopBar({
         </div>
       </div>
 
-      <div className="header-center">
-        {profile ? (
-          <div className="gold-display-pill">
-            <strong>GOLD: {profile.gold ?? 0}</strong>
-          </div>
-        ) : null}
-      </div>
+      <div className="header-center" />
 
       <div className="header-right">
         <button className="ghost-button" onClick={onOpenShop} type="button">
