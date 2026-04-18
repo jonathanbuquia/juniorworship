@@ -204,7 +204,10 @@
 }
 
 .profile-menu {
-  width: min(92vw, 320px);
+  width: min(88vw, 270px);
+  padding: 12px;
+  gap: 10px;
+  border-radius: 22px;
 }
 
 .profile-menu-title,
@@ -216,8 +219,18 @@
 }
 
 .profile-menu-list {
-  max-height: 320px;
+  max-height: 260px;
   overflow: auto;
+}
+
+.profile-menu-title {
+  gap: 4px;
+  padding: 2px 4px 0;
+}
+
+.profile-menu-title strong {
+  font-size: 0.98rem;
+  line-height: 1.2;
 }
 
 .auth-session-strip {
@@ -234,8 +247,8 @@
   align-items: center;
   gap: 12px;
   text-align: left;
-  border-radius: 16px;
-  padding: 12px 14px;
+  border-radius: 14px;
+  padding: 10px 12px;
   color: #143a50;
   background: rgba(242, 251, 255, 0.85);
   box-shadow: inset 0 0 0 1px rgba(73, 123, 147, 0.12);
@@ -249,9 +262,10 @@
 }
 
 .profile-menu-item span {
-  margin-top: 4px;
+  margin-top: 2px;
   color: #5f8093;
   font-style: normal;
+  font-size: 0.88rem;
 }
 
 .profile-menu-item em {

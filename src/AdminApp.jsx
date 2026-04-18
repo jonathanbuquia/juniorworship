@@ -557,8 +557,8 @@ function ProfileMenu({ onSelectPlayer, players, selectedPlayerId }) {
   return (
     <div className="profile-menu panel">
       <div className="profile-menu-title">
-        <div className="eyebrow">View</div>
-        <strong>Choose whose aquarium to open</strong>
+        <div className="eyebrow">Visit</div>
+        <strong>Choose a player aquarium</strong>
       </div>
 
       <div className="profile-menu-list">
@@ -620,7 +620,7 @@ function GameTopBar({
         </div>
         <div className="header-menu-wrap">
           <button className="header-menu-button" onClick={onOpenProfileMenu} type="button">
-            VIEW
+            VISIT
           </button>
           {profileMenuOpen ? (
             <ProfileMenu
