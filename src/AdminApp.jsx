@@ -57,6 +57,10 @@ function createEmptyActiveMemoryVerse() {
   }
 }
 
+function clampMemoryFontSize(value) {
+  return Math.min(2.8, Math.max(1, value))
+}
+
 function createEmptyQuizQuestion() {
   return {
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -881,6 +885,7 @@ function MemoryVersePage({
   awardPendingPlayerId,
   isAdmin,
   isMemoryFullscreen,
+  memoryFontScale,
   memoryRewardsOpen,
   memoryVerseEditorOpen,
   memoryVerseForm,
@@ -889,6 +894,8 @@ function MemoryVersePage({
   onCoverAll,
   onCoverNext,
   onCloseMemoryRewards,
+  onDecreaseMemoryFont,
+  onIncreaseMemoryFont,
   onOpenMemoryRewards,
   onMemoryVerseChange,
   onRedoCover,
@@ -999,7 +1006,17 @@ function MemoryVersePage({
                   </button>
                 </div>
 
-                <div className="memory-verse-display">
+                <div className="memory-text-controls">
+                  <span className="memory-text-size-label">Text size</span>
+                  <button className="ghost-button compact-button" onClick={onDecreaseMemoryFont} type="button">
+                    A-
+                  </button>
+                  <button className="ghost-button compact-button" onClick={onIncreaseMemoryFont} type="button">
+                    A+
+                  </button>
+                </div>
+
+                <div className="memory-verse-display" style={{ fontSize: `${memoryFontScale}rem` }}>
                   {tokens.map((token) =>
                     token.isWord ? (
                       <span
@@ -1356,6 +1373,7 @@ export default function AdminApp() {
   const [activeMemoryVerse, setActiveMemoryVerse] = useState(createEmptyActiveMemoryVerse)
   const [memoryVerseEditorOpen, setMemoryVerseEditorOpen] = useState(true)
   const [memoryRewardsOpen, setMemoryRewardsOpen] = useState(false)
+  const [memoryFontScale, setMemoryFontScale] = useState(1.6)
   const [isMemoryFullscreen, setIsMemoryFullscreen] = useState(false)
   const [quizQuestions, setQuizQuestions] = useState([])
   const [quizCurrentIndex, setQuizCurrentIndex] = useState(-1)
@@ -2327,6 +2345,14 @@ export default function AdminApp() {
     }
   }
 
+  const handleIncreaseMemoryFont = () => {
+    setMemoryFontScale((current) => clampMemoryFontSize(current + 0.2))
+  }
+
+  const handleDecreaseMemoryFont = () => {
+    setMemoryFontScale((current) => clampMemoryFontSize(current - 0.2))
+  }
+
   const handleOpenQuiz = () => {
     setAuthMenuOpen(false)
     setProfileMenuOpen(false)
@@ -2404,6 +2430,7 @@ export default function AdminApp() {
               awardPendingPlayerId={awardPendingPlayerId}
               isAdmin={isAdmin}
               isMemoryFullscreen={isMemoryFullscreen}
+              memoryFontScale={memoryFontScale}
               memoryRewardsOpen={memoryRewardsOpen}
               memoryVerseEditorOpen={memoryVerseEditorOpen}
               memoryVerseForm={memoryVerseForm}
@@ -2412,6 +2439,8 @@ export default function AdminApp() {
               onCoverAll={handleCoverAll}
               onCoverNext={handleCoverNext}
               onCloseMemoryRewards={handleCloseMemoryRewards}
+              onDecreaseMemoryFont={handleDecreaseMemoryFont}
+              onIncreaseMemoryFont={handleIncreaseMemoryFont}
               onOpenMemoryRewards={handleOpenMemoryRewards}
               onMemoryVerseChange={handleMemoryVerseChange}
               onRedoCover={handleRedoCover}
