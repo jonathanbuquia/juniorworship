@@ -561,6 +561,7 @@ export default function AdminApp() {
   const [goldForm, setGoldForm] = useState({
     amount: '',
   })
+  const sessionUserId = session?.user?.id ?? ''
 
   useEffect(() => {
     const handlePopState = () => {
@@ -647,7 +648,7 @@ export default function AdminApp() {
   }, [])
 
   useEffect(() => {
-    if (!session || !supabase) {
+    if (!sessionUserId || !supabase) {
       setProfile(null)
       setProfileLoading(false)
       return
@@ -660,7 +661,7 @@ export default function AdminApp() {
       const { data, error } = await supabase
         .from('profiles')
         .select('id, display_name, gold, login_name, role')
-        .eq('id', session.user.id)
+        .eq('id', sessionUserId)
         .single()
 
       if (cancelled) {
@@ -686,7 +687,7 @@ export default function AdminApp() {
     return () => {
       cancelled = true
     }
-  }, [session])
+  }, [sessionUserId])
 
   const isAdmin = useMemo(() => isAdminProfile(profile), [profile])
   const viewingAdmin = pathname === ADMIN_PATH
