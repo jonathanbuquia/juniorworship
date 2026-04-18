@@ -204,13 +204,12 @@
 }
 
 .profile-menu {
-  width: min(88vw, 270px);
-  padding: 12px;
-  gap: 10px;
-  border-radius: 22px;
+  width: min(80vw, 220px);
+  padding: 8px;
+  gap: 6px;
+  border-radius: 18px;
 }
 
-.profile-menu-title,
 .profile-menu-list,
 .auth-session-strip,
 .auth-session-actions {
@@ -219,18 +218,9 @@
 }
 
 .profile-menu-list {
-  max-height: 260px;
+  gap: 6px;
+  max-height: 240px;
   overflow: auto;
-}
-
-.profile-menu-title {
-  gap: 4px;
-  padding: 2px 4px 0;
-}
-
-.profile-menu-title strong {
-  font-size: 0.98rem;
-  line-height: 1.2;
 }
 
 .auth-session-strip {
@@ -242,36 +232,20 @@
 
 .profile-menu-item {
   width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
+  display: block;
   text-align: left;
-  border-radius: 14px;
+  border-radius: 12px;
   padding: 10px 12px;
   color: #143a50;
-  background: rgba(242, 251, 255, 0.85);
+  background: rgba(248, 252, 255, 0.92);
   box-shadow: inset 0 0 0 1px rgba(73, 123, 147, 0.12);
   cursor: pointer;
 }
 
-.profile-menu-item strong,
-.profile-menu-item span,
-.profile-menu-item em {
-  display: block;
-}
-
 .profile-menu-item span {
-  margin-top: 2px;
-  color: #5f8093;
-  font-style: normal;
-  font-size: 0.88rem;
-}
-
-.profile-menu-item em {
-  font-style: normal;
-  font-weight: 700;
-  color: #0d6787;
+  display: block;
+  font-weight: 600;
+  color: inherit;
 }
 
 .profile-menu-item.active {
@@ -280,9 +254,8 @@
   box-shadow: 0 16px 30px rgba(14, 111, 166, 0.22);
 }
 
-.profile-menu-item.active span,
-.profile-menu-item.active em {
-  color: rgba(255, 255, 255, 0.84);
+.profile-menu-item.active span {
+  color: white;
 }
 
 .auth-switcher {

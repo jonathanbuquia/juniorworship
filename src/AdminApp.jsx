@@ -556,11 +556,6 @@ function AuthPopover({
 function ProfileMenu({ onSelectPlayer, players, selectedPlayerId }) {
   return (
     <div className="profile-menu panel">
-      <div className="profile-menu-title">
-        <div className="eyebrow">Visit</div>
-        <strong>Choose a player aquarium</strong>
-      </div>
-
       <div className="profile-menu-list">
         {players.length ? (
           players.map((player) => (
@@ -570,10 +565,7 @@ function ProfileMenu({ onSelectPlayer, players, selectedPlayerId }) {
               onClick={() => onSelectPlayer(player.id)}
               type="button"
             >
-              <div>
-                <strong>{player.display_name}</strong>
-                <span>{player.login_name}</span>
-              </div>
+              <span>{player.display_name}</span>
             </button>
           ))
         ) : (
