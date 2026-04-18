@@ -908,6 +908,22 @@ function MemoryVersePage({
   return (
     <section className="panel memory-verse-shell memory-page-shell">
       <div className="memory-verse-main">
+        <div className="memory-page-toolbar">
+          {!memoryVerseEditorOpen && hasVerse ? (
+            <button className="ghost-button compact-button" onClick={onShowMemoryVerseEditor} type="button">
+              Edit verse
+            </button>
+          ) : (
+            <div />
+          )}
+
+          {isAdmin ? (
+            <button className="primary-button compact-button" onClick={onOpenMemoryRewards} type="button">
+              Add rewards
+            </button>
+          ) : null}
+        </div>
+
         <div className={`memory-verse-grid ${memoryVerseEditorOpen || !hasVerse ? '' : 'presentation-mode'}`}>
           {memoryVerseEditorOpen || !hasVerse ? (
             <form className="workspace-card stack-form" onSubmit={onRunMemoryVerse}>
@@ -973,9 +989,6 @@ function MemoryVersePage({
                   </button>
                   <button className="ghost-button compact-button" onClick={onShowMemoryVerseEditor} type="button">
                     Edit verse
-                  </button>
-                  <button className="primary-button compact-button" onClick={onOpenMemoryRewards} type="button">
-                    Verse rewards
                   </button>
                 </div>
 
