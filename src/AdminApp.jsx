@@ -606,10 +606,6 @@ function GameTopBar({
   return (
     <header className="game-header">
       <div className="header-left">
-        <div className="site-brand">
-          <span className="eyebrow">Sunday School</span>
-          <strong>Junior Worship</strong>
-        </div>
         <div className="header-menu-wrap">
           <button className="header-menu-button" onClick={onOpenProfileMenu} type="button">
             VISIT
@@ -627,8 +623,7 @@ function GameTopBar({
       <div className="header-center">
         {profile ? (
           <div className="gold-display-pill">
-            <span>Gold</span>
-            <strong>{profile.gold ?? 0}</strong>
+            <strong>GOLD: {profile.gold ?? 0}</strong>
           </div>
         ) : null}
       </div>
