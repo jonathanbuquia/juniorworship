@@ -7,6 +7,7 @@ const ADMIN_PATH = '/admin'
 const ADMIN_SECTIONS = {
   createPlayer: 'create-player',
   manageGold: 'manage-gold',
+  deletePlayer: 'delete-player',
 }
 const QUICK_GOLD_ACTIONS = [25, 50, 100, -25, -50, -100]
 const AUTH_VIEWS = {
@@ -277,17 +278,110 @@ function GoldManagerSection({
   )
 }
 
+function DeletePlayerSection({
+  deletePending,
+  deleteResult,
+  onDeletePlayer,
+  onSelectPlayer,
+  players,
+  playersLoading,
+  playersMessage,
+  selectedPlayer,
+}) {
+  return (
+    <div className="admin-content-stack">
+      <div className="content-intro">
+        <div>
+          <div className="eyebrow">Delete Players</div>
+          <h2>Remove a player account</h2>
+        </div>
+        <p className="panel-copy">
+          This permanently deletes the player login, profile, and anything saved under that account.
+        </p>
+      </div>
+
+      {playersMessage.text ? <p className={`status-line ${playersMessage.type}`}>{playersMessage.text}</p> : null}
+
+      <div className="gold-layout">
+        <div className="workspace-card player-browser-card">
+          <div className="card-heading">
+            <h3>Players</h3>
+            <span>{players.length}</span>
+          </div>
+
+          {playersLoading ? (
+            <p className="panel-note">Loading players...</p>
+          ) : players.length ? (
+            <div className="player-browser-list">
+              {players.map((player) => (
+                <button
+                  className={`player-browser-item ${selectedPlayer?.id === player.id ? 'active' : ''}`}
+                  key={player.id}
+                  onClick={() => onSelectPlayer(player.id)}
+                  type="button"
+                >
+                  <div>
+                    <strong>{player.display_name}</strong>
+                    <span>{player.login_name}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <p className="panel-note">There are no player accounts to delete.</p>
+          )}
+        </div>
+
+        <div className="workspace-card delete-player-card">
+          {selectedPlayer ? (
+            <>
+              <div className="selected-player-hero">
+                <div>
+                  <div className="eyebrow">Selected Player</div>
+                  <h3>{selectedPlayer.display_name}</h3>
+                  <p className="panel-note">Login: {selectedPlayer.login_name}</p>
+                </div>
+              </div>
+
+              <div className="danger-zone">
+                <h3>Permanent delete</h3>
+                <p className="panel-note">
+                  This removes the player account completely, including their saved profile and owned data.
+                </p>
+
+                {deleteResult.text ? <p className={`status-line ${deleteResult.type}`}>{deleteResult.text}</p> : null}
+
+                <button className="danger-button" disabled={deletePending} onClick={onDeletePlayer} type="button">
+                  {deletePending ? 'Deleting player...' : 'Delete player'}
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className="empty-state-card">
+              <h3>Select a player</h3>
+              <p className="panel-note">Choose a player from the list before deleting the account.</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function AdminPanel({
   adminSection,
   createPlayerForm,
   createPlayerPending,
   createPlayerResult,
+  deletePending,
+  deleteResult,
   goldForm,
   goldPending,
   goldResult,
   onAdjustGold,
   onCreatePlayer,
   onCreatePlayerChange,
+  onDeletePlayer,
   onGoldFormChange,
   onLogout,
   onQuickGoldAmount,
@@ -329,6 +423,15 @@ function AdminPanel({
             <span>Manage gold</span>
             <small>Add or remove player gold</small>
           </button>
+
+          <button
+            className={`sidebar-nav-item ${adminSection === ADMIN_SECTIONS.deletePlayer ? 'active' : ''}`}
+            onClick={() => onSectionChange(ADMIN_SECTIONS.deletePlayer)}
+            type="button"
+          >
+            <span>Delete player</span>
+            <small>Remove a player account permanently</small>
+          </button>
         </nav>
 
         <div className="sidebar-footer">
@@ -351,7 +454,7 @@ function AdminPanel({
             onCreatePlayerChange={onCreatePlayerChange}
             players={players}
           />
-        ) : (
+        ) : adminSection === ADMIN_SECTIONS.manageGold ? (
           <GoldManagerSection
             goldForm={goldForm}
             goldPending={goldPending}
@@ -359,6 +462,17 @@ function AdminPanel({
             onAdjustGold={onAdjustGold}
             onGoldFormChange={onGoldFormChange}
             onQuickGoldAmount={onQuickGoldAmount}
+            onSelectPlayer={onSelectPlayer}
+            players={players}
+            playersLoading={playersLoading}
+            playersMessage={playersMessage}
+            selectedPlayer={selectedPlayer}
+          />
+        ) : (
+          <DeletePlayerSection
+            deletePending={deletePending}
+            deleteResult={deleteResult}
+            onDeletePlayer={onDeletePlayer}
             onSelectPlayer={onSelectPlayer}
             players={players}
             playersLoading={playersLoading}
@@ -669,6 +783,7 @@ export default function AdminApp() {
   const [createPlayerPending, setCreatePlayerPending] = useState(false)
   const [playersLoading, setPlayersLoading] = useState(false)
   const [goldPending, setGoldPending] = useState(false)
+  const [deletePending, setDeletePending] = useState(false)
   const [players, setPlayers] = useState([])
   const [publicPlayers, setPublicPlayers] = useState([])
   const [adminSection, setAdminSection] = useState(ADMIN_SECTIONS.createPlayer)
@@ -682,6 +797,7 @@ export default function AdminApp() {
   const [createPlayerResult, setCreatePlayerResult] = useState(createEmptyMessage)
   const [playersMessage, setPlayersMessage] = useState(createEmptyMessage)
   const [goldResult, setGoldResult] = useState(createEmptyMessage)
+  const [deleteResult, setDeleteResult] = useState(createEmptyMessage)
   const [loginForm, setLoginForm] = useState({
     loginName: '',
     password: '',
@@ -1143,6 +1259,7 @@ export default function AdminApp() {
         type: 'success',
         text: `Player "${data.player.displayName}" created. Share the login name "${data.player.loginName}" with the password you set.`,
       })
+      setDeleteResult(createEmptyMessage())
       await loadPlayers({
         preserveSelection: false,
         preferredPlayerId: data.player.id,
@@ -1204,6 +1321,7 @@ export default function AdminApp() {
         type: 'success',
         text: `${formatGoldChange(amount)} gold applied to ${data.player.display_name}. New balance: ${data.player.gold}.`,
       })
+      setDeleteResult(createEmptyMessage())
 
       setPlayers((current) =>
         current.map((player) => (player.id === data.player.id ? { ...player, ...data.player } : player)),
@@ -1227,6 +1345,66 @@ export default function AdminApp() {
     })
   }
 
+  const handleDeletePlayer = async () => {
+    setDeleteResult(createEmptyMessage())
+    setDeletePending(true)
+
+    try {
+      if (!session?.access_token) {
+        throw new Error('Your admin session is missing. Please log in again.')
+      }
+
+      if (!selectedPlayerId || !selectedPlayer) {
+        throw new Error('Select a player first.')
+      }
+
+      const confirmed = window.confirm(
+        `Delete ${selectedPlayer.display_name}? This permanently removes the player account and saved data.`,
+      )
+
+      if (!confirmed) {
+        return
+      }
+
+      const deletedPlayerId = selectedPlayer.id
+      const response = await fetch('/api/delete-player', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          playerId: deletedPlayerId,
+        }),
+      })
+      const data = await readJson(response)
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Unable to delete the player account.')
+      }
+
+      setDeleteResult({
+        type: 'success',
+        text: `${data.player.display_name} was deleted permanently.`,
+      })
+      setGoldResult(createEmptyMessage())
+
+      await loadPlayers({
+        preserveSelection: false,
+      })
+      await loadPublicPlayers({
+        preserveSelection: viewedPlayerId !== deletedPlayerId,
+      })
+    } catch (error) {
+      setDeleteResult({
+        type: 'error',
+        text: error.message,
+      })
+    } finally {
+      setDeletePending(false)
+    }
+  }
+
   const handleSignOut = async () => {
     if (supabase) {
       await supabase.auth.signOut()
@@ -1240,6 +1418,7 @@ export default function AdminApp() {
     setLoginMessage(createEmptyMessage())
     setCreatePlayerResult(createEmptyMessage())
     setGoldResult(createEmptyMessage())
+    setDeleteResult(createEmptyMessage())
     navigate('/')
   }
 
@@ -1312,12 +1491,15 @@ export default function AdminApp() {
               createPlayerForm={createPlayerForm}
               createPlayerPending={createPlayerPending}
               createPlayerResult={createPlayerResult}
+              deletePending={deletePending}
+              deleteResult={deleteResult}
               goldForm={goldForm}
               goldPending={goldPending}
               goldResult={goldResult}
               onAdjustGold={handleAdjustGold}
               onCreatePlayer={handleCreatePlayer}
               onCreatePlayerChange={handleCreatePlayerChange}
+              onDeletePlayer={handleDeletePlayer}
               onGoldFormChange={handleGoldFormChange}
               onLogout={handleSignOut}
               onQuickGoldAmount={handleQuickGoldAmount}
