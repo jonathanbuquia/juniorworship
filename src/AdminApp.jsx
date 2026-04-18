@@ -4,6 +4,7 @@ import AquariumScene from './components/AquariumScene'
 import { hasSupabaseEnv, supabase } from './lib/supabase'
 
 const ADMIN_PATH = '/admin'
+const MEMORY_PATH = '/memory-verse'
 const ADMIN_SECTIONS = {
   createPlayer: 'create-player',
   manageGold: 'manage-gold',
@@ -14,6 +15,7 @@ const AUTH_VIEWS = {
   player: 'player',
   admin: 'admin',
 }
+const MEMORY_VERSE_STORAGE_KEY = 'memory-verse-helper'
 
 function normalizeLoginName(value) {
   return value.trim().toLowerCase().replace(/\s+/g, ' ')
@@ -36,6 +38,47 @@ function createEmptyMessage() {
 
 function formatGoldChange(amount) {
   return amount > 0 ? `+${amount}` : `${amount}`
+}
+
+function createEmptyMemoryVerseForm() {
+  return {
+    reference: '',
+    text: '',
+  }
+}
+
+function createEmptyActiveMemoryVerse() {
+  return {
+    reference: '',
+    text: '',
+    coveredCount: 0,
+  }
+}
+
+function buildMemoryVerseTokens(text) {
+  let wordIndex = -1
+
+  return String(text || '')
+    .split(/(\s+)/)
+    .filter(Boolean)
+    .map((token, tokenIndex) => {
+      const isWord = !/^\s+$/.test(token)
+
+      if (isWord) {
+        wordIndex += 1
+      }
+
+      return {
+        id: `${tokenIndex}-${token}`,
+        isWord,
+        text: token,
+        wordIndex,
+      }
+    })
+}
+
+function getMemoryVerseWordCount(text) {
+  return buildMemoryVerseTokens(text).filter((token) => token.isWord).length
 }
 
 function mergeViewedPlayer(player, profile) {
@@ -702,6 +745,7 @@ function GameTopBar({
   onLogin,
   onLoginChange,
   onOpenAdmin,
+  onOpenMemoryVerse,
   onOpenProfileMenu,
   onOpenShop,
   onSelectViewedPlayer,
@@ -715,6 +759,7 @@ function GameTopBar({
   setupMessage,
   authPending,
   viewedPlayer,
+  viewingMemory,
   viewingAdmin,
 }) {
   return (
@@ -732,6 +777,13 @@ function GameTopBar({
             />
           ) : null}
         </div>
+        <button
+          className={`header-menu-button ${viewingMemory ? 'active' : ''}`}
+          onClick={onOpenMemoryVerse}
+          type="button"
+        >
+          MEMORY
+        </button>
       </div>
 
       <div className="header-center" />
@@ -772,6 +824,176 @@ function GameTopBar({
   )
 }
 
+function MemoryVersePage({
+  activeMemoryVerse,
+  awardPendingPlayerId,
+  isAdmin,
+  memoryVerseForm,
+  memoryVerseResult,
+  onAwardPlayer,
+  onCoverAll,
+  onCoverNext,
+  onMemoryVerseChange,
+  onRedoCover,
+  onResetCover,
+  onRunMemoryVerse,
+  onUndoCover,
+  players,
+  playersLoading,
+  playersMessage,
+  verseAwardResult,
+}) {
+  const tokens = useMemo(() => buildMemoryVerseTokens(activeMemoryVerse.text), [activeMemoryVerse.text])
+  const totalWords = useMemo(() => getMemoryVerseWordCount(activeMemoryVerse.text), [activeMemoryVerse.text])
+  const coveredCount = Math.min(activeMemoryVerse.coveredCount, totalWords)
+  const hasVerse = Boolean(activeMemoryVerse.reference || activeMemoryVerse.text)
+
+  return (
+    <section className="panel memory-verse-shell">
+      <div className="memory-verse-main">
+        <div className="content-intro">
+          <div>
+            <div className="eyebrow">Memory Verse Helper</div>
+            <h2>Paste the verse, then hide it little by little</h2>
+          </div>
+          <p className="panel-copy">
+            Set the book and verse text, run the helper, then cover one word at a time while the players recite.
+          </p>
+        </div>
+
+        <div className="memory-verse-grid">
+          <form className="workspace-card stack-form" onSubmit={onRunMemoryVerse}>
+            <label className="field">
+              <span>Book / verse title</span>
+              <input
+                name="reference"
+                onChange={onMemoryVerseChange}
+                placeholder="John 3:16"
+                value={memoryVerseForm.reference}
+              />
+            </label>
+
+            <label className="field">
+              <span>Verse text</span>
+              <textarea
+                name="text"
+                onChange={onMemoryVerseChange}
+                placeholder="For God so loved the world..."
+                rows={6}
+                value={memoryVerseForm.text}
+              />
+            </label>
+
+            {memoryVerseResult.text ? (
+              <p className={`status-line ${memoryVerseResult.type}`}>{memoryVerseResult.text}</p>
+            ) : null}
+
+            <button className="primary-button" type="submit">
+              Run helper
+            </button>
+          </form>
+
+          <div className="workspace-card memory-helper-card">
+            {hasVerse ? (
+              <>
+                <div className="memory-helper-header">
+                  <div>
+                    <div className="eyebrow">Active Verse</div>
+                    <h3>{activeMemoryVerse.reference || 'Memory verse'}</h3>
+                  </div>
+                  <div className="memory-progress-badge">
+                    {coveredCount}/{totalWords || 0} covered
+                  </div>
+                </div>
+
+                <div className="memory-helper-controls">
+                  <button className="ghost-button compact-button" onClick={onCoverNext} type="button">
+                    Cover next
+                  </button>
+                  <button className="ghost-button compact-button" onClick={onUndoCover} type="button">
+                    &lt; Undo
+                  </button>
+                  <button className="ghost-button compact-button" onClick={onRedoCover} type="button">
+                    Redo &gt;
+                  </button>
+                  <button className="ghost-button compact-button" onClick={onResetCover} type="button">
+                    Reset
+                  </button>
+                  <button className="ghost-button compact-button" onClick={onCoverAll} type="button">
+                    Cover all
+                  </button>
+                </div>
+
+                <div className="memory-verse-display">
+                  {tokens.map((token) =>
+                    token.isWord ? (
+                      <span
+                        className={`memory-token ${token.wordIndex < coveredCount ? 'hidden' : ''}`}
+                        key={token.id}
+                      >
+                        {token.text}
+                      </span>
+                    ) : (
+                      <span className="memory-token space" key={token.id}>
+                        {token.text}
+                      </span>
+                    ),
+                  )}
+                </div>
+              </>
+            ) : (
+              <div className="empty-state-card">
+                <h3>No verse running yet</h3>
+                <p className="panel-note">Paste a verse on the left and click `Run helper` to start covering words.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <aside className="memory-verse-sidebar workspace-card">
+        <div className="content-intro">
+          <div>
+            <div className="eyebrow">Verse Rewards</div>
+            <h3>Give 50 gold</h3>
+          </div>
+          <p className="panel-copy">When a player recites the verse, tap their button to reward them.</p>
+        </div>
+
+        {!isAdmin ? (
+          <p className="panel-note">Sign in as admin to give the 50 gold reward.</p>
+        ) : playersLoading ? (
+          <p className="panel-note">Loading players...</p>
+        ) : players.length ? (
+          <div className="memory-player-rewards">
+            {players.map((player) => (
+              <div className="memory-player-row" key={player.id}>
+                <div>
+                  <strong>{player.display_name}</strong>
+                  <span>{player.gold} gold</span>
+                </div>
+                <button
+                  className="primary-button compact-button"
+                  disabled={awardPendingPlayerId === player.id}
+                  onClick={() => onAwardPlayer(player.id)}
+                  type="button"
+                >
+                  {awardPendingPlayerId === player.id ? 'Adding...' : '+50 gold'}
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="panel-note">Create player accounts first so you can reward them here.</p>
+        )}
+
+        {playersMessage.text ? <p className={`status-line ${playersMessage.type}`}>{playersMessage.text}</p> : null}
+        {verseAwardResult.text ? <p className={`status-line ${verseAwardResult.type}`}>{verseAwardResult.text}</p> : null}
+      </aside>
+    </section>
+  )
+}
+
 export default function AdminApp() {
   const [pathname, setPathname] = useState(() => window.location.pathname || '/')
   const [session, setSession] = useState(null)
@@ -795,9 +1017,12 @@ export default function AdminApp() {
   const [loginMessage, setLoginMessage] = useState(createEmptyMessage)
   const [setupMessage, setSetupMessage] = useState(createEmptyMessage)
   const [createPlayerResult, setCreatePlayerResult] = useState(createEmptyMessage)
+  const [memoryVerseResult, setMemoryVerseResult] = useState(createEmptyMessage)
   const [playersMessage, setPlayersMessage] = useState(createEmptyMessage)
   const [goldResult, setGoldResult] = useState(createEmptyMessage)
   const [deleteResult, setDeleteResult] = useState(createEmptyMessage)
+  const [verseAwardResult, setVerseAwardResult] = useState(createEmptyMessage)
+  const [awardPendingPlayerId, setAwardPendingPlayerId] = useState('')
   const [loginForm, setLoginForm] = useState({
     loginName: '',
     password: '',
@@ -814,6 +1039,8 @@ export default function AdminApp() {
     password: '',
     startingGold: '250',
   })
+  const [memoryVerseForm, setMemoryVerseForm] = useState(createEmptyMemoryVerseForm)
+  const [activeMemoryVerse, setActiveMemoryVerse] = useState(createEmptyActiveMemoryVerse)
   const [goldForm, setGoldForm] = useState({
     amount: '',
   })
@@ -829,6 +1056,33 @@ export default function AdminApp() {
       window.removeEventListener('popstate', handlePopState)
     }
   }, [])
+
+  useEffect(() => {
+    try {
+      const savedValue = window.localStorage.getItem(MEMORY_VERSE_STORAGE_KEY)
+
+      if (!savedValue) {
+        return
+      }
+
+      const parsed = JSON.parse(savedValue)
+      setMemoryVerseForm(parsed.form || createEmptyMemoryVerseForm())
+      setActiveMemoryVerse(parsed.active || createEmptyActiveMemoryVerse())
+    } catch {
+      setMemoryVerseForm(createEmptyMemoryVerseForm())
+      setActiveMemoryVerse(createEmptyActiveMemoryVerse())
+    }
+  }, [])
+
+  useEffect(() => {
+    window.localStorage.setItem(
+      MEMORY_VERSE_STORAGE_KEY,
+      JSON.stringify({
+        form: memoryVerseForm,
+        active: activeMemoryVerse,
+      }),
+    )
+  }, [activeMemoryVerse, memoryVerseForm])
 
   useEffect(() => {
     if (!hasSupabaseEnv || !supabase) {
@@ -940,6 +1194,7 @@ export default function AdminApp() {
 
   const isAdmin = useMemo(() => isAdminProfile(profile), [profile])
   const viewingAdmin = pathname === ADMIN_PATH
+  const viewingMemory = pathname === MEMORY_PATH
   const selectedPlayer = useMemo(
     () => players.find((player) => player.id === selectedPlayerId) ?? null,
     [players, selectedPlayerId],
@@ -1069,12 +1324,12 @@ export default function AdminApp() {
   )
 
   useEffect(() => {
-    if (!viewingAdmin || !isAdmin || !session?.access_token) {
+    if ((!viewingAdmin && !viewingMemory) || !isAdmin || !session?.access_token) {
       return
     }
 
     loadPlayers()
-  }, [viewingAdmin, isAdmin, session?.access_token, loadPlayers])
+  }, [viewingAdmin, viewingMemory, isAdmin, session?.access_token, loadPlayers])
 
   const handleToggleAuthMenu = () => {
     setAuthMenuOpen((current) => !current)
@@ -1105,6 +1360,14 @@ export default function AdminApp() {
   const handleCreatePlayerChange = (event) => {
     const { name, value } = event.target
     setCreatePlayerForm((current) => ({
+      ...current,
+      [name]: value,
+    }))
+  }
+
+  const handleMemoryVerseChange = (event) => {
+    const { name, value } = event.target
+    setMemoryVerseForm((current) => ({
       ...current,
       [name]: value,
     }))
@@ -1345,6 +1608,117 @@ export default function AdminApp() {
     })
   }
 
+  const handleRunMemoryVerse = (event) => {
+    event.preventDefault()
+
+    if (!memoryVerseForm.reference.trim() && !memoryVerseForm.text.trim()) {
+      setMemoryVerseResult({
+        type: 'error',
+        text: 'Add the book title or the verse text first.',
+      })
+      return
+    }
+
+    setActiveMemoryVerse({
+      reference: memoryVerseForm.reference.trim(),
+      text: memoryVerseForm.text.trim(),
+      coveredCount: 0,
+    })
+    setMemoryVerseResult({
+      type: 'success',
+      text: 'Memory verse helper is ready.',
+    })
+  }
+
+  const handleCoverNext = () => {
+    setActiveMemoryVerse((current) => {
+      const totalWords = getMemoryVerseWordCount(current.text)
+
+      return {
+        ...current,
+        coveredCount: Math.min(current.coveredCount + 1, totalWords),
+      }
+    })
+  }
+
+  const handleUndoCover = () => {
+    setActiveMemoryVerse((current) => ({
+      ...current,
+      coveredCount: Math.max(current.coveredCount - 1, 0),
+    }))
+  }
+
+  const handleRedoCover = () => {
+    setActiveMemoryVerse((current) => {
+      const totalWords = getMemoryVerseWordCount(current.text)
+
+      return {
+        ...current,
+        coveredCount: Math.min(current.coveredCount + 1, totalWords),
+      }
+    })
+  }
+
+  const handleResetCover = () => {
+    setActiveMemoryVerse((current) => ({
+      ...current,
+      coveredCount: 0,
+    }))
+  }
+
+  const handleCoverAll = () => {
+    setActiveMemoryVerse((current) => ({
+      ...current,
+      coveredCount: getMemoryVerseWordCount(current.text),
+    }))
+  }
+
+  const handleAwardMemoryGold = async (playerId) => {
+    setVerseAwardResult(createEmptyMessage())
+    setAwardPendingPlayerId(playerId)
+
+    try {
+      if (!session?.access_token || !isAdmin) {
+        throw new Error('Sign in as admin to reward players.')
+      }
+
+      const response = await fetch('/api/adjust-player-gold', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          playerId,
+          amount: 50,
+        }),
+      })
+      const data = await readJson(response)
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Unable to add the verse reward.')
+      }
+
+      setVerseAwardResult({
+        type: 'success',
+        text: `+50 gold added to ${data.player.display_name}.`,
+      })
+      setPlayers((current) =>
+        current.map((player) => (player.id === data.player.id ? { ...player, ...data.player } : player)),
+      )
+      setPublicPlayers((current) =>
+        current.map((player) => (player.id === data.player.id ? { ...player, ...data.player } : player)),
+      )
+    } catch (error) {
+      setVerseAwardResult({
+        type: 'error',
+        text: error.message,
+      })
+    } finally {
+      setAwardPendingPlayerId('')
+    }
+  }
+
   const handleDeletePlayer = async () => {
     setDeleteResult(createEmptyMessage())
     setDeletePending(true)
@@ -1428,14 +1802,24 @@ export default function AdminApp() {
     navigate(viewingAdmin ? '/' : ADMIN_PATH)
   }
 
+  const handleOpenMemoryVerse = () => {
+    setAuthMenuOpen(false)
+    setProfileMenuOpen(false)
+    navigate(MEMORY_PATH)
+  }
+
   const handleSelectViewedPlayer = (playerId) => {
     setViewedPlayerId(playerId)
     setProfileMenuOpen(false)
+
+    if (pathname !== '/') {
+      navigate('/')
+    }
   }
 
   const showSetupMessage = !hasSupabaseEnv
   const readyForProtectedView = !authLoading && !profileLoading && session && profile
-  const showGameScene = readyForProtectedView || viewingAdmin
+  const showGameScene = !viewingMemory && (readyForProtectedView || viewingAdmin)
 
   return (
     <div className={`portal-shell ${showGameScene ? 'game-mode' : 'auth-mode'}`}>
@@ -1459,6 +1843,7 @@ export default function AdminApp() {
           onLogin={handleLogin}
           onLoginChange={handleLoginChange}
           onOpenAdmin={handleToggleAdmin}
+          onOpenMemoryVerse={handleOpenMemoryVerse}
           onOpenProfileMenu={handleOpenProfileMenu}
           onOpenShop={() => {}}
           onSelectViewedPlayer={handleSelectViewedPlayer}
@@ -1471,6 +1856,7 @@ export default function AdminApp() {
           setupForm={setupForm}
           setupMessage={setupMessage}
           viewedPlayer={viewedPlayer}
+          viewingMemory={viewingMemory}
           viewingAdmin={viewingAdmin}
         />
 
@@ -1482,6 +1868,30 @@ export default function AdminApp() {
               values before using admin and account features.
             </p>
           </section>
+        ) : null}
+
+        {viewingMemory ? (
+          <div className="memory-stage">
+            <MemoryVersePage
+              activeMemoryVerse={activeMemoryVerse}
+              awardPendingPlayerId={awardPendingPlayerId}
+              isAdmin={isAdmin}
+              memoryVerseForm={memoryVerseForm}
+              memoryVerseResult={memoryVerseResult}
+              onAwardPlayer={handleAwardMemoryGold}
+              onCoverAll={handleCoverAll}
+              onCoverNext={handleCoverNext}
+              onMemoryVerseChange={handleMemoryVerseChange}
+              onRedoCover={handleRedoCover}
+              onResetCover={handleResetCover}
+              onRunMemoryVerse={handleRunMemoryVerse}
+              onUndoCover={handleUndoCover}
+              players={players}
+              playersLoading={playersLoading}
+              playersMessage={playersMessage}
+              verseAwardResult={verseAwardResult}
+            />
+          </div>
         ) : null}
 
         {viewingAdmin && readyForProtectedView && isAdmin ? (
