@@ -557,8 +557,8 @@ function ProfileMenu({ onSelectPlayer, players, selectedPlayerId }) {
   return (
     <div className="profile-menu panel">
       <div className="profile-menu-title">
-        <div className="eyebrow">Player Profiles</div>
-        <strong>Choose whose aquarium to view</strong>
+        <div className="eyebrow">View</div>
+        <strong>Choose whose aquarium to open</strong>
       </div>
 
       <div className="profile-menu-list">
@@ -574,7 +574,6 @@ function ProfileMenu({ onSelectPlayer, players, selectedPlayerId }) {
                 <strong>{player.display_name}</strong>
                 <span>{player.login_name}</span>
               </div>
-              <em>{player.gold} gold</em>
             </button>
           ))
         ) : (
@@ -615,44 +614,31 @@ function GameTopBar({
   return (
     <header className="game-header">
       <div className="header-left">
-        {viewedPlayer ? (
-          <>
-            <div className="player-identity">
-              <span className="eyebrow">Viewing</span>
-              <strong>{viewedPlayer.display_name}</strong>
-            </div>
-            <div className="header-menu-wrap">
-              <button className="header-menu-button" onClick={onOpenProfileMenu} type="button">
-                Profiles
-              </button>
-              {profileMenuOpen ? (
-                <ProfileMenu
-                  onSelectPlayer={onSelectViewedPlayer}
-                  players={publicPlayers}
-                  selectedPlayerId={viewedPlayer.id}
-                />
-              ) : null}
-            </div>
-          </>
-        ) : (
-          <div className="site-brand">
-            <span className="eyebrow">Sunday School</span>
-            <strong>Junior Worship</strong>
-          </div>
-        )}
+        <div className="site-brand">
+          <span className="eyebrow">Sunday School</span>
+          <strong>Junior Worship</strong>
+        </div>
+        <div className="header-menu-wrap">
+          <button className="header-menu-button" onClick={onOpenProfileMenu} type="button">
+            VIEW
+          </button>
+          {profileMenuOpen ? (
+            <ProfileMenu
+              onSelectPlayer={onSelectViewedPlayer}
+              players={publicPlayers}
+              selectedPlayerId={viewedPlayer?.id ?? ''}
+            />
+          ) : null}
+        </div>
       </div>
 
       <div className="header-center">
-        {viewedPlayer ? (
+        {profile ? (
           <div className="gold-display-pill">
             <span>Gold</span>
-            <strong>{viewedPlayer.gold ?? 0}</strong>
+            <strong>{profile.gold ?? 0}</strong>
           </div>
-        ) : (
-          <div className="guest-banner">
-            <span>Choose a player profile on the left or sign in from the top-right menu.</span>
-          </div>
-        )}
+        ) : null}
       </div>
 
       <div className="header-right">
