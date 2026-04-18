@@ -5,6 +5,7 @@ import { hasSupabaseEnv, supabase } from './lib/supabase'
 
 const ADMIN_PATH = '/admin'
 const MEMORY_PATH = '/memory-verse'
+const QUIZ_PATH = '/quiz'
 const ADMIN_SECTIONS = {
   createPlayer: 'create-player',
   manageGold: 'manage-gold',
@@ -16,6 +17,7 @@ const AUTH_VIEWS = {
   admin: 'admin',
 }
 const MEMORY_VERSE_STORAGE_KEY = 'memory-verse-helper'
+const QUIZ_STORAGE_KEY = 'quiz-helper'
 
 function normalizeLoginName(value) {
   return value.trim().toLowerCase().replace(/\s+/g, ' ')
@@ -52,6 +54,43 @@ function createEmptyActiveMemoryVerse() {
     reference: '',
     text: '',
     coveredCount: 0,
+  }
+}
+
+function createEmptyQuizQuestion() {
+  return {
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    prompt: '',
+    points: '1',
+  }
+}
+
+function buildQuizPointGroups(questions) {
+  const groups = []
+
+  questions.forEach((question, index) => {
+    const points = Number(question.points) || 0
+    const questionNumber = index + 1
+    const lastGroup = groups[groups.length - 1]
+
+    if (!lastGroup || lastGroup.points !== points || lastGroup.end !== questionNumber - 1) {
+      groups.push({
+        points,
+        start: questionNumber,
+        end: questionNumber,
+      })
+      return
+    }
+
+    lastGroup.end = questionNumber
+  })
+
+  return groups
+}
+
+function createEmptyQuizAwardForm() {
+  return {
+    amount: '50',
   }
 }
 
@@ -747,6 +786,7 @@ function GameTopBar({
   onOpenAdmin,
   onOpenMemoryVerse,
   onOpenProfileMenu,
+  onOpenQuiz,
   onOpenShop,
   onSelectViewedPlayer,
   onSelectAuthView,
@@ -760,6 +800,7 @@ function GameTopBar({
   authPending,
   viewedPlayer,
   viewingMemory,
+  viewingQuiz,
   viewingAdmin,
 }) {
   return (
@@ -777,13 +818,24 @@ function GameTopBar({
             />
           ) : null}
         </div>
-        <button
-          className={`header-menu-button ${viewingMemory ? 'active' : ''}`}
-          onClick={onOpenMemoryVerse}
-          type="button"
-        >
-          MEMORY
-        </button>
+        {isAdmin ? (
+          <>
+            <button
+              className={`header-menu-button ${viewingMemory ? 'active' : ''}`}
+              onClick={onOpenMemoryVerse}
+              type="button"
+            >
+              MEMORY
+            </button>
+            <button
+              className={`header-menu-button ${viewingQuiz ? 'active' : ''}`}
+              onClick={onOpenQuiz}
+              type="button"
+            >
+              QUIZ
+            </button>
+          </>
+        ) : null}
       </div>
 
       <div className="header-center" />
@@ -994,6 +1046,234 @@ function MemoryVersePage({
   )
 }
 
+function QuizPage({
+  isAdmin,
+  onAddQuizQuestion,
+  onAwardPlayer,
+  onFinishQuiz,
+  onNextQuizQuestion,
+  onPreviousQuizQuestion,
+  onQuizAwardChange,
+  onQuizQuestionChange,
+  onRemoveQuizQuestion,
+  onStartQuiz,
+  players,
+  playersLoading,
+  playersMessage,
+  quizAwardForm,
+  quizAwardPendingPlayerId,
+  quizAwardResult,
+  quizCurrentIndex,
+  quizQuestions,
+  selectedPlayerId,
+  onSelectPlayer,
+}) {
+  const pointGroups = useMemo(() => buildQuizPointGroups(quizQuestions), [quizQuestions])
+  const activeQuestion =
+    quizCurrentIndex >= 0 && quizCurrentIndex < quizQuestions.length ? quizQuestions[quizCurrentIndex] : null
+  const quizFinished = quizQuestions.length > 0 && quizCurrentIndex >= quizQuestions.length
+
+  return (
+    <section className="panel memory-verse-shell">
+      <div className="memory-verse-main">
+        <div className="content-intro">
+          <div>
+            <div className="eyebrow">Quiz Helper</div>
+            <h2>Build the questions, then present them one by one</h2>
+          </div>
+          <p className="panel-copy">
+            Add each question with its point value. The presentation card will show only the current question number,
+            points, and text.
+          </p>
+        </div>
+
+        <div className="memory-verse-grid">
+          <div className="workspace-card quiz-editor-card">
+            <div className="card-heading">
+              <h3>Questions</h3>
+              <button className="ghost-button compact-button" onClick={onAddQuizQuestion} type="button">
+                Add question
+              </button>
+            </div>
+
+            <div className="quiz-question-list">
+              {quizQuestions.length ? (
+                quizQuestions.map((question, index) => (
+                  <div className="quiz-question-card" key={question.id}>
+                    <div className="quiz-question-card-top">
+                      <strong>Question {index + 1}</strong>
+                      <button className="ghost-button compact-button" onClick={() => onRemoveQuizQuestion(question.id)} type="button">
+                        Remove
+                      </button>
+                    </div>
+
+                    <label className="field">
+                      <span>Question text</span>
+                      <textarea
+                        name="prompt"
+                        onChange={(event) => onQuizQuestionChange(question.id, 'prompt', event.target.value)}
+                        rows={3}
+                        value={question.prompt}
+                      />
+                    </label>
+
+                    <label className="field">
+                      <span>Points</span>
+                      <input
+                        inputMode="numeric"
+                        name="points"
+                        onChange={(event) => onQuizQuestionChange(question.id, 'points', event.target.value)}
+                        value={question.points}
+                      />
+                    </label>
+                  </div>
+                ))
+              ) : (
+                <p className="panel-note">Add your first quiz question to begin.</p>
+              )}
+            </div>
+
+            {pointGroups.length ? (
+              <div className="quiz-points-summary">
+                <div className="eyebrow">Point Summary</div>
+                {pointGroups.map((group) => (
+                  <div className="quiz-summary-row" key={`${group.start}-${group.end}-${group.points}`}>
+                    <strong>
+                      Question{group.start === group.end ? '' : 's'} {group.start}
+                      {group.start === group.end ? '' : `-${group.end}`}
+                    </strong>
+                    <span>
+                      {group.points} pt{group.points === 1 ? '' : 's'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </div>
+
+          <div className="workspace-card memory-helper-card">
+            {quizQuestions.length ? (
+              <>
+                <div className="memory-helper-header">
+                  <div>
+                    <div className="eyebrow">Presentation</div>
+                    <h3>{quizFinished ? 'Quiz finished' : `Question ${quizCurrentIndex + 1}`}</h3>
+                  </div>
+                  {!quizFinished && activeQuestion ? (
+                    <div className="memory-progress-badge">
+                      {Number(activeQuestion.points) || 0} pt{Number(activeQuestion.points) === 1 ? '' : 's'}
+                    </div>
+                  ) : null}
+                </div>
+
+                <div className="memory-helper-controls">
+                  <button className="ghost-button compact-button" onClick={onStartQuiz} type="button">
+                    Start
+                  </button>
+                  <button className="ghost-button compact-button" onClick={onPreviousQuizQuestion} type="button">
+                    Previous
+                  </button>
+                  <button className="ghost-button compact-button" onClick={onNextQuizQuestion} type="button">
+                    Next
+                  </button>
+                  <button className="ghost-button compact-button" onClick={onFinishQuiz} type="button">
+                    Finish
+                  </button>
+                </div>
+
+                <div className="memory-verse-display quiz-display-card">
+                  {quizFinished ? (
+                    <div className="quiz-finished-state">
+                      <div className="eyebrow">Quiz Complete</div>
+                      <h3>Now you can award the players on the right.</h3>
+                    </div>
+                  ) : activeQuestion ? (
+                    <div className="quiz-display-content">
+                      <div className="quiz-display-label">
+                        Question {quizCurrentIndex + 1} ({Number(activeQuestion.points) || 0} pt
+                        {(Number(activeQuestion.points) || 0) === 1 ? '' : 's'})
+                      </div>
+                      <div className="quiz-display-question">{activeQuestion.prompt || 'Add the question text on the left.'}</div>
+                    </div>
+                  ) : (
+                    <div className="empty-state-card">
+                      <h3>Ready to present</h3>
+                      <p className="panel-note">Click `Start` when you are ready to show the first question.</p>
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div className="empty-state-card">
+                <h3>No quiz yet</h3>
+                <p className="panel-note">Create some questions first so the presentation view can start.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <aside className="memory-verse-sidebar workspace-card">
+        <div className="content-intro">
+          <div>
+            <div className="eyebrow">Quiz Rewards</div>
+            <h3>Add gold after the quiz</h3>
+          </div>
+          <p className="panel-copy">Select a player, set the gold amount, then award it directly from here.</p>
+        </div>
+
+        {!isAdmin ? (
+          <p className="panel-note">Only the admin can award quiz gold.</p>
+        ) : playersLoading ? (
+          <p className="panel-note">Loading players...</p>
+        ) : players.length ? (
+          <>
+            <div className="player-browser-list">
+              {players.map((player) => (
+                <button
+                  className={`player-browser-item ${selectedPlayerId === player.id ? 'active' : ''}`}
+                  key={player.id}
+                  onClick={() => onSelectPlayer(player.id)}
+                  type="button"
+                >
+                  <div>
+                    <strong>{player.display_name}</strong>
+                    <span>{player.gold} gold</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            <label className="field">
+              <span>Gold amount</span>
+              <input
+                inputMode="numeric"
+                name="amount"
+                onChange={onQuizAwardChange}
+                value={quizAwardForm.amount}
+              />
+            </label>
+
+            <button
+              className="primary-button"
+              disabled={!selectedPlayerId || Boolean(quizAwardPendingPlayerId)}
+              onClick={() => onAwardPlayer(selectedPlayerId)}
+              type="button"
+            >
+              {quizAwardPendingPlayerId ? 'Adding gold...' : 'Add gold to selected player'}
+            </button>
+          </>
+        ) : (
+          <p className="panel-note">Create player accounts first so you can reward them here.</p>
+        )}
+
+        {playersMessage.text ? <p className={`status-line ${playersMessage.type}`}>{playersMessage.text}</p> : null}
+        {quizAwardResult.text ? <p className={`status-line ${quizAwardResult.type}`}>{quizAwardResult.text}</p> : null}
+      </aside>
+    </section>
+  )
+}
+
 export default function AdminApp() {
   const [pathname, setPathname] = useState(() => window.location.pathname || '/')
   const [session, setSession] = useState(null)
@@ -1022,7 +1302,9 @@ export default function AdminApp() {
   const [goldResult, setGoldResult] = useState(createEmptyMessage)
   const [deleteResult, setDeleteResult] = useState(createEmptyMessage)
   const [verseAwardResult, setVerseAwardResult] = useState(createEmptyMessage)
+  const [quizAwardResult, setQuizAwardResult] = useState(createEmptyMessage)
   const [awardPendingPlayerId, setAwardPendingPlayerId] = useState('')
+  const [quizAwardPendingPlayerId, setQuizAwardPendingPlayerId] = useState('')
   const [loginForm, setLoginForm] = useState({
     loginName: '',
     password: '',
@@ -1041,6 +1323,9 @@ export default function AdminApp() {
   })
   const [memoryVerseForm, setMemoryVerseForm] = useState(createEmptyMemoryVerseForm)
   const [activeMemoryVerse, setActiveMemoryVerse] = useState(createEmptyActiveMemoryVerse)
+  const [quizQuestions, setQuizQuestions] = useState([])
+  const [quizCurrentIndex, setQuizCurrentIndex] = useState(-1)
+  const [quizAwardForm, setQuizAwardForm] = useState(createEmptyQuizAwardForm)
   const [goldForm, setGoldForm] = useState({
     amount: '',
   })
@@ -1075,6 +1360,25 @@ export default function AdminApp() {
   }, [])
 
   useEffect(() => {
+    try {
+      const savedValue = window.localStorage.getItem(QUIZ_STORAGE_KEY)
+
+      if (!savedValue) {
+        return
+      }
+
+      const parsed = JSON.parse(savedValue)
+      setQuizQuestions(parsed.questions || [])
+      setQuizCurrentIndex(typeof parsed.currentIndex === 'number' ? parsed.currentIndex : -1)
+      setQuizAwardForm(parsed.awardForm || createEmptyQuizAwardForm())
+    } catch {
+      setQuizQuestions([])
+      setQuizCurrentIndex(-1)
+      setQuizAwardForm(createEmptyQuizAwardForm())
+    }
+  }, [])
+
+  useEffect(() => {
     window.localStorage.setItem(
       MEMORY_VERSE_STORAGE_KEY,
       JSON.stringify({
@@ -1083,6 +1387,17 @@ export default function AdminApp() {
       }),
     )
   }, [activeMemoryVerse, memoryVerseForm])
+
+  useEffect(() => {
+    window.localStorage.setItem(
+      QUIZ_STORAGE_KEY,
+      JSON.stringify({
+        questions: quizQuestions,
+        currentIndex: quizCurrentIndex,
+        awardForm: quizAwardForm,
+      }),
+    )
+  }, [quizAwardForm, quizCurrentIndex, quizQuestions])
 
   useEffect(() => {
     if (!hasSupabaseEnv || !supabase) {
@@ -1195,6 +1510,7 @@ export default function AdminApp() {
   const isAdmin = useMemo(() => isAdminProfile(profile), [profile])
   const viewingAdmin = pathname === ADMIN_PATH
   const viewingMemory = pathname === MEMORY_PATH
+  const viewingQuiz = pathname === QUIZ_PATH
   const selectedPlayer = useMemo(
     () => players.find((player) => player.id === selectedPlayerId) ?? null,
     [players, selectedPlayerId],
@@ -1324,12 +1640,12 @@ export default function AdminApp() {
   )
 
   useEffect(() => {
-    if ((!viewingAdmin && !viewingMemory) || !isAdmin || !session?.access_token) {
+    if ((!viewingAdmin && !viewingMemory && !viewingQuiz) || !isAdmin || !session?.access_token) {
       return
     }
 
     loadPlayers()
-  }, [viewingAdmin, viewingMemory, isAdmin, session?.access_token, loadPlayers])
+  }, [viewingAdmin, viewingMemory, viewingQuiz, isAdmin, session?.access_token, loadPlayers])
 
   const handleToggleAuthMenu = () => {
     setAuthMenuOpen((current) => !current)
@@ -1368,6 +1684,14 @@ export default function AdminApp() {
   const handleMemoryVerseChange = (event) => {
     const { name, value } = event.target
     setMemoryVerseForm((current) => ({
+      ...current,
+      [name]: value,
+    }))
+  }
+
+  const handleQuizAwardChange = (event) => {
+    const { name, value } = event.target
+    setQuizAwardForm((current) => ({
       ...current,
       [name]: value,
     }))
@@ -1673,6 +1997,70 @@ export default function AdminApp() {
     }))
   }
 
+  const handleAddQuizQuestion = () => {
+    setQuizQuestions((current) => [...current, createEmptyQuizQuestion()])
+    setQuizAwardResult(createEmptyMessage())
+  }
+
+  const handleQuizQuestionChange = (questionId, field, value) => {
+    setQuizQuestions((current) =>
+      current.map((question) => (question.id === questionId ? { ...question, [field]: value } : question)),
+    )
+  }
+
+  const handleRemoveQuizQuestion = (questionId) => {
+    setQuizQuestions((current) => {
+      const nextQuestions = current.filter((question) => question.id !== questionId)
+      setQuizCurrentIndex((currentIndex) => {
+        if (!nextQuestions.length) {
+          return -1
+        }
+
+        if (currentIndex >= nextQuestions.length) {
+          return nextQuestions.length - 1
+        }
+
+        return currentIndex
+      })
+      return nextQuestions
+    })
+  }
+
+  const handleStartQuiz = () => {
+    if (!quizQuestions.length) {
+      setQuizAwardResult({
+        type: 'error',
+        text: 'Add at least one question first.',
+      })
+      return
+    }
+
+    setQuizCurrentIndex(0)
+    setQuizAwardResult(createEmptyMessage())
+  }
+
+  const handlePreviousQuizQuestion = () => {
+    setQuizCurrentIndex((current) => Math.max(current - 1, 0))
+  }
+
+  const handleNextQuizQuestion = () => {
+    setQuizCurrentIndex((current) => {
+      if (!quizQuestions.length) {
+        return -1
+      }
+
+      return Math.min(current + 1, quizQuestions.length)
+    })
+  }
+
+  const handleFinishQuiz = () => {
+    if (!quizQuestions.length) {
+      return
+    }
+
+    setQuizCurrentIndex(quizQuestions.length)
+  }
+
   const handleAwardMemoryGold = async (playerId) => {
     setVerseAwardResult(createEmptyMessage())
     setAwardPendingPlayerId(playerId)
@@ -1716,6 +2104,58 @@ export default function AdminApp() {
       })
     } finally {
       setAwardPendingPlayerId('')
+    }
+  }
+
+  const handleAwardQuizGold = async (playerId) => {
+    setQuizAwardResult(createEmptyMessage())
+    setQuizAwardPendingPlayerId(playerId)
+
+    try {
+      if (!session?.access_token || !isAdmin) {
+        throw new Error('Sign in as admin to reward players.')
+      }
+
+      const amount = Number(quizAwardForm.amount)
+
+      if (!Number.isInteger(amount) || amount <= 0) {
+        throw new Error('Enter a whole gold amount greater than zero.')
+      }
+
+      const response = await fetch('/api/adjust-player-gold', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          playerId,
+          amount,
+        }),
+      })
+      const data = await readJson(response)
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Unable to add quiz gold.')
+      }
+
+      setQuizAwardResult({
+        type: 'success',
+        text: `${formatGoldChange(amount)} gold added to ${data.player.display_name}.`,
+      })
+      setPlayers((current) =>
+        current.map((player) => (player.id === data.player.id ? { ...player, ...data.player } : player)),
+      )
+      setPublicPlayers((current) =>
+        current.map((player) => (player.id === data.player.id ? { ...player, ...data.player } : player)),
+      )
+    } catch (error) {
+      setQuizAwardResult({
+        type: 'error',
+        text: error.message,
+      })
+    } finally {
+      setQuizAwardPendingPlayerId('')
     }
   }
 
@@ -1793,6 +2233,8 @@ export default function AdminApp() {
     setCreatePlayerResult(createEmptyMessage())
     setGoldResult(createEmptyMessage())
     setDeleteResult(createEmptyMessage())
+    setVerseAwardResult(createEmptyMessage())
+    setQuizAwardResult(createEmptyMessage())
     navigate('/')
   }
 
@@ -1808,6 +2250,12 @@ export default function AdminApp() {
     navigate(MEMORY_PATH)
   }
 
+  const handleOpenQuiz = () => {
+    setAuthMenuOpen(false)
+    setProfileMenuOpen(false)
+    navigate(QUIZ_PATH)
+  }
+
   const handleSelectViewedPlayer = (playerId) => {
     setViewedPlayerId(playerId)
     setProfileMenuOpen(false)
@@ -1819,7 +2267,7 @@ export default function AdminApp() {
 
   const showSetupMessage = !hasSupabaseEnv
   const readyForProtectedView = !authLoading && !profileLoading && session && profile
-  const showGameScene = !viewingMemory && (readyForProtectedView || viewingAdmin)
+  const showGameScene = !viewingMemory && !viewingQuiz && (readyForProtectedView || viewingAdmin)
 
   return (
     <div className={`portal-shell ${showGameScene ? 'game-mode' : 'auth-mode'}`}>
@@ -1845,6 +2293,7 @@ export default function AdminApp() {
           onOpenAdmin={handleToggleAdmin}
           onOpenMemoryVerse={handleOpenMemoryVerse}
           onOpenProfileMenu={handleOpenProfileMenu}
+          onOpenQuiz={handleOpenQuiz}
           onOpenShop={() => {}}
           onSelectViewedPlayer={handleSelectViewedPlayer}
           onSelectAuthView={setAuthView}
@@ -1857,6 +2306,7 @@ export default function AdminApp() {
           setupMessage={setupMessage}
           viewedPlayer={viewedPlayer}
           viewingMemory={viewingMemory}
+          viewingQuiz={viewingQuiz}
           viewingAdmin={viewingAdmin}
         />
 
@@ -1870,7 +2320,7 @@ export default function AdminApp() {
           </section>
         ) : null}
 
-        {viewingMemory ? (
+        {viewingMemory && isAdmin ? (
           <div className="memory-stage">
             <MemoryVersePage
               activeMemoryVerse={activeMemoryVerse}
@@ -1892,6 +2342,41 @@ export default function AdminApp() {
               verseAwardResult={verseAwardResult}
             />
           </div>
+        ) : null}
+
+        {viewingQuiz && isAdmin ? (
+          <div className="memory-stage">
+            <QuizPage
+              isAdmin={isAdmin}
+              onAddQuizQuestion={handleAddQuizQuestion}
+              onAwardPlayer={handleAwardQuizGold}
+              onFinishQuiz={handleFinishQuiz}
+              onNextQuizQuestion={handleNextQuizQuestion}
+              onPreviousQuizQuestion={handlePreviousQuizQuestion}
+              onQuizAwardChange={handleQuizAwardChange}
+              onQuizQuestionChange={handleQuizQuestionChange}
+              onRemoveQuizQuestion={handleRemoveQuizQuestion}
+              onSelectPlayer={setSelectedPlayerId}
+              onStartQuiz={handleStartQuiz}
+              players={players}
+              playersLoading={playersLoading}
+              playersMessage={playersMessage}
+              quizAwardForm={quizAwardForm}
+              quizAwardPendingPlayerId={quizAwardPendingPlayerId}
+              quizAwardResult={quizAwardResult}
+              quizCurrentIndex={quizCurrentIndex}
+              quizQuestions={quizQuestions}
+              selectedPlayerId={selectedPlayerId}
+            />
+          </div>
+        ) : null}
+
+        {(viewingMemory || viewingQuiz) && !isAdmin ? (
+          <section className="panel memory-locked-panel">
+            <div className="eyebrow">Admin Only</div>
+            <h2>This page is only for the admin.</h2>
+            <p className="panel-copy">Sign in with the admin account to open and control this teaching tool.</p>
+          </section>
         ) : null}
 
         {viewingAdmin && readyForProtectedView && isAdmin ? (
