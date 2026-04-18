@@ -908,16 +908,6 @@ function MemoryVersePage({
   return (
     <section className="panel memory-verse-shell memory-page-shell">
       <div className="memory-verse-main">
-        <div className="content-intro">
-          <div>
-            <div className="eyebrow">Memory Verse Helper</div>
-            <h2>Paste the verse, then hide it little by little</h2>
-          </div>
-          <p className="panel-copy">
-            Set the book and verse text, run the helper, then cover one word at a time while the players recite.
-          </p>
-        </div>
-
         <div className={`memory-verse-grid ${memoryVerseEditorOpen || !hasVerse ? '' : 'presentation-mode'}`}>
           {memoryVerseEditorOpen || !hasVerse ? (
             <form className="workspace-card stack-form" onSubmit={onRunMemoryVerse}>
