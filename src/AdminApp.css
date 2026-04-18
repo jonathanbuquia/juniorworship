@@ -417,6 +417,13 @@
   align-items: center;
 }
 
+.memory-toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
 .memory-verse-sidebar {
   padding: 18px;
   align-content: start;

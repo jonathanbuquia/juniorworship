@@ -880,6 +880,7 @@ function MemoryVersePage({
   activeMemoryVerse,
   awardPendingPlayerId,
   isAdmin,
+  isMemoryFullscreen,
   memoryRewardsOpen,
   memoryVerseEditorOpen,
   memoryVerseForm,
@@ -894,6 +895,7 @@ function MemoryVersePage({
   onResetCover,
   onRunMemoryVerse,
   onShowMemoryVerseEditor,
+  onToggleMemoryFullscreen,
   onUndoCover,
   players,
   playersLoading,
@@ -918,9 +920,14 @@ function MemoryVersePage({
           )}
 
           {isAdmin ? (
-            <button className="primary-button compact-button" onClick={onOpenMemoryRewards} type="button">
-              Add rewards
-            </button>
+            <div className="memory-toolbar-actions">
+              <button className="ghost-button compact-button" onClick={onToggleMemoryFullscreen} type="button">
+                {isMemoryFullscreen ? 'Exit full screen' : 'Full screen'}
+              </button>
+              <button className="primary-button compact-button" onClick={onOpenMemoryRewards} type="button">
+                Add rewards
+              </button>
+            </div>
           ) : null}
         </div>
 
@@ -1349,6 +1356,7 @@ export default function AdminApp() {
   const [activeMemoryVerse, setActiveMemoryVerse] = useState(createEmptyActiveMemoryVerse)
   const [memoryVerseEditorOpen, setMemoryVerseEditorOpen] = useState(true)
   const [memoryRewardsOpen, setMemoryRewardsOpen] = useState(false)
+  const [isMemoryFullscreen, setIsMemoryFullscreen] = useState(false)
   const [quizQuestions, setQuizQuestions] = useState([])
   const [quizCurrentIndex, setQuizCurrentIndex] = useState(-1)
   const [quizAwardForm, setQuizAwardForm] = useState(createEmptyQuizAwardForm)
@@ -1426,6 +1434,17 @@ export default function AdminApp() {
       }),
     )
   }, [quizAwardForm, quizCurrentIndex, quizQuestions])
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsMemoryFullscreen(Boolean(document.fullscreenElement))
+    }
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange)
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange)
+    }
+  }, [])
 
   useEffect(() => {
     if (!hasSupabaseEnv || !supabase) {
@@ -2292,6 +2311,22 @@ export default function AdminApp() {
     setMemoryRewardsOpen(false)
   }
 
+  const handleToggleMemoryFullscreen = async () => {
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen()
+        return
+      }
+
+      await document.documentElement.requestFullscreen()
+    } catch (error) {
+      setMemoryVerseResult({
+        type: 'error',
+        text: error.message || 'Unable to enter full screen mode.',
+      })
+    }
+  }
+
   const handleOpenQuiz = () => {
     setAuthMenuOpen(false)
     setProfileMenuOpen(false)
@@ -2368,6 +2403,7 @@ export default function AdminApp() {
               activeMemoryVerse={activeMemoryVerse}
               awardPendingPlayerId={awardPendingPlayerId}
               isAdmin={isAdmin}
+              isMemoryFullscreen={isMemoryFullscreen}
               memoryRewardsOpen={memoryRewardsOpen}
               memoryVerseEditorOpen={memoryVerseEditorOpen}
               memoryVerseForm={memoryVerseForm}
@@ -2382,6 +2418,7 @@ export default function AdminApp() {
               onResetCover={handleResetCover}
               onRunMemoryVerse={handleRunMemoryVerse}
               onShowMemoryVerseEditor={handleShowMemoryVerseEditor}
+              onToggleMemoryFullscreen={handleToggleMemoryFullscreen}
               onUndoCover={handleUndoCover}
               players={players}
               playersLoading={playersLoading}
