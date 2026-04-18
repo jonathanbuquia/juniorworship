@@ -147,31 +147,30 @@ function AuthCard({
   )
 }
 
-function PlayerPanel({ isAdmin, onLogout, onOpenAdmin, profile }) {
+function PlayerHud({ isAdmin, onLogout, onOpenAdmin, profile }) {
   return (
-    <section className="panel player-panel">
-      <div className="eyebrow">Player View</div>
-      <h2>Welcome, {profile?.display_name || 'Player'}</h2>
-      <p className="panel-copy">
-        This is the player side of the site. Your aquarium visuals stay here, and the admin tools live separately.
-      </p>
+    <header className="game-header">
+      <div className="game-brand">
+        <span className="eyebrow">Sunday School</span>
+        <strong>{profile?.display_name || 'Player'}</strong>
+      </div>
 
-      <div className="stat-row">
-        <div>
-          <span className="stat-label">Role</span>
+      <div className="game-stats">
+        <div className="game-stat-pill">
+          <span>Role</span>
           <strong>{profile?.role || 'player'}</strong>
         </div>
-        <div>
-          <span className="stat-label">Gold</span>
+        <div className="game-stat-pill">
+          <span>Gold</span>
           <strong>{profile?.gold ?? 0}</strong>
         </div>
-        <div>
-          <span className="stat-label">Login</span>
+        <div className="game-stat-pill">
+          <span>Login</span>
           <strong>{profile?.login_name || 'not set'}</strong>
         </div>
       </div>
 
-      <div className="button-row">
+      <div className="game-actions">
         {isAdmin ? (
           <button className="primary-button" onClick={onOpenAdmin} type="button">
             Open admin
@@ -181,7 +180,7 @@ function PlayerPanel({ isAdmin, onLogout, onOpenAdmin, profile }) {
           Log out
         </button>
       </div>
-    </section>
+    </header>
   )
 }
 
@@ -1039,12 +1038,16 @@ export default function AdminApp() {
 
   const showSetupMessage = !hasSupabaseEnv
   const readyForProtectedView = !authLoading && !profileLoading && session && profile
+  const showGameScene = readyForProtectedView
+  const authMode = showSetupMessage || !readyForProtectedView
 
   return (
-    <div className="portal-shell">
-      <div className="portal-scene">
-        <AquariumScene />
-      </div>
+    <div className={`portal-shell ${authMode ? 'auth-mode' : 'game-mode'}`}>
+      {showGameScene ? (
+        <div className="portal-scene">
+          <AquariumScene />
+        </div>
+      ) : null}
 
       <div className="portal-overlay">
         {showSetupMessage ? (
@@ -1099,7 +1102,7 @@ export default function AdminApp() {
             <UnauthorizedPanel onGoPlayer={() => navigate('/')} onLogout={handleLogout} />
           )
         ) : (
-          <PlayerPanel
+          <PlayerHud
             isAdmin={isAdmin}
             onLogout={handleLogout}
             onOpenAdmin={() => navigate(ADMIN_PATH)}
