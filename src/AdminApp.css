@@ -173,6 +173,8 @@
 }
 
 .profile-menu {
+  left: 0;
+  right: auto;
   width: min(80vw, 220px);
   padding: 8px;
   gap: 6px;
@@ -593,6 +595,11 @@
   .profile-menu {
     width: min(92vw, 320px);
     right: -6px;
+  }
+
+  .profile-menu {
+    left: 0;
+    right: auto;
   }
 
   .admin-panel-shell {
