@@ -37,6 +37,23 @@ function formatGoldChange(amount) {
   return amount > 0 ? `+${amount}` : `${amount}`
 }
 
+function mergeViewedPlayer(player, profile) {
+  if (!player) {
+    return null
+  }
+
+  if (profile?.id === player.id && profile.role === 'player') {
+    return {
+      ...player,
+      gold: profile.gold ?? player.gold,
+      display_name: profile.display_name ?? player.display_name,
+      login_name: profile.login_name ?? player.login_name,
+    }
+  }
+
+  return player
+}
+
 function CreatePlayerSection({
   createPlayerForm,
   createPlayerPending,
@@ -358,20 +375,44 @@ function AuthPopover({
   authPending,
   authView,
   hasAdmin,
+  isAdmin,
   loginForm,
   loginMessage,
   onBootstrapChange,
   onCreateAdmin,
   onLogin,
   onLoginChange,
+  onOpenAdmin,
   onSelectView,
+  onSignOut,
+  profile,
   setupForm,
   setupMessage,
+  viewingAdmin,
 }) {
   const showingPlayer = authView === AUTH_VIEWS.player
 
   return (
     <div className="auth-popover panel">
+      {profile ? (
+        <div className="auth-session-strip">
+          <div>
+            <div className="eyebrow">Signed In</div>
+            <strong>{profile.display_name}</strong>
+          </div>
+          <div className="auth-session-actions">
+            {isAdmin ? (
+              <button className="ghost-button compact-button" onClick={onOpenAdmin} type="button">
+                {viewingAdmin ? 'Back to game' : 'Open admin'}
+              </button>
+            ) : null}
+            <button className="ghost-button compact-button" onClick={onSignOut} type="button">
+              Sign out
+            </button>
+          </div>
+        </div>
+      ) : null}
+
       <div className="auth-switcher">
         <button
           className={`auth-switcher-chip ${showingPlayer ? 'active' : ''}`}
@@ -512,24 +553,34 @@ function AuthPopover({
   )
 }
 
-function ProfileMenu({ isAdmin, onOpenAdmin, onOpenSignIn, onSignOut, viewingAdmin }) {
+function ProfileMenu({ onSelectPlayer, players, selectedPlayerId }) {
   return (
     <div className="profile-menu panel">
-      <button className="profile-menu-item" onClick={() => onOpenSignIn(AUTH_VIEWS.player)} type="button">
-        Switch player
-      </button>
-      {isAdmin ? (
-        <button className="profile-menu-item" onClick={onOpenAdmin} type="button">
-          {viewingAdmin ? 'Admin open' : 'Open admin'}
-        </button>
-      ) : (
-        <button className="profile-menu-item" onClick={() => onOpenSignIn(AUTH_VIEWS.admin)} type="button">
-          Sign in as admin
-        </button>
-      )}
-      <button className="profile-menu-item danger" onClick={onSignOut} type="button">
-        Sign out
-      </button>
+      <div className="profile-menu-title">
+        <div className="eyebrow">Player Profiles</div>
+        <strong>Choose whose aquarium to view</strong>
+      </div>
+
+      <div className="profile-menu-list">
+        {players.length ? (
+          players.map((player) => (
+            <button
+              className={`profile-menu-item ${selectedPlayerId === player.id ? 'active' : ''}`}
+              key={player.id}
+              onClick={() => onSelectPlayer(player.id)}
+              type="button"
+            >
+              <div>
+                <strong>{player.display_name}</strong>
+                <span>{player.login_name}</span>
+              </div>
+              <em>{player.gold} gold</em>
+            </button>
+          ))
+        ) : (
+          <p className="panel-note">No player profiles yet.</p>
+        )}
+      </div>
     </div>
   )
 }
@@ -547,25 +598,28 @@ function GameTopBar({
   onLoginChange,
   onOpenAdmin,
   onOpenProfileMenu,
+  onOpenShop,
+  onSelectViewedPlayer,
   onSelectAuthView,
   onSignOut,
   onToggleAuthMenu,
   profile,
+  publicPlayers,
   profileMenuOpen,
   setupForm,
   setupMessage,
   authPending,
-  onOpenSignIn,
+  viewedPlayer,
   viewingAdmin,
 }) {
   return (
     <header className="game-header">
       <div className="header-left">
-        {profile ? (
+        {viewedPlayer ? (
           <>
             <div className="player-identity">
-              <span className="eyebrow">Player</span>
-              <strong>{profile.display_name}</strong>
+              <span className="eyebrow">Viewing</span>
+              <strong>{viewedPlayer.display_name}</strong>
             </div>
             <div className="header-menu-wrap">
               <button className="header-menu-button" onClick={onOpenProfileMenu} type="button">
@@ -573,11 +627,9 @@ function GameTopBar({
               </button>
               {profileMenuOpen ? (
                 <ProfileMenu
-                  isAdmin={isAdmin}
-                  onOpenAdmin={onOpenAdmin}
-                  onOpenSignIn={onOpenSignIn}
-                  onSignOut={onSignOut}
-                  viewingAdmin={viewingAdmin}
+                  onSelectPlayer={onSelectViewedPlayer}
+                  players={publicPlayers}
+                  selectedPlayerId={viewedPlayer.id}
                 />
               ) : null}
             </div>
@@ -591,43 +643,46 @@ function GameTopBar({
       </div>
 
       <div className="header-center">
-        {profile ? (
+        {viewedPlayer ? (
           <div className="gold-display-pill">
             <span>Gold</span>
-            <strong>{profile.gold ?? 0}</strong>
+            <strong>{viewedPlayer.gold ?? 0}</strong>
           </div>
         ) : (
           <div className="guest-banner">
-            <span>Choose a player or admin sign-in from the top-right menu.</span>
+            <span>Choose a player profile on the left or sign in from the top-right menu.</span>
           </div>
         )}
       </div>
 
       <div className="header-right">
-        {isAdmin ? (
-          <button className="ghost-button" onClick={onOpenAdmin} type="button">
-            {viewingAdmin ? 'Close admin' : 'Admin'}
-          </button>
-        ) : null}
+        <button className="ghost-button" onClick={onOpenShop} type="button">
+          SHOP
+        </button>
 
         <div className="header-menu-wrap">
           <button className="primary-button" onClick={onToggleAuthMenu} type="button">
-            {profile ? 'Switch sign in' : 'Sign in'}
+            SIGN IN
           </button>
           {authMenuOpen ? (
             <AuthPopover
               authPending={authPending}
               authView={authView}
               hasAdmin={hasAdmin}
+              isAdmin={isAdmin}
               loginForm={loginForm}
               loginMessage={loginMessage}
               onBootstrapChange={onBootstrapChange}
               onCreateAdmin={onCreateAdmin}
               onLogin={onLogin}
               onLoginChange={onLoginChange}
+              onOpenAdmin={onOpenAdmin}
               onSelectView={onSelectAuthView}
+              onSignOut={onSignOut}
+              profile={profile}
               setupForm={setupForm}
               setupMessage={setupMessage}
+              viewingAdmin={viewingAdmin}
             />
           ) : null}
         </div>
@@ -648,8 +703,10 @@ export default function AdminApp() {
   const [playersLoading, setPlayersLoading] = useState(false)
   const [goldPending, setGoldPending] = useState(false)
   const [players, setPlayers] = useState([])
+  const [publicPlayers, setPublicPlayers] = useState([])
   const [adminSection, setAdminSection] = useState(ADMIN_SECTIONS.createPlayer)
   const [selectedPlayerId, setSelectedPlayerId] = useState('')
+  const [viewedPlayerId, setViewedPlayerId] = useState('')
   const [authMenuOpen, setAuthMenuOpen] = useState(false)
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
   const [authView, setAuthView] = useState(AUTH_VIEWS.player)
@@ -804,6 +861,10 @@ export default function AdminApp() {
     () => players.find((player) => player.id === selectedPlayerId) ?? null,
     [players, selectedPlayerId],
   )
+  const viewedPlayer = useMemo(() => {
+    const currentPlayer = publicPlayers.find((player) => player.id === viewedPlayerId) ?? null
+    return mergeViewedPlayer(currentPlayer, profile)
+  }, [profile, publicPlayers, viewedPlayerId])
 
   const navigate = (nextPath) => {
     if (window.location.pathname !== nextPath) {
@@ -823,6 +884,60 @@ export default function AdminApp() {
       refresh_token: nextSession.refresh_token,
     })
   }
+
+  const loadPublicPlayers = useCallback(
+    async ({ preferredPlayerId = '', preserveSelection = true } = {}) => {
+      if (!hasSupabaseEnv) {
+        setPublicPlayers([])
+        setViewedPlayerId('')
+        return
+      }
+
+      try {
+        const response = await fetch('/api/public-players')
+        const data = await readJson(response)
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Unable to load player profiles.')
+        }
+
+        const nextPlayers = data.players ?? []
+        setPublicPlayers(nextPlayers)
+
+        const currentProfileId = profile?.role === 'player' ? profile.id : ''
+        const preferredId = preferredPlayerId || (preserveSelection ? viewedPlayerId : '') || currentProfileId
+        const hasPreferred = nextPlayers.some((player) => player.id === preferredId)
+
+        if (hasPreferred) {
+          setViewedPlayerId(preferredId)
+        } else if (nextPlayers.length) {
+          setViewedPlayerId(nextPlayers[0].id)
+        } else {
+          setViewedPlayerId('')
+        }
+      } catch (error) {
+        setPlayersMessage({
+          type: 'error',
+          text: error.message,
+        })
+      }
+    },
+    [profile, viewedPlayerId],
+  )
+
+  useEffect(() => {
+    loadPublicPlayers()
+  }, [loadPublicPlayers])
+
+  useEffect(() => {
+    if (profile?.role !== 'player') {
+      return
+    }
+
+    if (publicPlayers.some((player) => player.id === profile.id)) {
+      setViewedPlayerId(profile.id)
+    }
+  }, [profile, publicPlayers])
 
   const loadPlayers = useCallback(
     async ({ preserveSelection = true, preferredPlayerId = '' } = {}) => {
@@ -877,14 +992,6 @@ export default function AdminApp() {
 
     loadPlayers()
   }, [viewingAdmin, isAdmin, session?.access_token, loadPlayers])
-
-  const openAuthMenu = (view = AUTH_VIEWS.player) => {
-    setAuthView(view)
-    setAuthMenuOpen(true)
-    setProfileMenuOpen(false)
-    setLoginMessage(createEmptyMessage())
-    setSetupMessage(createEmptyMessage())
-  }
 
   const handleToggleAuthMenu = () => {
     setAuthMenuOpen((current) => !current)
@@ -1073,6 +1180,10 @@ export default function AdminApp() {
         preserveSelection: false,
         preferredPlayerId: data.player.id,
       })
+      await loadPublicPlayers({
+        preserveSelection: false,
+        preferredPlayerId: data.player.id,
+      })
       setAdminSection(ADMIN_SECTIONS.manageGold)
     } catch (error) {
       setCreatePlayerResult({
@@ -1130,6 +1241,9 @@ export default function AdminApp() {
       setPlayers((current) =>
         current.map((player) => (player.id === data.player.id ? { ...player, ...data.player } : player)),
       )
+      setPublicPlayers((current) =>
+        current.map((player) => (player.id === data.player.id ? { ...player, ...data.player } : player)),
+      )
     } catch (error) {
       setGoldResult({
         type: 'error',
@@ -1168,6 +1282,11 @@ export default function AdminApp() {
     navigate(viewingAdmin ? '/' : ADMIN_PATH)
   }
 
+  const handleSelectViewedPlayer = (playerId) => {
+    setViewedPlayerId(playerId)
+    setProfileMenuOpen(false)
+  }
+
   const showSetupMessage = !hasSupabaseEnv
   const readyForProtectedView = !authLoading && !profileLoading && session && profile
   const showGameScene = readyForProtectedView || viewingAdmin
@@ -1195,14 +1314,17 @@ export default function AdminApp() {
           onLoginChange={handleLoginChange}
           onOpenAdmin={handleToggleAdmin}
           onOpenProfileMenu={handleOpenProfileMenu}
-          onOpenSignIn={openAuthMenu}
+          onOpenShop={() => {}}
+          onSelectViewedPlayer={handleSelectViewedPlayer}
           onSelectAuthView={setAuthView}
           onSignOut={handleSignOut}
           onToggleAuthMenu={handleToggleAuthMenu}
           profile={profile}
+          publicPlayers={publicPlayers}
           profileMenuOpen={profileMenuOpen}
           setupForm={setupForm}
           setupMessage={setupMessage}
+          viewedPlayer={viewedPlayer}
           viewingAdmin={viewingAdmin}
         />
 
