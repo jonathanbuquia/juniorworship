@@ -58,7 +58,7 @@ function createEmptyActiveMemoryVerse() {
 }
 
 function clampMemoryFontSize(value) {
-  return Math.min(2.8, Math.max(1, value))
+  return Math.min(5, Math.max(1, value))
 }
 
 function createEmptyQuizQuestion() {
@@ -2346,11 +2346,11 @@ export default function AdminApp() {
   }
 
   const handleIncreaseMemoryFont = () => {
-    setMemoryFontScale((current) => clampMemoryFontSize(current + 0.2))
+    setMemoryFontScale((current) => clampMemoryFontSize(current + 0.4))
   }
 
   const handleDecreaseMemoryFont = () => {
-    setMemoryFontScale((current) => clampMemoryFontSize(current - 0.2))
+    setMemoryFontScale((current) => clampMemoryFontSize(current - 0.4))
   }
 
   const handleOpenQuiz = () => {
