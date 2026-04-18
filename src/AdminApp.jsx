@@ -880,15 +880,20 @@ function MemoryVersePage({
   activeMemoryVerse,
   awardPendingPlayerId,
   isAdmin,
+  memoryRewardsOpen,
+  memoryVerseEditorOpen,
   memoryVerseForm,
   memoryVerseResult,
   onAwardPlayer,
   onCoverAll,
   onCoverNext,
+  onCloseMemoryRewards,
+  onOpenMemoryRewards,
   onMemoryVerseChange,
   onRedoCover,
   onResetCover,
   onRunMemoryVerse,
+  onShowMemoryVerseEditor,
   onUndoCover,
   players,
   playersLoading,
@@ -901,7 +906,7 @@ function MemoryVersePage({
   const hasVerse = Boolean(activeMemoryVerse.reference || activeMemoryVerse.text)
 
   return (
-    <section className="panel memory-verse-shell">
+    <section className="panel memory-verse-shell memory-page-shell">
       <div className="memory-verse-main">
         <div className="content-intro">
           <div>
@@ -913,39 +918,41 @@ function MemoryVersePage({
           </p>
         </div>
 
-        <div className="memory-verse-grid">
-          <form className="workspace-card stack-form" onSubmit={onRunMemoryVerse}>
-            <label className="field">
-              <span>Book / verse title</span>
-              <input
-                name="reference"
-                onChange={onMemoryVerseChange}
-                placeholder="John 3:16"
-                value={memoryVerseForm.reference}
-              />
-            </label>
+        <div className={`memory-verse-grid ${memoryVerseEditorOpen || !hasVerse ? '' : 'presentation-mode'}`}>
+          {memoryVerseEditorOpen || !hasVerse ? (
+            <form className="workspace-card stack-form" onSubmit={onRunMemoryVerse}>
+              <label className="field">
+                <span>Book / verse title</span>
+                <input
+                  name="reference"
+                  onChange={onMemoryVerseChange}
+                  placeholder="John 3:16"
+                  value={memoryVerseForm.reference}
+                />
+              </label>
 
-            <label className="field">
-              <span>Verse text</span>
-              <textarea
-                name="text"
-                onChange={onMemoryVerseChange}
-                placeholder="For God so loved the world..."
-                rows={6}
-                value={memoryVerseForm.text}
-              />
-            </label>
+              <label className="field">
+                <span>Verse text</span>
+                <textarea
+                  name="text"
+                  onChange={onMemoryVerseChange}
+                  placeholder="For God so loved the world..."
+                  rows={6}
+                  value={memoryVerseForm.text}
+                />
+              </label>
 
-            {memoryVerseResult.text ? (
-              <p className={`status-line ${memoryVerseResult.type}`}>{memoryVerseResult.text}</p>
-            ) : null}
+              {memoryVerseResult.text ? (
+                <p className={`status-line ${memoryVerseResult.type}`}>{memoryVerseResult.text}</p>
+              ) : null}
 
-            <button className="primary-button" type="submit">
-              Run helper
-            </button>
-          </form>
+              <button className="primary-button" type="submit">
+                Run helper
+              </button>
+            </form>
+          ) : null}
 
-          <div className="workspace-card memory-helper-card">
+          <div className="workspace-card memory-helper-card memory-helper-card-large">
             {hasVerse ? (
               <>
                 <div className="memory-helper-header">
@@ -973,6 +980,12 @@ function MemoryVersePage({
                   </button>
                   <button className="ghost-button compact-button" onClick={onCoverAll} type="button">
                     Cover all
+                  </button>
+                  <button className="ghost-button compact-button" onClick={onShowMemoryVerseEditor} type="button">
+                    Edit verse
+                  </button>
+                  <button className="primary-button compact-button" onClick={onOpenMemoryRewards} type="button">
+                    Verse rewards
                   </button>
                 </div>
 
@@ -1003,45 +1016,53 @@ function MemoryVersePage({
         </div>
       </div>
 
-      <aside className="memory-verse-sidebar workspace-card">
-        <div className="content-intro">
-          <div>
-            <div className="eyebrow">Verse Rewards</div>
-            <h3>Give 50 gold</h3>
-          </div>
-          <p className="panel-copy">When a player recites the verse, tap their button to reward them.</p>
-        </div>
-
-        {!isAdmin ? (
-          <p className="panel-note">Sign in as admin to give the 50 gold reward.</p>
-        ) : playersLoading ? (
-          <p className="panel-note">Loading players...</p>
-        ) : players.length ? (
-          <div className="memory-player-rewards">
-            {players.map((player) => (
-              <div className="memory-player-row" key={player.id}>
-                <div>
-                  <strong>{player.display_name}</strong>
-                  <span>{player.gold} gold</span>
-                </div>
-                <button
-                  className="primary-button compact-button"
-                  disabled={awardPendingPlayerId === player.id}
-                  onClick={() => onAwardPlayer(player.id)}
-                  type="button"
-                >
-                  {awardPendingPlayerId === player.id ? 'Adding...' : '+50 gold'}
-                </button>
+      {memoryRewardsOpen ? (
+        <div className="memory-dialog-backdrop">
+          <div className="panel memory-dialog">
+            <div className="memory-dialog-header">
+              <div>
+                <div className="eyebrow">Verse Rewards</div>
+                <h3>Give 50 gold</h3>
               </div>
-            ))}
-          </div>
-        ) : (
-          <p className="panel-note">Create player accounts first so you can reward them here.</p>
-        )}
+              <button className="ghost-button compact-button" onClick={onCloseMemoryRewards} type="button">
+                Close
+              </button>
+            </div>
 
-        {playersMessage.text ? <p className={`status-line ${playersMessage.type}`}>{playersMessage.text}</p> : null}
-        {verseAwardResult.text ? <p className={`status-line ${verseAwardResult.type}`}>{verseAwardResult.text}</p> : null}
-      </aside>
+            <p className="panel-copy">When a player recites the verse, tap their button to reward them.</p>
+
+            {!isAdmin ? (
+              <p className="panel-note">Sign in as admin to give the 50 gold reward.</p>
+            ) : playersLoading ? (
+              <p className="panel-note">Loading players...</p>
+            ) : players.length ? (
+              <div className="memory-player-rewards">
+                {players.map((player) => (
+                  <div className="memory-player-row" key={player.id}>
+                    <div>
+                      <strong>{player.display_name}</strong>
+                      <span>{player.gold} gold</span>
+                    </div>
+                    <button
+                      className="primary-button compact-button"
+                      disabled={awardPendingPlayerId === player.id}
+                      onClick={() => onAwardPlayer(player.id)}
+                      type="button"
+                    >
+                      {awardPendingPlayerId === player.id ? 'Adding...' : '+50 gold'}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="panel-note">Create player accounts first so you can reward them here.</p>
+            )}
+
+            {playersMessage.text ? <p className={`status-line ${playersMessage.type}`}>{playersMessage.text}</p> : null}
+            {verseAwardResult.text ? <p className={`status-line ${verseAwardResult.type}`}>{verseAwardResult.text}</p> : null}
+          </div>
+        </div>
+      ) : null}
     </section>
   )
 }
@@ -1323,6 +1344,8 @@ export default function AdminApp() {
   })
   const [memoryVerseForm, setMemoryVerseForm] = useState(createEmptyMemoryVerseForm)
   const [activeMemoryVerse, setActiveMemoryVerse] = useState(createEmptyActiveMemoryVerse)
+  const [memoryVerseEditorOpen, setMemoryVerseEditorOpen] = useState(true)
+  const [memoryRewardsOpen, setMemoryRewardsOpen] = useState(false)
   const [quizQuestions, setQuizQuestions] = useState([])
   const [quizCurrentIndex, setQuizCurrentIndex] = useState(-1)
   const [quizAwardForm, setQuizAwardForm] = useState(createEmptyQuizAwardForm)
@@ -1353,9 +1376,11 @@ export default function AdminApp() {
       const parsed = JSON.parse(savedValue)
       setMemoryVerseForm(parsed.form || createEmptyMemoryVerseForm())
       setActiveMemoryVerse(parsed.active || createEmptyActiveMemoryVerse())
+      setMemoryVerseEditorOpen(!(parsed.active?.reference || parsed.active?.text))
     } catch {
       setMemoryVerseForm(createEmptyMemoryVerseForm())
       setActiveMemoryVerse(createEmptyActiveMemoryVerse())
+      setMemoryVerseEditorOpen(true)
     }
   }, [])
 
@@ -1948,6 +1973,7 @@ export default function AdminApp() {
       text: memoryVerseForm.text.trim(),
       coveredCount: 0,
     })
+    setMemoryVerseEditorOpen(false)
     setMemoryVerseResult({
       type: 'success',
       text: 'Memory verse helper is ready.',
@@ -2235,6 +2261,7 @@ export default function AdminApp() {
     setDeleteResult(createEmptyMessage())
     setVerseAwardResult(createEmptyMessage())
     setQuizAwardResult(createEmptyMessage())
+    setMemoryRewardsOpen(false)
     navigate('/')
   }
 
@@ -2248,6 +2275,18 @@ export default function AdminApp() {
     setAuthMenuOpen(false)
     setProfileMenuOpen(false)
     navigate(MEMORY_PATH)
+  }
+
+  const handleShowMemoryVerseEditor = () => {
+    setMemoryVerseEditorOpen(true)
+  }
+
+  const handleOpenMemoryRewards = () => {
+    setMemoryRewardsOpen(true)
+  }
+
+  const handleCloseMemoryRewards = () => {
+    setMemoryRewardsOpen(false)
   }
 
   const handleOpenQuiz = () => {
@@ -2326,15 +2365,20 @@ export default function AdminApp() {
               activeMemoryVerse={activeMemoryVerse}
               awardPendingPlayerId={awardPendingPlayerId}
               isAdmin={isAdmin}
+              memoryRewardsOpen={memoryRewardsOpen}
+              memoryVerseEditorOpen={memoryVerseEditorOpen}
               memoryVerseForm={memoryVerseForm}
               memoryVerseResult={memoryVerseResult}
               onAwardPlayer={handleAwardMemoryGold}
               onCoverAll={handleCoverAll}
               onCoverNext={handleCoverNext}
+              onCloseMemoryRewards={handleCloseMemoryRewards}
+              onOpenMemoryRewards={handleOpenMemoryRewards}
               onMemoryVerseChange={handleMemoryVerseChange}
               onRedoCover={handleRedoCover}
               onResetCover={handleResetCover}
               onRunMemoryVerse={handleRunMemoryVerse}
+              onShowMemoryVerseEditor={handleShowMemoryVerseEditor}
               onUndoCover={handleUndoCover}
               players={players}
               playersLoading={playersLoading}
