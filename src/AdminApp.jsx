@@ -128,7 +128,7 @@ function resolveCorrectChoiceIndex(answerText, choices) {
 }
 
 function splitAnswerFromText(value) {
-  const text = String(value || '').trim()
+  const text = stripQuizQuestionIdentifier(value)
   const match = text.match(/^(.*?)(?:\s+|^)(?:[([]?\s*)?(?:correct answer|answer|ans|correct)\s*(?:is\s*)?[:=-]?\s*(.+?)\s*[)\]]?$/i)
 
   if (!match) {
@@ -142,6 +142,14 @@ function splitAnswerFromText(value) {
     answerText: match[2].trim(),
     cleanText: match[1].trim(),
   }
+}
+
+function stripQuizQuestionIdentifier(value) {
+  return String(value || '')
+    .trim()
+    .replace(/^(?:question|q)\s*\d+\s*[).:-]?\s*/i, '')
+    .replace(/^(?:question|q)\s*[:.-]\s*/i, '')
+    .trim()
 }
 
 function collectAnswerKeyEntries(value, answerKey) {
@@ -198,7 +206,7 @@ function parseQuizDraftText(text) {
       parsedQuestions.push({
         ...question,
         correctChoiceIndex: resolveCorrectChoiceIndex(_correctAnswerText ?? question.correctChoiceIndex, question.choices),
-        prompt: question.prompt.trim(),
+        prompt: stripQuizQuestionIdentifier(question.prompt),
       })
     }
 
@@ -246,7 +254,7 @@ function parseQuizDraftText(text) {
       const { answerText, cleanText } = splitAnswerFromText(questionMatch[2])
       pushCurrentQuestion()
       currentQuestion = createEmptyQuizQuestion(parsedQuestions.length)
-      currentQuestion.prompt = cleanText
+      currentQuestion.prompt = stripQuizQuestionIdentifier(cleanText)
       currentQuestion._correctAnswerText = answerText || currentQuestion._correctAnswerText
       return
     }
@@ -255,7 +263,7 @@ function parseQuizDraftText(text) {
       const { answerText, cleanText } = splitAnswerFromText(namedQuestionMatch[1])
       pushCurrentQuestion()
       currentQuestion = createEmptyQuizQuestion(parsedQuestions.length)
-      currentQuestion.prompt = cleanText
+      currentQuestion.prompt = stripQuizQuestionIdentifier(cleanText)
       currentQuestion._correctAnswerText = answerText || currentQuestion._correctAnswerText
       return
     }
@@ -287,7 +295,9 @@ function parseQuizDraftText(text) {
     const { answerText, cleanText } = splitAnswerFromText(line)
     currentQuestion = {
       ...question,
-      prompt: cleanText ? (question.prompt ? `${question.prompt} ${cleanText}` : cleanText) : question.prompt,
+      prompt: cleanText
+        ? stripQuizQuestionIdentifier(question.prompt ? `${question.prompt} ${cleanText}` : cleanText)
+        : question.prompt,
       _correctAnswerText: answerText || question._correctAnswerText,
     }
   })
