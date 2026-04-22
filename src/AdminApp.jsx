@@ -214,6 +214,7 @@ function parseQuizDraftText(text) {
   }
 
   lines.forEach((line) => {
+    const questionHeaderMatch = line.match(/^(?:(?:question|q)\s*)?(\d+)[).:-]\s*$/i)
     const questionMatch = line.match(/^(?:(?:question|q)\s*)?(\d+)[).:-]\s*(.+)$/i)
     const namedQuestionMatch = line.match(/^(?:question|q)\s*[:.-]\s*(.+)$/i)
     const optionMatch = line.match(/^(?:[-*]\s*)?([A-D])[).:-]\s*(.+)$/i)
@@ -231,8 +232,14 @@ function parseQuizDraftText(text) {
       return
     }
 
-    if (answerKeyMode && (questionMatch || namedQuestionMatch || optionMatch)) {
+    if (answerKeyMode && (questionHeaderMatch || questionMatch || namedQuestionMatch || optionMatch)) {
       answerKeyMode = false
+    }
+
+    if (questionHeaderMatch) {
+      pushCurrentQuestion()
+      currentQuestion = createEmptyQuizQuestion(parsedQuestions.length)
+      return
     }
 
     if (questionMatch && !optionMatch) {
@@ -1511,13 +1518,13 @@ function QuizPage({
                 <textarea
                   name="quizDraftText"
                   onChange={onQuizDraftChange}
-                  placeholder={`1. Who built the ark?\nA. Moses\nB. Noah\nC. David\nD. Peter\nAnswer: B`}
+                  placeholder={`Question 1: What is 5+2? Answer: A\nA. 7\nB. 1\nC. 2\nD. 3\n\nQuestion 2:`}
                   rows={7}
                   value={quizDraftText}
                 />
               </label>
               <div className="quiz-import-actions">
-                <p className="panel-note">Paste your questions, options, and correct answers here. I will organize them into the 5 slots.</p>
+                <p className="panel-note">Use your format: Question 1: question? Answer: A, then A-D choices below. I will organize them into the 5 slots.</p>
                 <button className="primary-button compact-button" onClick={onOrganizeQuizDraft} type="button">
                   Organize pasted quiz
                 </button>
