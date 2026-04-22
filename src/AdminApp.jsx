@@ -921,8 +921,13 @@ function MemoryVersePage({
       <div className="memory-verse-main">
         <div className="memory-page-toolbar">
           {hasVerse ? (
-            <button className="primary-button compact-button" onClick={onToggleMemoryControls} type="button">
-              {memoryControlsOpen ? 'Hide controls' : 'Show controls'}
+            <button
+              aria-label={memoryControlsOpen ? 'Hide memory controls' : 'Show memory controls'}
+              className="memory-collapse-button"
+              onClick={onToggleMemoryControls}
+              type="button"
+            >
+              {memoryControlsOpen ? '^' : 'v'}
             </button>
           ) : (
             <div />
@@ -982,15 +987,14 @@ function MemoryVersePage({
           <div className={`workspace-card memory-helper-card memory-helper-card-large ${memoryControlsOpen ? '' : 'controls-hidden'}`}>
             {hasVerse ? (
               <>
-                <div className="memory-helper-header">
-                  <div>
-                    <div className="eyebrow">Active Verse</div>
-                    <h3>{activeMemoryVerse.reference || 'Memory verse'}</h3>
+                {memoryControlsOpen ? (
+                  <div className="memory-helper-header">
+                    <div />
+                    <div className="memory-progress-badge">
+                      {coveredCount}/{totalWords || 0} covered
+                    </div>
                   </div>
-                  <div className="memory-progress-badge">
-                    {coveredCount}/{totalWords || 0} covered
-                  </div>
-                </div>
+                ) : null}
 
                 {memoryControlsOpen ? (
                   <>
@@ -1024,21 +1028,28 @@ function MemoryVersePage({
                   </>
                 ) : null}
 
-                <div className="memory-verse-display" style={{ fontSize: `${memoryFontScale}rem` }}>
-                  {tokens.map((token) =>
-                    token.isWord ? (
-                      <span
-                        className={`memory-token ${token.wordIndex < coveredCount ? 'hidden' : ''}`}
-                        key={token.id}
-                      >
-                        {token.text}
-                      </span>
-                    ) : (
-                      <span className="memory-token space" key={token.id}>
-                        {token.text}
-                      </span>
-                    ),
-                  )}
+                <div className="memory-verse-display">
+                  <div className="memory-verse-title">
+                    <div className="eyebrow">Active Verse</div>
+                    <h3>{activeMemoryVerse.reference || 'Memory verse'}</h3>
+                  </div>
+
+                  <div className="memory-verse-text" style={{ fontSize: `${memoryFontScale}rem` }}>
+                    {tokens.map((token) =>
+                      token.isWord ? (
+                        <span
+                          className={`memory-token ${token.wordIndex < coveredCount ? 'hidden' : ''}`}
+                          key={token.id}
+                        >
+                          {token.text}
+                        </span>
+                      ) : (
+                        <span className="memory-token space" key={token.id}>
+                          {token.text}
+                        </span>
+                      ),
+                    )}
+                  </div>
                 </div>
               </>
             ) : (
@@ -2395,8 +2406,9 @@ export default function AdminApp() {
         </div>
       ) : null}
 
-      <div className="portal-overlay top-layout">
-        <GameTopBar
+      <div className={`portal-overlay top-layout ${isMemoryFullscreen ? 'fullscreen-active' : ''}`}>
+        {isMemoryFullscreen ? null : (
+          <GameTopBar
           authMenuOpen={authMenuOpen}
           authPending={authPending}
           authView={authView}
@@ -2427,6 +2439,7 @@ export default function AdminApp() {
           viewingQuiz={viewingQuiz}
           viewingAdmin={viewingAdmin}
         />
+        )}
 
         {showSetupMessage ? (
           <section className="env-warning panel">

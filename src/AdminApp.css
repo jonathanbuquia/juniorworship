@@ -33,6 +33,11 @@
   padding-bottom: 32px;
 }
 
+.portal-overlay.top-layout.fullscreen-active {
+  padding: 12px;
+  gap: 0;
+}
+
 .panel {
   color: #0f2336;
   border: 1px solid rgba(216, 246, 255, 0.55);
@@ -402,6 +407,12 @@
   overflow: hidden;
 }
 
+.fullscreen-active .memory-page-shell {
+  width: 100%;
+  max-height: calc(100vh - 24px);
+  min-height: calc(100vh - 24px);
+}
+
 .memory-verse-main,
 .memory-verse-sidebar {
   border-radius: 22px;
@@ -426,9 +437,23 @@
 .memory-page-toolbar {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
+  gap: 8px;
   align-items: center;
-  min-height: 44px;
+  min-height: 0;
+}
+
+.memory-collapse-button {
+  width: 44px;
+  height: 30px;
+  border: 0;
+  border-radius: 999px;
+  font: inherit;
+  font-weight: 900;
+  line-height: 1;
+  color: white;
+  background: linear-gradient(135deg, #0f9eb7, #0f75a7);
+  box-shadow: 0 10px 22px rgba(15, 117, 167, 0.22);
+  cursor: pointer;
 }
 
 .memory-toolbar-actions {
@@ -465,6 +490,7 @@
 
 .memory-verse-grid.presentation-mode {
   grid-template-columns: 1fr;
+  flex: 1;
 }
 
 .memory-helper-card,
@@ -496,14 +522,17 @@
 .memory-verse-display {
   min-height: 0;
   flex: 1;
-  padding: 18px;
+  padding: 18px 24px 24px;
   border-radius: 18px;
-  line-height: 2;
   color: #17344a;
   background: rgba(244, 251, 255, 0.82);
   box-shadow: inset 0 0 0 1px rgba(52, 109, 139, 0.12);
   overflow: auto;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 22px;
 }
 
 .memory-helper-card-large {
@@ -514,16 +543,26 @@
 }
 
 .memory-helper-card-large.controls-hidden {
-  padding: 14px;
-  gap: 8px;
+  padding: 8px;
+  gap: 0;
 }
 
-.memory-helper-card-large.controls-hidden .memory-helper-header {
-  align-items: center;
+.memory-helper-card-large.controls-hidden .memory-verse-display {
+  border-radius: 16px;
 }
 
-.memory-helper-card-large.controls-hidden .memory-helper-header h3 {
-  font-size: 1rem;
+.memory-verse-title {
+  display: grid;
+  gap: 4px;
+  justify-items: center;
+}
+
+.memory-verse-title h3 {
+  font-size: clamp(1.05rem, 1.6vw, 1.45rem);
+}
+
+.memory-verse-text {
+  line-height: 1.65;
 }
 
 .memory-token.hidden {
