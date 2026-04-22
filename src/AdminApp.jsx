@@ -112,7 +112,7 @@ function getChoiceLabel(choiceIndex) {
 
 function resolveCorrectChoiceIndex(answerText, choices) {
   const normalizedAnswer = String(answerText || '').trim()
-  const letterMatch = normalizedAnswer.match(/^([A-D])/i)
+  const letterMatch = normalizedAnswer.match(/^(?:option|choice)?\s*([A-D])(?:\b|[).:-])/i)
 
   if (letterMatch) {
     return String(letterMatch[1].toUpperCase().charCodeAt(0) - 65)
@@ -129,7 +129,7 @@ function resolveCorrectChoiceIndex(answerText, choices) {
 
 function splitAnswerFromText(value) {
   const text = String(value || '').trim()
-  const match = text.match(/^(.*?)(?:\s+|^)(?:[([]?\s*)?(?:correct answer|answer|ans|correct)\s*[:=-]\s*(.+?)\s*[)\]]?$/i)
+  const match = text.match(/^(.*?)(?:\s+|^)(?:[([]?\s*)?(?:correct answer|answer|ans|correct)\s*(?:is\s*)?[:=-]?\s*(.+?)\s*[)\]]?$/i)
 
   if (!match) {
     return {
@@ -144,16 +144,49 @@ function splitAnswerFromText(value) {
   }
 }
 
+function collectAnswerKeyEntries(value, answerKey) {
+  const text = String(value || '')
+    .replace(/\s+(?=(?:q(?:uestion)?\s*)?\d+\s*[).:-])/gi, '\n')
+    .split(/\r?\n|[,;]/)
+    .map((entry) => entry.trim())
+    .filter(Boolean)
+  let foundAnswer = false
+
+  text.forEach((entry) => {
+    const numberedAnswerMatch =
+      entry.match(/^(?:q(?:uestion)?\s*)?(\d+)\s*[).:-]\s*(.+)$/i) ||
+      entry.match(/^(?:q(?:uestion)?\s*)?(\d+)\s+(.+)$/i)
+
+    if (!numberedAnswerMatch) {
+      return
+    }
+
+    const questionNumber = Number(numberedAnswerMatch[1])
+    const answerText = numberedAnswerMatch[2].trim()
+
+    if (!Number.isInteger(questionNumber) || questionNumber < 1 || questionNumber > QUIZ_QUESTION_COUNT || !answerText) {
+      return
+    }
+
+    answerKey.set(questionNumber, answerText)
+    foundAnswer = true
+  })
+
+  return foundAnswer
+}
+
 function parseQuizDraftText(text) {
+  const answerKey = new Map()
   const lines = String(text || '')
     .replace(/\s+(?=(?:(?:question|q)\s*)?\d+[).:-]\s+)/gi, '\n')
-    .replace(/\s+(?=[A-D][).:-]\s+)/g, '\n')
-    .replace(/\s+(?=(?:correct answer|answer|ans|correct)\s*[:=-])/gi, '\n')
+    .replace(/\s+(?=[A-Da-d][).:-]\s+)/g, '\n')
+    .replace(/\s+(?=(?:correct answer|answer|ans|correct)\s*(?:is\s*)?[:=-])/gi, '\n')
     .split(/\r?\n/)
     .map((line) => line.trim())
     .filter(Boolean)
   const parsedQuestions = []
   let currentQuestion = null
+  let answerKeyMode = false
 
   const pushCurrentQuestion = () => {
     if (!currentQuestion) {
@@ -184,7 +217,23 @@ function parseQuizDraftText(text) {
     const questionMatch = line.match(/^(?:(?:question|q)\s*)?(\d+)[).:-]\s*(.+)$/i)
     const namedQuestionMatch = line.match(/^(?:question|q)\s*[:.-]\s*(.+)$/i)
     const optionMatch = line.match(/^(?:[-*]\s*)?([A-D])[).:-]\s*(.+)$/i)
-    const answerMatch = line.match(/^(?:correct answer|answer|ans|correct)\s*[:.-]?\s*(.+)$/i)
+    const answerKeyHeaderMatch = line.match(/^(?:answer key|answers|correct answers)\s*[:.-]?\s*(.*)$/i)
+    const answerMatch = line.match(/^(?:correct answer|answer|ans|correct)\s*(?:is\s*)?[:.-]?\s*(.+)$/i)
+
+    if (answerKeyHeaderMatch) {
+      pushCurrentQuestion()
+      answerKeyMode = true
+      collectAnswerKeyEntries(answerKeyHeaderMatch[1], answerKey)
+      return
+    }
+
+    if (answerKeyMode && collectAnswerKeyEntries(line, answerKey)) {
+      return
+    }
+
+    if (answerKeyMode && (questionMatch || namedQuestionMatch || optionMatch)) {
+      answerKeyMode = false
+    }
 
     if (questionMatch && !optionMatch) {
       const { answerText, cleanText } = splitAnswerFromText(questionMatch[2])
@@ -238,7 +287,18 @@ function parseQuizDraftText(text) {
 
   pushCurrentQuestion()
 
-  return createFixedQuizQuestions(parsedQuestions.slice(0, QUIZ_QUESTION_COUNT))
+  return createFixedQuizQuestions(parsedQuestions.slice(0, QUIZ_QUESTION_COUNT)).map((question, index) => {
+    const answerText = answerKey.get(index + 1)
+
+    if (!answerText) {
+      return question
+    }
+
+    return {
+      ...question,
+      correctChoiceIndex: resolveCorrectChoiceIndex(answerText, question.choices),
+    }
+  })
 }
 
 function createFixedQuizQuestions(savedQuestions = []) {
