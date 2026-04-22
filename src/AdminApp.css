@@ -395,9 +395,11 @@
 
 .memory-page-shell {
   width: min(100%, 1400px);
-  min-height: calc(100vh - 120px);
+  max-height: calc(100vh - 142px);
+  min-height: calc(100vh - 142px);
   grid-template-columns: 1fr;
   position: relative;
+  overflow: hidden;
 }
 
 .memory-verse-main,
@@ -417,6 +419,8 @@
   padding: 22px;
   display: grid;
   gap: 18px;
+  min-height: 0;
+  overflow: auto;
 }
 
 .memory-page-toolbar {
@@ -455,6 +459,7 @@
   display: grid;
   grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.2fr);
   gap: 16px;
+  min-height: 0;
 }
 
 .memory-verse-grid.presentation-mode {
@@ -488,7 +493,8 @@
 }
 
 .memory-verse-display {
-  min-height: 420px;
+  min-height: 0;
+  flex: 1;
   padding: 28px;
   border-radius: 20px;
   line-height: 2;
@@ -500,7 +506,9 @@
 }
 
 .memory-helper-card-large {
-  min-height: calc(100vh - 260px);
+  min-height: calc(100vh - 270px);
+  display: flex;
+  flex-direction: column;
   align-content: start;
 }
 
@@ -874,7 +882,9 @@
   }
 
   .memory-page-shell {
+    max-height: none;
     min-height: auto;
+    overflow: visible;
   }
 
   .workspace-grid,

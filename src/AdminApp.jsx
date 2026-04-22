@@ -885,6 +885,7 @@ function MemoryVersePage({
   awardPendingPlayerId,
   isAdmin,
   isMemoryFullscreen,
+  memoryControlsOpen,
   memoryFontScale,
   memoryRewardsOpen,
   memoryVerseEditorOpen,
@@ -902,6 +903,7 @@ function MemoryVersePage({
   onResetCover,
   onRunMemoryVerse,
   onShowMemoryVerseEditor,
+  onToggleMemoryControls,
   onToggleMemoryFullscreen,
   onUndoCover,
   players,
@@ -918,16 +920,21 @@ function MemoryVersePage({
     <section className="panel memory-verse-shell memory-page-shell">
       <div className="memory-verse-main">
         <div className="memory-page-toolbar">
-          {!memoryVerseEditorOpen && hasVerse ? (
-            <button className="ghost-button compact-button" onClick={onShowMemoryVerseEditor} type="button">
-              Edit verse
+          {hasVerse ? (
+            <button className="primary-button compact-button" onClick={onToggleMemoryControls} type="button">
+              {memoryControlsOpen ? 'Hide controls' : 'Show controls'}
             </button>
           ) : (
             <div />
           )}
 
-          {isAdmin ? (
+          {memoryControlsOpen && isAdmin ? (
             <div className="memory-toolbar-actions">
+              {!memoryVerseEditorOpen && hasVerse ? (
+                <button className="ghost-button compact-button" onClick={onShowMemoryVerseEditor} type="button">
+                  Edit verse
+                </button>
+              ) : null}
               <button className="ghost-button compact-button" onClick={onToggleMemoryFullscreen} type="button">
                 {isMemoryFullscreen ? 'Exit full screen' : 'Full screen'}
               </button>
@@ -985,36 +992,37 @@ function MemoryVersePage({
                   </div>
                 </div>
 
-                <div className="memory-helper-controls">
-                  <button className="ghost-button compact-button" onClick={onCoverNext} type="button">
-                    Cover next
-                  </button>
-                  <button className="ghost-button compact-button" onClick={onUndoCover} type="button">
-                    &lt; Undo
-                  </button>
-                  <button className="ghost-button compact-button" onClick={onRedoCover} type="button">
-                    Redo &gt;
-                  </button>
-                  <button className="ghost-button compact-button" onClick={onResetCover} type="button">
-                    Reset
-                  </button>
-                  <button className="ghost-button compact-button" onClick={onCoverAll} type="button">
-                    Cover all
-                  </button>
-                  <button className="ghost-button compact-button" onClick={onShowMemoryVerseEditor} type="button">
-                    Edit verse
-                  </button>
-                </div>
+                {memoryControlsOpen ? (
+                  <>
+                    <div className="memory-helper-controls">
+                      <button className="ghost-button compact-button" onClick={onCoverNext} type="button">
+                        Cover next
+                      </button>
+                      <button className="ghost-button compact-button" onClick={onUndoCover} type="button">
+                        &lt; Undo
+                      </button>
+                      <button className="ghost-button compact-button" onClick={onRedoCover} type="button">
+                        Redo &gt;
+                      </button>
+                      <button className="ghost-button compact-button" onClick={onResetCover} type="button">
+                        Reset
+                      </button>
+                      <button className="ghost-button compact-button" onClick={onCoverAll} type="button">
+                        Cover all
+                      </button>
+                    </div>
 
-                <div className="memory-text-controls">
-                  <span className="memory-text-size-label">Text size</span>
-                  <button className="ghost-button compact-button" onClick={onDecreaseMemoryFont} type="button">
-                    A-
-                  </button>
-                  <button className="ghost-button compact-button" onClick={onIncreaseMemoryFont} type="button">
-                    A+
-                  </button>
-                </div>
+                    <div className="memory-text-controls">
+                      <span className="memory-text-size-label">Text size</span>
+                      <button className="ghost-button compact-button" onClick={onDecreaseMemoryFont} type="button">
+                        A-
+                      </button>
+                      <button className="ghost-button compact-button" onClick={onIncreaseMemoryFont} type="button">
+                        A+
+                      </button>
+                    </div>
+                  </>
+                ) : null}
 
                 <div className="memory-verse-display" style={{ fontSize: `${memoryFontScale}rem` }}>
                   {tokens.map((token) =>
@@ -1373,6 +1381,7 @@ export default function AdminApp() {
   const [activeMemoryVerse, setActiveMemoryVerse] = useState(createEmptyActiveMemoryVerse)
   const [memoryVerseEditorOpen, setMemoryVerseEditorOpen] = useState(true)
   const [memoryRewardsOpen, setMemoryRewardsOpen] = useState(false)
+  const [memoryControlsOpen, setMemoryControlsOpen] = useState(true)
   const [memoryFontScale, setMemoryFontScale] = useState(1.6)
   const [isMemoryFullscreen, setIsMemoryFullscreen] = useState(false)
   const [quizQuestions, setQuizQuestions] = useState([])
@@ -2014,6 +2023,7 @@ export default function AdminApp() {
       coveredCount: 0,
     })
     setMemoryVerseEditorOpen(false)
+    setMemoryControlsOpen(true)
     setMemoryVerseResult({
       type: 'success',
       text: 'Memory verse helper is ready.',
@@ -2319,6 +2329,7 @@ export default function AdminApp() {
 
   const handleShowMemoryVerseEditor = () => {
     setMemoryVerseEditorOpen(true)
+    setMemoryControlsOpen(true)
   }
 
   const handleOpenMemoryRewards = () => {
@@ -2343,6 +2354,10 @@ export default function AdminApp() {
         text: error.message || 'Unable to enter full screen mode.',
       })
     }
+  }
+
+  const handleToggleMemoryControls = () => {
+    setMemoryControlsOpen((current) => !current)
   }
 
   const handleIncreaseMemoryFont = () => {
@@ -2430,6 +2445,7 @@ export default function AdminApp() {
               awardPendingPlayerId={awardPendingPlayerId}
               isAdmin={isAdmin}
               isMemoryFullscreen={isMemoryFullscreen}
+              memoryControlsOpen={memoryControlsOpen}
               memoryFontScale={memoryFontScale}
               memoryRewardsOpen={memoryRewardsOpen}
               memoryVerseEditorOpen={memoryVerseEditorOpen}
@@ -2447,6 +2463,7 @@ export default function AdminApp() {
               onResetCover={handleResetCover}
               onRunMemoryVerse={handleRunMemoryVerse}
               onShowMemoryVerseEditor={handleShowMemoryVerseEditor}
+              onToggleMemoryControls={handleToggleMemoryControls}
               onToggleMemoryFullscreen={handleToggleMemoryFullscreen}
               onUndoCover={handleUndoCover}
               players={players}
