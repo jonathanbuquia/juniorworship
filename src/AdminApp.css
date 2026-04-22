@@ -413,6 +413,14 @@
   min-height: calc(100vh - 24px);
 }
 
+.fullscreen-active .memory-helper-card-large {
+  min-height: calc(100vh - 72px);
+}
+
+.fullscreen-active .memory-control-tab {
+  left: 18px;
+}
+
 .memory-verse-main,
 .memory-verse-sidebar {
   border-radius: 22px;
@@ -434,17 +442,13 @@
   overflow: auto;
 }
 
-.memory-page-toolbar {
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  align-items: center;
-  min-height: 0;
-}
-
-.memory-collapse-button {
-  width: 44px;
-  height: 30px;
+.memory-control-tab {
+  position: fixed;
+  left: 14px;
+  top: 50%;
+  z-index: 26;
+  width: 36px;
+  height: 54px;
   border: 0;
   border-radius: 999px;
   font: inherit;
@@ -454,13 +458,32 @@
   background: linear-gradient(135deg, #0f9eb7, #0f75a7);
   box-shadow: 0 10px 22px rgba(15, 117, 167, 0.22);
   cursor: pointer;
+  transform: translateY(-50%);
 }
 
-.memory-toolbar-actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
+.memory-controls-drawer {
+  position: fixed;
+  left: 58px;
+  top: 50%;
+  z-index: 25;
+  width: min(86vw, 300px);
+  max-height: min(82vh, 680px);
+  padding: 16px;
+  display: grid;
+  gap: 14px;
+  overflow: auto;
+  transform: translateY(-50%);
+}
+
+.memory-drawer-heading,
+.memory-drawer-actions {
+  display: grid;
   gap: 10px;
+}
+
+.memory-drawer-heading {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
 }
 
 .memory-text-controls {
@@ -494,7 +517,6 @@
 }
 
 .memory-helper-card,
-.memory-helper-header,
 .memory-helper-controls,
 .memory-player-rewards,
 .quiz-question-list {
@@ -502,21 +524,8 @@
   gap: 10px;
 }
 
-.memory-helper-header {
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: start;
-}
-
-.memory-progress-badge {
-  border-radius: 999px;
-  padding: 10px 14px;
-  font-weight: 700;
-  color: #0f6584;
-  background: rgba(214, 244, 255, 0.92);
-}
-
 .memory-helper-controls {
-  grid-template-columns: repeat(auto-fit, minmax(120px, auto));
+  grid-template-columns: 1fr;
 }
 
 .memory-verse-display {
@@ -536,19 +545,10 @@
 }
 
 .memory-helper-card-large {
-  min-height: calc(100vh - 220px);
+  min-height: calc(100vh - 180px);
   display: flex;
   flex-direction: column;
   align-content: start;
-}
-
-.memory-helper-card-large.controls-hidden {
-  padding: 8px;
-  gap: 0;
-}
-
-.memory-helper-card-large.controls-hidden .memory-verse-display {
-  border-radius: 16px;
 }
 
 .memory-verse-title {

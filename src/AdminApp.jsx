@@ -918,24 +918,60 @@ function MemoryVersePage({
 
   return (
     <section className="panel memory-verse-shell memory-page-shell">
-      <div className="memory-verse-main">
-        <div className="memory-page-toolbar">
-          {hasVerse ? (
-            <button
-              aria-label={memoryControlsOpen ? 'Hide memory controls' : 'Show memory controls'}
-              className="memory-collapse-button"
-              onClick={onToggleMemoryControls}
-              type="button"
-            >
-              {memoryControlsOpen ? '^' : 'v'}
-            </button>
-          ) : (
-            <div />
-          )}
+      {hasVerse ? (
+        <button
+          aria-label={memoryControlsOpen ? 'Hide memory controls' : 'Show memory controls'}
+          className="memory-control-tab"
+          onClick={onToggleMemoryControls}
+          type="button"
+        >
+          {memoryControlsOpen ? '<' : '>'}
+        </button>
+      ) : null}
 
-          {memoryControlsOpen && isAdmin ? (
-            <div className="memory-toolbar-actions">
-              {!memoryVerseEditorOpen && hasVerse ? (
+      {hasVerse && memoryControlsOpen ? (
+        <aside className="panel memory-controls-drawer">
+          <div className="memory-drawer-heading">
+            <div>
+              <div className="eyebrow">Memory Controls</div>
+              <strong>{coveredCount}/{totalWords || 0} covered</strong>
+            </div>
+            <button className="ghost-button compact-button" onClick={onToggleMemoryControls} type="button">
+              Hide
+            </button>
+          </div>
+
+          <div className="memory-helper-controls">
+            <button className="ghost-button compact-button" onClick={onCoverNext} type="button">
+              Cover next
+            </button>
+            <button className="ghost-button compact-button" onClick={onUndoCover} type="button">
+              &lt; Undo
+            </button>
+            <button className="ghost-button compact-button" onClick={onRedoCover} type="button">
+              Redo &gt;
+            </button>
+            <button className="ghost-button compact-button" onClick={onResetCover} type="button">
+              Reset
+            </button>
+            <button className="ghost-button compact-button" onClick={onCoverAll} type="button">
+              Cover all
+            </button>
+          </div>
+
+          <div className="memory-text-controls">
+            <span className="memory-text-size-label">Text size</span>
+            <button className="ghost-button compact-button" onClick={onDecreaseMemoryFont} type="button">
+              A-
+            </button>
+            <button className="ghost-button compact-button" onClick={onIncreaseMemoryFont} type="button">
+              A+
+            </button>
+          </div>
+
+          {isAdmin ? (
+            <div className="memory-drawer-actions">
+              {!memoryVerseEditorOpen ? (
                 <button className="ghost-button compact-button" onClick={onShowMemoryVerseEditor} type="button">
                   Edit verse
                 </button>
@@ -948,8 +984,10 @@ function MemoryVersePage({
               </button>
             </div>
           ) : null}
-        </div>
+        </aside>
+      ) : null}
 
+      <div className="memory-verse-main">
         <div className={`memory-verse-grid ${memoryVerseEditorOpen || !hasVerse ? '' : 'presentation-mode'}`}>
           {memoryVerseEditorOpen || !hasVerse ? (
             <form className="workspace-card stack-form" onSubmit={onRunMemoryVerse}>
@@ -984,50 +1022,9 @@ function MemoryVersePage({
             </form>
           ) : null}
 
-          <div className={`workspace-card memory-helper-card memory-helper-card-large ${memoryControlsOpen ? '' : 'controls-hidden'}`}>
+          <div className="workspace-card memory-helper-card memory-helper-card-large">
             {hasVerse ? (
               <>
-                {memoryControlsOpen ? (
-                  <div className="memory-helper-header">
-                    <div />
-                    <div className="memory-progress-badge">
-                      {coveredCount}/{totalWords || 0} covered
-                    </div>
-                  </div>
-                ) : null}
-
-                {memoryControlsOpen ? (
-                  <>
-                    <div className="memory-helper-controls">
-                      <button className="ghost-button compact-button" onClick={onCoverNext} type="button">
-                        Cover next
-                      </button>
-                      <button className="ghost-button compact-button" onClick={onUndoCover} type="button">
-                        &lt; Undo
-                      </button>
-                      <button className="ghost-button compact-button" onClick={onRedoCover} type="button">
-                        Redo &gt;
-                      </button>
-                      <button className="ghost-button compact-button" onClick={onResetCover} type="button">
-                        Reset
-                      </button>
-                      <button className="ghost-button compact-button" onClick={onCoverAll} type="button">
-                        Cover all
-                      </button>
-                    </div>
-
-                    <div className="memory-text-controls">
-                      <span className="memory-text-size-label">Text size</span>
-                      <button className="ghost-button compact-button" onClick={onDecreaseMemoryFont} type="button">
-                        A-
-                      </button>
-                      <button className="ghost-button compact-button" onClick={onIncreaseMemoryFont} type="button">
-                        A+
-                      </button>
-                    </div>
-                  </>
-                ) : null}
-
                 <div className="memory-verse-display">
                   <div className="memory-verse-title">
                     <div className="eyebrow">Active Verse</div>
