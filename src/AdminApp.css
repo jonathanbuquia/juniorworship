@@ -673,6 +673,27 @@
   gap: 10px;
 }
 
+.quiz-import-card {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 20px;
+  background: rgba(244, 251, 255, 0.82);
+  box-shadow: inset 0 0 0 1px rgba(52, 109, 139, 0.12);
+}
+
+.quiz-import-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.quiz-import-actions .panel-note {
+  flex: 1 1 260px;
+}
+
 .quiz-answer-picker {
   width: min(100%, 220px);
 }

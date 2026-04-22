@@ -110,6 +110,96 @@ function getChoiceLabel(choiceIndex) {
   return String.fromCharCode(65 + Number(choiceIndex || 0))
 }
 
+function resolveCorrectChoiceIndex(answerText, choices) {
+  const normalizedAnswer = String(answerText || '').trim()
+  const letterMatch = normalizedAnswer.match(/^([A-D])/i)
+
+  if (letterMatch) {
+    return String(letterMatch[1].toUpperCase().charCodeAt(0) - 65)
+  }
+
+  const normalizedAnswerText = normalizedAnswer.toLowerCase()
+  const matchingChoiceIndex = choices.findIndex((choice) => {
+    const normalizedChoice = String(choice || '').trim().toLowerCase()
+    return normalizedChoice && (normalizedChoice === normalizedAnswerText || normalizedChoice.includes(normalizedAnswerText))
+  })
+
+  return matchingChoiceIndex >= 0 ? String(matchingChoiceIndex) : '0'
+}
+
+function parseQuizDraftText(text) {
+  const lines = String(text || '')
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+  const parsedQuestions = []
+  let currentQuestion = null
+
+  const pushCurrentQuestion = () => {
+    if (!currentQuestion) {
+      return
+    }
+
+    if (currentQuestion.prompt || currentQuestion.choices.some(Boolean)) {
+      parsedQuestions.push(currentQuestion)
+    }
+
+    currentQuestion = null
+  }
+
+  const ensureCurrentQuestion = () => {
+    if (!currentQuestion) {
+      currentQuestion = createEmptyQuizQuestion(parsedQuestions.length)
+    }
+
+    return currentQuestion
+  }
+
+  lines.forEach((line) => {
+    const questionMatch = line.match(/^(?:(?:question|q)\s*)?(\d+)[).:-]\s*(.+)$/i)
+    const optionMatch = line.match(/^(?:[-*]\s*)?([A-D])[).:-]\s*(.+)$/i)
+    const answerMatch = line.match(/^(?:correct answer|answer|ans|correct)\s*[:.-]?\s*(.+)$/i)
+
+    if (questionMatch && !optionMatch) {
+      pushCurrentQuestion()
+      currentQuestion = createEmptyQuizQuestion(parsedQuestions.length)
+      currentQuestion.prompt = questionMatch[2].trim()
+      return
+    }
+
+    if (optionMatch) {
+      const question = ensureCurrentQuestion()
+      const choiceIndex = optionMatch[1].toUpperCase().charCodeAt(0) - 65
+      const nextChoices = [...question.choices]
+      nextChoices[choiceIndex] = optionMatch[2].trim()
+      currentQuestion = {
+        ...question,
+        choices: nextChoices,
+      }
+      return
+    }
+
+    if (answerMatch) {
+      const question = ensureCurrentQuestion()
+      currentQuestion = {
+        ...question,
+        correctChoiceIndex: resolveCorrectChoiceIndex(answerMatch[1], question.choices),
+      }
+      return
+    }
+
+    const question = ensureCurrentQuestion()
+    currentQuestion = {
+      ...question,
+      prompt: question.prompt ? `${question.prompt} ${line}` : line,
+    }
+  })
+
+  pushCurrentQuestion()
+
+  return createFixedQuizQuestions(parsedQuestions.slice(0, QUIZ_QUESTION_COUNT))
+}
+
 function createFixedQuizQuestions(savedQuestions = []) {
   return Array.from({ length: QUIZ_QUESTION_COUNT }, (_unused, index) => {
     const savedQuestion = savedQuestions[index] || {}
@@ -1231,7 +1321,9 @@ function QuizPage({
   onOpenQuizRewards,
   onPreviousQuizQuestion,
   onQuizAwardChange,
+  onQuizDraftChange,
   onQuizQuestionChange,
+  onOrganizeQuizDraft,
   onStartQuiz,
   onToggleQuizFullscreen,
   players,
@@ -1241,6 +1333,8 @@ function QuizPage({
   quizAwardPendingPlayerId,
   quizAwardResult,
   quizCurrentIndex,
+  quizDraftResult,
+  quizDraftText,
   quizFontScale,
   quizQuestions,
   quizRewardsOpen,
@@ -1300,6 +1394,26 @@ function QuizPage({
             <div className="quiz-budget-card">
               <strong>5 questions at {GOLD_PER_QUIZ_POINT} gold each</strong>
               <span>Memory verse fill in the blanks is last and worth {MEMORY_VERSE_QUIZ_POINTS * GOLD_PER_QUIZ_POINT} gold.</span>
+            </div>
+
+            <div className="quiz-import-card">
+              <label className="field">
+                <span>Paste quiz text</span>
+                <textarea
+                  name="quizDraftText"
+                  onChange={onQuizDraftChange}
+                  placeholder={`1. Who built the ark?\nA. Moses\nB. Noah\nC. David\nD. Peter\nAnswer: B`}
+                  rows={7}
+                  value={quizDraftText}
+                />
+              </label>
+              <div className="quiz-import-actions">
+                <p className="panel-note">Paste your questions, options, and correct answers here. I will organize them into the 5 slots below.</p>
+                <button className="primary-button compact-button" onClick={onOrganizeQuizDraft} type="button">
+                  Organize pasted quiz
+                </button>
+              </div>
+              {quizDraftResult.text ? <p className={`status-line ${quizDraftResult.type}`}>{quizDraftResult.text}</p> : null}
             </div>
 
             <div className="quiz-question-list quiz-fixed-question-list">
@@ -1531,6 +1645,7 @@ export default function AdminApp() {
   const [deleteResult, setDeleteResult] = useState(createEmptyMessage)
   const [verseAwardResult, setVerseAwardResult] = useState(createEmptyMessage)
   const [quizAwardResult, setQuizAwardResult] = useState(createEmptyMessage)
+  const [quizDraftResult, setQuizDraftResult] = useState(createEmptyMessage)
   const [awardPendingPlayerId, setAwardPendingPlayerId] = useState('')
   const [quizAwardPendingPlayerId, setQuizAwardPendingPlayerId] = useState('')
   const [loginForm, setLoginForm] = useState({
@@ -1560,6 +1675,7 @@ export default function AdminApp() {
   const [quizCurrentIndex, setQuizCurrentIndex] = useState(-1)
   const [quizAwardForm, setQuizAwardForm] = useState(createEmptyQuizAwardForm)
   const [quizRewardsOpen, setQuizRewardsOpen] = useState(false)
+  const [quizDraftText, setQuizDraftText] = useState('')
   const [quizFontScale, setQuizFontScale] = useState(1.8)
   const [isQuizFullscreen, setIsQuizFullscreen] = useState(false)
   const [goldForm, setGoldForm] = useState({
@@ -1948,6 +2064,11 @@ export default function AdminApp() {
     }))
   }
 
+  const handleQuizDraftChange = (event) => {
+    setQuizDraftText(event.target.value)
+    setQuizDraftResult(createEmptyMessage())
+  }
+
   const handleGoldFormChange = (event) => {
     const { name, value } = event.target
     setGoldForm((current) => ({
@@ -2322,6 +2443,29 @@ export default function AdminApp() {
 
       return current.map((question) => (question.id === questionId ? { ...question, [field]: value } : question))
     })
+  }
+
+  const handleOrganizeQuizDraft = () => {
+    if (!quizDraftText.trim()) {
+      setQuizDraftResult({
+        type: 'error',
+        text: 'Paste the quiz text first.',
+      })
+      return
+    }
+
+    const nextQuestions = parseQuizDraftText(quizDraftText)
+    const filledQuestions = nextQuestions.filter((question) => question.prompt || question.choices.some(Boolean))
+
+    setQuizQuestions(nextQuestions)
+    setQuizDraftResult({
+      type: filledQuestions.length ? 'success' : 'error',
+      text: filledQuestions.length
+        ? `Organized ${filledQuestions.length} question${filledQuestions.length === 1 ? '' : 's'} into the quiz editor.`
+        : 'I could not find questions yet. Try using lines like "1. Question", "A. Option", and "Answer: B".',
+    })
+    setQuizCurrentIndex(-1)
+    setQuizRewardsOpen(false)
   }
 
   const handleStartQuiz = () => {
@@ -2761,7 +2905,9 @@ export default function AdminApp() {
               onOpenQuizRewards={handleOpenQuizRewards}
               onPreviousQuizQuestion={handlePreviousQuizQuestion}
               onQuizAwardChange={handleQuizAwardChange}
+              onQuizDraftChange={handleQuizDraftChange}
               onQuizQuestionChange={handleQuizQuestionChange}
+              onOrganizeQuizDraft={handleOrganizeQuizDraft}
               onSelectPlayer={setSelectedPlayerId}
               onStartQuiz={handleStartQuiz}
               onToggleQuizFullscreen={handleToggleQuizFullscreen}
@@ -2772,6 +2918,8 @@ export default function AdminApp() {
               quizAwardPendingPlayerId={quizAwardPendingPlayerId}
               quizAwardResult={quizAwardResult}
               quizCurrentIndex={quizCurrentIndex}
+              quizDraftResult={quizDraftResult}
+              quizDraftText={quizDraftText}
               quizFontScale={quizFontScale}
               quizQuestions={quizQuestions}
               quizRewardsOpen={quizRewardsOpen}
