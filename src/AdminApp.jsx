@@ -1154,21 +1154,26 @@ function QuizPage({
   isAdmin,
   onAddQuizQuestion,
   onAwardPlayer,
+  onCloseQuizRewards,
   onFinishQuiz,
   onNextQuizQuestion,
+  onOpenQuizRewards,
   onPreviousQuizQuestion,
   onQuizAwardChange,
   onQuizQuestionChange,
   onRemoveQuizQuestion,
   onStartQuiz,
+  onToggleQuizControls,
   players,
   playersLoading,
   playersMessage,
   quizAwardForm,
   quizAwardPendingPlayerId,
   quizAwardResult,
+  quizControlsOpen,
   quizCurrentIndex,
   quizQuestions,
+  quizRewardsOpen,
   selectedPlayerId,
   onSelectPlayer,
 }) {
@@ -1178,202 +1183,209 @@ function QuizPage({
   const quizFinished = quizQuestions.length > 0 && quizCurrentIndex >= quizQuestions.length
 
   return (
-    <section className="panel memory-verse-shell">
-      <div className="memory-verse-main">
-        <div className="content-intro">
-          <div>
-            <div className="eyebrow">Quiz Helper</div>
-            <h2>Build the questions, then present them one by one</h2>
+    <section className="panel memory-verse-shell memory-page-shell quiz-page-shell">
+      <button
+        aria-label={quizControlsOpen ? 'Hide quiz controls' : 'Show quiz controls'}
+        className="memory-control-tab"
+        onClick={onToggleQuizControls}
+        type="button"
+      >
+        {quizControlsOpen ? '<' : '>'}
+      </button>
+
+      {quizControlsOpen ? (
+        <aside className="panel memory-controls-drawer quiz-controls-drawer">
+          <div className="memory-drawer-heading">
+            <div>
+              <div className="eyebrow">Quiz Controls</div>
+              <strong>{quizQuestions.length} question{quizQuestions.length === 1 ? '' : 's'}</strong>
+            </div>
+            <button className="ghost-button compact-button" onClick={onToggleQuizControls} type="button">
+              Hide
+            </button>
           </div>
-          <p className="panel-copy">
-            Add each question with its point value. The presentation card will show only the current question number,
-            points, and text.
-          </p>
-        </div>
 
-        <div className="memory-verse-grid">
-          <div className="workspace-card quiz-editor-card">
-            <div className="card-heading">
-              <h3>Questions</h3>
-              <button className="ghost-button compact-button" onClick={onAddQuizQuestion} type="button">
-                Add question
+          <div className="quiz-drawer-actions">
+            <button className="ghost-button compact-button" onClick={onAddQuizQuestion} type="button">
+              Add question
+            </button>
+            <button className="ghost-button compact-button" onClick={onStartQuiz} type="button">
+              Start
+            </button>
+            <button className="ghost-button compact-button" onClick={onPreviousQuizQuestion} type="button">
+              Previous
+            </button>
+            <button className="ghost-button compact-button" onClick={onNextQuizQuestion} type="button">
+              Next
+            </button>
+            <button className="ghost-button compact-button" onClick={onFinishQuiz} type="button">
+              Finish
+            </button>
+            {quizFinished ? (
+              <button className="primary-button compact-button" onClick={onOpenQuizRewards} type="button">
+                Quiz rewards
               </button>
-            </div>
-
-            <div className="quiz-question-list">
-              {quizQuestions.length ? (
-                quizQuestions.map((question, index) => (
-                  <div className="quiz-question-card" key={question.id}>
-                    <div className="quiz-question-card-top">
-                      <strong>Question {index + 1}</strong>
-                      <button className="ghost-button compact-button" onClick={() => onRemoveQuizQuestion(question.id)} type="button">
-                        Remove
-                      </button>
-                    </div>
-
-                    <label className="field">
-                      <span>Question text</span>
-                      <textarea
-                        name="prompt"
-                        onChange={(event) => onQuizQuestionChange(question.id, 'prompt', event.target.value)}
-                        rows={3}
-                        value={question.prompt}
-                      />
-                    </label>
-
-                    <label className="field">
-                      <span>Points</span>
-                      <input
-                        inputMode="numeric"
-                        name="points"
-                        onChange={(event) => onQuizQuestionChange(question.id, 'points', event.target.value)}
-                        value={question.points}
-                      />
-                    </label>
-                  </div>
-                ))
-              ) : (
-                <p className="panel-note">Add your first quiz question to begin.</p>
-              )}
-            </div>
-
-            {pointGroups.length ? (
-              <div className="quiz-points-summary">
-                <div className="eyebrow">Point Summary</div>
-                {pointGroups.map((group) => (
-                  <div className="quiz-summary-row" key={`${group.start}-${group.end}-${group.points}`}>
-                    <strong>
-                      Question{group.start === group.end ? '' : 's'} {group.start}
-                      {group.start === group.end ? '' : `-${group.end}`}
-                    </strong>
-                    <span>
-                      {group.points} pt{group.points === 1 ? '' : 's'}
-                    </span>
-                  </div>
-                ))}
-              </div>
             ) : null}
           </div>
 
-          <div className="workspace-card memory-helper-card">
+          <div className="quiz-question-list">
             {quizQuestions.length ? (
-              <>
-                <div className="memory-helper-header">
-                  <div>
-                    <div className="eyebrow">Presentation</div>
-                    <h3>{quizFinished ? 'Quiz finished' : `Question ${quizCurrentIndex + 1}`}</h3>
+              quizQuestions.map((question, index) => (
+                <div className="quiz-question-card" key={question.id}>
+                  <div className="quiz-question-card-top">
+                    <strong>Question {index + 1}</strong>
+                    <button
+                      className="ghost-button compact-button"
+                      onClick={() => onRemoveQuizQuestion(question.id)}
+                      type="button"
+                    >
+                      Remove
+                    </button>
                   </div>
-                  {!quizFinished && activeQuestion ? (
-                    <div className="memory-progress-badge">
-                      {Number(activeQuestion.points) || 0} pt{Number(activeQuestion.points) === 1 ? '' : 's'}
-                    </div>
-                  ) : null}
-                </div>
 
-                <div className="memory-helper-controls">
-                  <button className="ghost-button compact-button" onClick={onStartQuiz} type="button">
-                    Start
-                  </button>
-                  <button className="ghost-button compact-button" onClick={onPreviousQuizQuestion} type="button">
-                    Previous
-                  </button>
-                  <button className="ghost-button compact-button" onClick={onNextQuizQuestion} type="button">
-                    Next
-                  </button>
-                  <button className="ghost-button compact-button" onClick={onFinishQuiz} type="button">
-                    Finish
-                  </button>
-                </div>
+                  <label className="field">
+                    <span>Question text</span>
+                    <textarea
+                      name="prompt"
+                      onChange={(event) => onQuizQuestionChange(question.id, 'prompt', event.target.value)}
+                      rows={3}
+                      value={question.prompt}
+                    />
+                  </label>
 
-                <div className="memory-verse-display quiz-display-card">
-                  {quizFinished ? (
-                    <div className="quiz-finished-state">
-                      <div className="eyebrow">Quiz Complete</div>
-                      <h3>Now you can award the players on the right.</h3>
-                    </div>
-                  ) : activeQuestion ? (
-                    <div className="quiz-display-content">
-                      <div className="quiz-display-label">
-                        Question {quizCurrentIndex + 1} ({Number(activeQuestion.points) || 0} pt
-                        {(Number(activeQuestion.points) || 0) === 1 ? '' : 's'})
-                      </div>
-                      <div className="quiz-display-question">{activeQuestion.prompt || 'Add the question text on the left.'}</div>
-                    </div>
-                  ) : (
-                    <div className="empty-state-card">
-                      <h3>Ready to present</h3>
-                      <p className="panel-note">Click `Start` when you are ready to show the first question.</p>
-                    </div>
-                  )}
+                  <label className="field">
+                    <span>Points</span>
+                    <input
+                      inputMode="numeric"
+                      name="points"
+                      onChange={(event) => onQuizQuestionChange(question.id, 'points', event.target.value)}
+                      value={question.points}
+                    />
+                  </label>
                 </div>
-              </>
+              ))
+            ) : (
+              <p className="panel-note">Add your first question.</p>
+            )}
+          </div>
+
+          {pointGroups.length ? (
+            <div className="quiz-points-summary">
+              <div className="eyebrow">Point Summary</div>
+              {pointGroups.map((group) => (
+                <div className="quiz-summary-row" key={`${group.start}-${group.end}-${group.points}`}>
+                  <strong>
+                    Question{group.start === group.end ? '' : 's'} {group.start}
+                    {group.start === group.end ? '' : `-${group.end}`}
+                  </strong>
+                  <span>
+                    {group.points} pt{group.points === 1 ? '' : 's'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : null}
+        </aside>
+      ) : null}
+
+      <div className="memory-verse-main">
+        <div className="memory-verse-grid presentation-mode">
+          <div className="workspace-card memory-helper-card memory-helper-card-large">
+            {quizQuestions.length ? (
+              <div className="memory-verse-display quiz-display-card">
+                {quizFinished ? (
+                  <div className="quiz-finished-state">
+                    <div className="eyebrow">Quiz Complete</div>
+                    <h3>Open quiz rewards from the side controls.</h3>
+                  </div>
+                ) : activeQuestion ? (
+                  <div className="quiz-display-content">
+                    <div className="quiz-display-label">
+                      Question {quizCurrentIndex + 1} ({Number(activeQuestion.points) || 0} pt
+                      {(Number(activeQuestion.points) || 0) === 1 ? '' : 's'})
+                    </div>
+                    <div className="quiz-display-question">{activeQuestion.prompt || 'Add the question text in controls.'}</div>
+                  </div>
+                ) : (
+                  <div className="empty-state-card">
+                    <h3>Ready</h3>
+                    <p className="panel-note">Open controls and click `Start`.</p>
+                  </div>
+                )}
+              </div>
             ) : (
               <div className="empty-state-card">
                 <h3>No quiz yet</h3>
-                <p className="panel-note">Create some questions first so the presentation view can start.</p>
+                <p className="panel-note">Open controls and add questions.</p>
               </div>
             )}
           </div>
         </div>
       </div>
 
-      <aside className="memory-verse-sidebar workspace-card">
-        <div className="content-intro">
-          <div>
-            <div className="eyebrow">Quiz Rewards</div>
-            <h3>Add gold after the quiz</h3>
-          </div>
-          <p className="panel-copy">Select a player, set the gold amount, then award it directly from here.</p>
-        </div>
-
-        {!isAdmin ? (
-          <p className="panel-note">Only the admin can award quiz gold.</p>
-        ) : playersLoading ? (
-          <p className="panel-note">Loading players...</p>
-        ) : players.length ? (
-          <>
-            <div className="player-browser-list">
-              {players.map((player) => (
-                <button
-                  className={`player-browser-item ${selectedPlayerId === player.id ? 'active' : ''}`}
-                  key={player.id}
-                  onClick={() => onSelectPlayer(player.id)}
-                  type="button"
-                >
-                  <div>
-                    <strong>{player.display_name}</strong>
-                    <span>{player.gold} gold</span>
-                  </div>
-                </button>
-              ))}
+      {quizRewardsOpen ? (
+        <div className="memory-dialog-backdrop">
+          <div className="panel memory-dialog">
+            <div className="memory-dialog-header">
+              <div>
+                <div className="eyebrow">Quiz Rewards</div>
+                <h3>Add gold</h3>
+              </div>
+              <button className="ghost-button compact-button" onClick={onCloseQuizRewards} type="button">
+                Close
+              </button>
             </div>
 
-            <label className="field">
-              <span>Gold amount</span>
-              <input
-                inputMode="numeric"
-                name="amount"
-                onChange={onQuizAwardChange}
-                value={quizAwardForm.amount}
-              />
-            </label>
+            {!isAdmin ? (
+              <p className="panel-note">Only the admin can award quiz gold.</p>
+            ) : playersLoading ? (
+              <p className="panel-note">Loading players...</p>
+            ) : players.length ? (
+              <>
+                <div className="player-browser-list">
+                  {players.map((player) => (
+                    <button
+                      className={`player-browser-item ${selectedPlayerId === player.id ? 'active' : ''}`}
+                      key={player.id}
+                      onClick={() => onSelectPlayer(player.id)}
+                      type="button"
+                    >
+                      <div>
+                        <strong>{player.display_name}</strong>
+                        <span>{player.gold} gold</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
 
-            <button
-              className="primary-button"
-              disabled={!selectedPlayerId || Boolean(quizAwardPendingPlayerId)}
-              onClick={() => onAwardPlayer(selectedPlayerId)}
-              type="button"
-            >
-              {quizAwardPendingPlayerId ? 'Adding gold...' : 'Add gold to selected player'}
-            </button>
-          </>
-        ) : (
-          <p className="panel-note">Create player accounts first so you can reward them here.</p>
-        )}
+                <label className="field">
+                  <span>Gold amount</span>
+                  <input
+                    inputMode="numeric"
+                    name="amount"
+                    onChange={onQuizAwardChange}
+                    value={quizAwardForm.amount}
+                  />
+                </label>
 
-        {playersMessage.text ? <p className={`status-line ${playersMessage.type}`}>{playersMessage.text}</p> : null}
-        {quizAwardResult.text ? <p className={`status-line ${quizAwardResult.type}`}>{quizAwardResult.text}</p> : null}
-      </aside>
+                <button
+                  className="primary-button"
+                  disabled={!selectedPlayerId || Boolean(quizAwardPendingPlayerId)}
+                  onClick={() => onAwardPlayer(selectedPlayerId)}
+                  type="button"
+                >
+                  {quizAwardPendingPlayerId ? 'Adding gold...' : 'Add gold to selected player'}
+                </button>
+              </>
+            ) : (
+              <p className="panel-note">Create player accounts first.</p>
+            )}
+
+            {playersMessage.text ? <p className={`status-line ${playersMessage.type}`}>{playersMessage.text}</p> : null}
+            {quizAwardResult.text ? <p className={`status-line ${quizAwardResult.type}`}>{quizAwardResult.text}</p> : null}
+          </div>
+        </div>
+      ) : null}
     </section>
   )
 }
@@ -1435,6 +1447,8 @@ export default function AdminApp() {
   const [quizQuestions, setQuizQuestions] = useState([])
   const [quizCurrentIndex, setQuizCurrentIndex] = useState(-1)
   const [quizAwardForm, setQuizAwardForm] = useState(createEmptyQuizAwardForm)
+  const [quizControlsOpen, setQuizControlsOpen] = useState(true)
+  const [quizRewardsOpen, setQuizRewardsOpen] = useState(false)
   const [goldForm, setGoldForm] = useState({
     amount: '',
   })
@@ -2175,6 +2189,7 @@ export default function AdminApp() {
   const handleAddQuizQuestion = () => {
     setQuizQuestions((current) => [...current, createEmptyQuizQuestion()])
     setQuizAwardResult(createEmptyMessage())
+    setQuizControlsOpen(true)
   }
 
   const handleQuizQuestionChange = (questionId, field, value) => {
@@ -2212,6 +2227,7 @@ export default function AdminApp() {
 
     setQuizCurrentIndex(0)
     setQuizAwardResult(createEmptyMessage())
+    setQuizRewardsOpen(false)
   }
 
   const handlePreviousQuizQuestion = () => {
@@ -2234,6 +2250,27 @@ export default function AdminApp() {
     }
 
     setQuizCurrentIndex(quizQuestions.length)
+    setQuizControlsOpen(true)
+  }
+
+  const handleToggleQuizControls = () => {
+    setQuizControlsOpen((current) => !current)
+  }
+
+  const handleOpenQuizRewards = () => {
+    if (!quizQuestions.length || quizCurrentIndex < quizQuestions.length) {
+      setQuizAwardResult({
+        type: 'error',
+        text: 'Finish the quiz first before giving quiz rewards.',
+      })
+      return
+    }
+
+    setQuizRewardsOpen(true)
+  }
+
+  const handleCloseQuizRewards = () => {
+    setQuizRewardsOpen(false)
   }
 
   const handleAwardMemoryGold = async (playerId) => {
@@ -2411,6 +2448,7 @@ export default function AdminApp() {
     setVerseAwardResult(createEmptyMessage())
     setQuizAwardResult(createEmptyMessage())
     setMemoryRewardsOpen(false)
+    setQuizRewardsOpen(false)
     navigate('/')
   }
 
@@ -2581,22 +2619,27 @@ export default function AdminApp() {
               isAdmin={isAdmin}
               onAddQuizQuestion={handleAddQuizQuestion}
               onAwardPlayer={handleAwardQuizGold}
+              onCloseQuizRewards={handleCloseQuizRewards}
               onFinishQuiz={handleFinishQuiz}
               onNextQuizQuestion={handleNextQuizQuestion}
+              onOpenQuizRewards={handleOpenQuizRewards}
               onPreviousQuizQuestion={handlePreviousQuizQuestion}
               onQuizAwardChange={handleQuizAwardChange}
               onQuizQuestionChange={handleQuizQuestionChange}
               onRemoveQuizQuestion={handleRemoveQuizQuestion}
               onSelectPlayer={setSelectedPlayerId}
               onStartQuiz={handleStartQuiz}
+              onToggleQuizControls={handleToggleQuizControls}
               players={players}
               playersLoading={playersLoading}
               playersMessage={playersMessage}
               quizAwardForm={quizAwardForm}
               quizAwardPendingPlayerId={quizAwardPendingPlayerId}
               quizAwardResult={quizAwardResult}
+              quizControlsOpen={quizControlsOpen}
               quizCurrentIndex={quizCurrentIndex}
               quizQuestions={quizQuestions}
+              quizRewardsOpen={quizRewardsOpen}
               selectedPlayerId={selectedPlayerId}
             />
           </div>

@@ -475,10 +475,19 @@
   transform: translateY(-50%);
 }
 
+.quiz-controls-drawer {
+  width: min(88vw, 420px);
+}
+
 .memory-drawer-heading,
-.memory-drawer-actions {
+.memory-drawer-actions,
+.quiz-drawer-actions {
   display: grid;
   gap: 10px;
+}
+
+.quiz-drawer-actions {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .memory-drawer-heading {
@@ -522,6 +531,11 @@
 .quiz-question-list {
   display: grid;
   gap: 10px;
+}
+
+.quiz-controls-drawer .quiz-question-list {
+  max-height: 300px;
+  overflow: auto;
 }
 
 .memory-helper-controls {
@@ -656,8 +670,10 @@
 }
 
 .quiz-display-card {
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
   text-align: center;
 }
 
