@@ -827,7 +827,7 @@
 
 .quiz-reward-row {
   display: grid;
-  grid-template-columns: minmax(180px, 1fr) minmax(120px, 0.45fr) minmax(92px, auto) auto;
+  grid-template-columns: minmax(180px, 1fr) minmax(120px, 0.45fr) minmax(92px, auto);
   gap: 12px;
   align-items: center;
   padding: 12px;
@@ -865,6 +865,10 @@
 
 .quiz-reward-gold-preview strong {
   font-size: 1.2rem;
+}
+
+.quiz-award-all-button {
+  justify-self: end;
 }
 
 .quiz-preview-dialog {

@@ -1716,17 +1716,17 @@ function QuizPage({
                         <span>Gold</span>
                         <strong>{gold}</strong>
                       </div>
-                      <button
-                        className="primary-button compact-button"
-                        disabled={!gold || quizAwardPendingPlayerId === player.id}
-                        onClick={() => onAwardPlayer(player.id)}
-                        type="button"
-                      >
-                        {quizAwardPendingPlayerId === player.id ? 'Adding...' : 'Add gold'}
-                      </button>
                     </div>
                   )
                 })}
+                <button
+                  className="primary-button quiz-award-all-button"
+                  disabled={Boolean(quizAwardPendingPlayerId)}
+                  onClick={onAwardPlayer}
+                  type="button"
+                >
+                  {quizAwardPendingPlayerId ? 'Adding gold...' : 'Add gold to scored players'}
+                </button>
               </div>
             ) : (
               <p className="panel-note">Create player accounts first.</p>
@@ -2746,49 +2746,75 @@ export default function AdminApp() {
     }
   }
 
-  const handleAwardQuizGold = async (playerId) => {
+  const handleAwardQuizGold = async () => {
     setQuizAwardResult(createEmptyMessage())
-    setQuizAwardPendingPlayerId(playerId)
+    setQuizAwardPendingPlayerId('all')
 
     try {
       if (!session?.access_token || !isAdmin) {
         throw new Error('Sign in as admin to reward players.')
       }
 
-      const score = Number(quizAwardScores[playerId])
+      const awards = players
+        .map((player) => ({
+          player,
+          rawScore: String(quizAwardScores[player.id] || '').trim(),
+        }))
+        .filter(({ rawScore }) => rawScore)
+        .map(({ player, rawScore }) => {
+          const score = Number(rawScore)
 
-      if (!Number.isInteger(score) || score <= 0) {
-        throw new Error('Enter a whole score greater than zero.')
+          if (!Number.isInteger(score) || score <= 0) {
+            throw new Error(`Enter a whole score greater than zero for ${player.display_name}.`)
+          }
+
+          return {
+            amount: score * GOLD_PER_QUIZ_POINT,
+            player,
+          }
+        })
+
+      if (!awards.length) {
+        throw new Error('Type at least one player score first.')
       }
 
-      const amount = score * GOLD_PER_QUIZ_POINT
+      const updatedPlayers = await Promise.all(
+        awards.map(async ({ amount, player }) => {
+          const response = await fetch('/api/adjust-player-gold', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${session.access_token}`,
+            },
+            body: JSON.stringify({
+              playerId: player.id,
+              amount,
+            }),
+          })
+          const data = await readJson(response)
 
-      const response = await fetch('/api/adjust-player-gold', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
-          playerId,
-          amount,
+          if (!response.ok) {
+            throw new Error(data.error || `Unable to add quiz gold for ${player.display_name}.`)
+          }
+
+          return data.player
         }),
-      })
-      const data = await readJson(response)
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Unable to add quiz gold.')
-      }
+      )
+      const updatedPlayerMap = new Map(updatedPlayers.map((player) => [player.id, player]))
 
       setQuizAwardResult({
         type: 'success',
-        text: `${formatGoldChange(amount)} gold added to ${data.player.display_name}.`,
+        text: `Quiz gold added to ${updatedPlayers.length} player${updatedPlayers.length === 1 ? '' : 's'}.`,
       })
       setPlayers((current) =>
-        current.map((player) => (player.id === data.player.id ? { ...player, ...data.player } : player)),
+        current.map((player) =>
+          updatedPlayerMap.has(player.id) ? { ...player, ...updatedPlayerMap.get(player.id) } : player,
+        ),
       )
       setPublicPlayers((current) =>
-        current.map((player) => (player.id === data.player.id ? { ...player, ...data.player } : player)),
+        current.map((player) =>
+          updatedPlayerMap.has(player.id) ? { ...player, ...updatedPlayerMap.get(player.id) } : player,
+        ),
       )
     } catch (error) {
       setQuizAwardResult({
