@@ -54,6 +54,8 @@ function createEmptyActiveMemoryVerse() {
     reference: '',
     text: '',
     coveredCount: 0,
+    coveredWordIndexes: [],
+    undoneCoveredWordIndexes: [],
   }
 }
 
@@ -122,6 +124,39 @@ function buildMemoryVerseTokens(text) {
 
 function getMemoryVerseWordCount(text) {
   return buildMemoryVerseTokens(text).filter((token) => token.isWord).length
+}
+
+function getCoveredWordIndexes(activeMemoryVerse, totalWords) {
+  if (Array.isArray(activeMemoryVerse.coveredWordIndexes)) {
+    return activeMemoryVerse.coveredWordIndexes.filter((wordIndex) => wordIndex >= 0 && wordIndex < totalWords)
+  }
+
+  const legacyCount = Math.min(activeMemoryVerse.coveredCount || 0, totalWords)
+  return Array.from({ length: legacyCount }, (_unused, index) => index)
+}
+
+function getRandomUncoveredWordIndex(totalWords, coveredWordIndexes) {
+  const coveredSet = new Set(coveredWordIndexes)
+  const availableWordIndexes = Array.from({ length: totalWords }, (_unused, index) => index).filter(
+    (wordIndex) => !coveredSet.has(wordIndex),
+  )
+
+  if (!availableWordIndexes.length) {
+    return null
+  }
+
+  return availableWordIndexes[Math.floor(Math.random() * availableWordIndexes.length)]
+}
+
+function shuffleWordIndexes(totalWords) {
+  const wordIndexes = Array.from({ length: totalWords }, (_unused, index) => index)
+
+  for (let index = wordIndexes.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1))
+    ;[wordIndexes[index], wordIndexes[swapIndex]] = [wordIndexes[swapIndex], wordIndexes[index]]
+  }
+
+  return wordIndexes
 }
 
 function mergeViewedPlayer(player, profile) {
@@ -913,7 +948,12 @@ function MemoryVersePage({
 }) {
   const tokens = useMemo(() => buildMemoryVerseTokens(activeMemoryVerse.text), [activeMemoryVerse.text])
   const totalWords = useMemo(() => getMemoryVerseWordCount(activeMemoryVerse.text), [activeMemoryVerse.text])
-  const coveredCount = Math.min(activeMemoryVerse.coveredCount, totalWords)
+  const coveredWordIndexes = useMemo(
+    () => getCoveredWordIndexes(activeMemoryVerse, totalWords),
+    [activeMemoryVerse, totalWords],
+  )
+  const coveredWords = useMemo(() => new Set(coveredWordIndexes), [coveredWordIndexes])
+  const coveredCount = coveredWordIndexes.length
   const hasVerse = Boolean(activeMemoryVerse.reference || activeMemoryVerse.text)
 
   return (
@@ -1035,7 +1075,7 @@ function MemoryVersePage({
                     {tokens.map((token) =>
                       token.isWord ? (
                         <span
-                          className={`memory-token ${token.wordIndex < coveredCount ? 'hidden' : ''}`}
+                          className={`memory-token ${coveredWords.has(token.wordIndex) ? 'hidden' : ''}`}
                           key={token.id}
                         >
                           {token.text}
@@ -2029,6 +2069,8 @@ export default function AdminApp() {
       reference: memoryVerseForm.reference.trim(),
       text: memoryVerseForm.text.trim(),
       coveredCount: 0,
+      coveredWordIndexes: [],
+      undoneCoveredWordIndexes: [],
     })
     setMemoryVerseEditorOpen(false)
     setMemoryControlsOpen(true)
@@ -2041,28 +2083,69 @@ export default function AdminApp() {
   const handleCoverNext = () => {
     setActiveMemoryVerse((current) => {
       const totalWords = getMemoryVerseWordCount(current.text)
+      const coveredWordIndexes = getCoveredWordIndexes(current, totalWords)
+      const nextWordIndex = getRandomUncoveredWordIndex(totalWords, coveredWordIndexes)
+
+      if (nextWordIndex === null) {
+        return current
+      }
 
       return {
         ...current,
-        coveredCount: Math.min(current.coveredCount + 1, totalWords),
+        coveredCount: Math.min(coveredWordIndexes.length + 1, totalWords),
+        coveredWordIndexes: [...coveredWordIndexes, nextWordIndex],
+        undoneCoveredWordIndexes: [],
       }
     })
   }
 
   const handleUndoCover = () => {
-    setActiveMemoryVerse((current) => ({
-      ...current,
-      coveredCount: Math.max(current.coveredCount - 1, 0),
-    }))
+    setActiveMemoryVerse((current) => {
+      const totalWords = getMemoryVerseWordCount(current.text)
+      const coveredWordIndexes = getCoveredWordIndexes(current, totalWords)
+
+      if (!coveredWordIndexes.length) {
+        return current
+      }
+
+      const nextCoveredWordIndexes = coveredWordIndexes.slice(0, -1)
+      const undoneWordIndex = coveredWordIndexes[coveredWordIndexes.length - 1]
+
+      return {
+        ...current,
+        coveredCount: nextCoveredWordIndexes.length,
+        coveredWordIndexes: nextCoveredWordIndexes,
+        undoneCoveredWordIndexes: [undoneWordIndex, ...(current.undoneCoveredWordIndexes || [])],
+      }
+    })
   }
 
   const handleRedoCover = () => {
     setActiveMemoryVerse((current) => {
       const totalWords = getMemoryVerseWordCount(current.text)
+      const coveredWordIndexes = getCoveredWordIndexes(current, totalWords)
+      const [redoWordIndex, ...remainingUndoneWordIndexes] = current.undoneCoveredWordIndexes || []
+
+      if (redoWordIndex === undefined) {
+        const nextWordIndex = getRandomUncoveredWordIndex(totalWords, coveredWordIndexes)
+
+        if (nextWordIndex === null) {
+          return current
+        }
+
+        return {
+          ...current,
+          coveredCount: Math.min(coveredWordIndexes.length + 1, totalWords),
+          coveredWordIndexes: [...coveredWordIndexes, nextWordIndex],
+          undoneCoveredWordIndexes: [],
+        }
+      }
 
       return {
         ...current,
-        coveredCount: Math.min(current.coveredCount + 1, totalWords),
+        coveredCount: Math.min(coveredWordIndexes.length + 1, totalWords),
+        coveredWordIndexes: [...coveredWordIndexes, redoWordIndex],
+        undoneCoveredWordIndexes: remainingUndoneWordIndexes,
       }
     })
   }
@@ -2071,14 +2154,22 @@ export default function AdminApp() {
     setActiveMemoryVerse((current) => ({
       ...current,
       coveredCount: 0,
+      coveredWordIndexes: [],
+      undoneCoveredWordIndexes: [],
     }))
   }
 
   const handleCoverAll = () => {
-    setActiveMemoryVerse((current) => ({
-      ...current,
-      coveredCount: getMemoryVerseWordCount(current.text),
-    }))
+    setActiveMemoryVerse((current) => {
+      const totalWords = getMemoryVerseWordCount(current.text)
+
+      return {
+        ...current,
+        coveredCount: totalWords,
+        coveredWordIndexes: shuffleWordIndexes(totalWords),
+        undoneCoveredWordIndexes: [],
+      }
+    })
   }
 
   const handleAddQuizQuestion = () => {
