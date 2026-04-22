@@ -127,8 +127,28 @@ function resolveCorrectChoiceIndex(answerText, choices) {
   return matchingChoiceIndex >= 0 ? String(matchingChoiceIndex) : '0'
 }
 
+function splitAnswerFromText(value) {
+  const text = String(value || '').trim()
+  const match = text.match(/^(.*?)(?:\s+|^)(?:[([]?\s*)?(?:correct answer|answer|ans|correct)\s*[:=-]\s*(.+?)\s*[)\]]?$/i)
+
+  if (!match) {
+    return {
+      answerText: '',
+      cleanText: text,
+    }
+  }
+
+  return {
+    answerText: match[2].trim(),
+    cleanText: match[1].trim(),
+  }
+}
+
 function parseQuizDraftText(text) {
   const lines = String(text || '')
+    .replace(/\s+(?=(?:(?:question|q)\s*)?\d+[).:-]\s+)/gi, '\n')
+    .replace(/\s+(?=[A-D][).:-]\s+)/g, '\n')
+    .replace(/\s+(?=(?:correct answer|answer|ans|correct)\s*[:=-])/gi, '\n')
     .split(/\r?\n/)
     .map((line) => line.trim())
     .filter(Boolean)
@@ -141,7 +161,12 @@ function parseQuizDraftText(text) {
     }
 
     if (currentQuestion.prompt || currentQuestion.choices.some(Boolean)) {
-      parsedQuestions.push(currentQuestion)
+      const { _correctAnswerText, ...question } = currentQuestion
+      parsedQuestions.push({
+        ...question,
+        correctChoiceIndex: resolveCorrectChoiceIndex(_correctAnswerText ?? question.correctChoiceIndex, question.choices),
+        prompt: question.prompt.trim(),
+      })
     }
 
     currentQuestion = null
@@ -157,24 +182,38 @@ function parseQuizDraftText(text) {
 
   lines.forEach((line) => {
     const questionMatch = line.match(/^(?:(?:question|q)\s*)?(\d+)[).:-]\s*(.+)$/i)
+    const namedQuestionMatch = line.match(/^(?:question|q)\s*[:.-]\s*(.+)$/i)
     const optionMatch = line.match(/^(?:[-*]\s*)?([A-D])[).:-]\s*(.+)$/i)
     const answerMatch = line.match(/^(?:correct answer|answer|ans|correct)\s*[:.-]?\s*(.+)$/i)
 
     if (questionMatch && !optionMatch) {
+      const { answerText, cleanText } = splitAnswerFromText(questionMatch[2])
       pushCurrentQuestion()
       currentQuestion = createEmptyQuizQuestion(parsedQuestions.length)
-      currentQuestion.prompt = questionMatch[2].trim()
+      currentQuestion.prompt = cleanText
+      currentQuestion._correctAnswerText = answerText || currentQuestion._correctAnswerText
+      return
+    }
+
+    if (namedQuestionMatch) {
+      const { answerText, cleanText } = splitAnswerFromText(namedQuestionMatch[1])
+      pushCurrentQuestion()
+      currentQuestion = createEmptyQuizQuestion(parsedQuestions.length)
+      currentQuestion.prompt = cleanText
+      currentQuestion._correctAnswerText = answerText || currentQuestion._correctAnswerText
       return
     }
 
     if (optionMatch) {
       const question = ensureCurrentQuestion()
+      const { answerText, cleanText } = splitAnswerFromText(optionMatch[2])
       const choiceIndex = optionMatch[1].toUpperCase().charCodeAt(0) - 65
       const nextChoices = [...question.choices]
-      nextChoices[choiceIndex] = optionMatch[2].trim()
+      nextChoices[choiceIndex] = cleanText
       currentQuestion = {
         ...question,
         choices: nextChoices,
+        _correctAnswerText: answerText || question._correctAnswerText,
       }
       return
     }
@@ -183,15 +222,17 @@ function parseQuizDraftText(text) {
       const question = ensureCurrentQuestion()
       currentQuestion = {
         ...question,
-        correctChoiceIndex: resolveCorrectChoiceIndex(answerMatch[1], question.choices),
+        _correctAnswerText: answerMatch[1],
       }
       return
     }
 
     const question = ensureCurrentQuestion()
+    const { answerText, cleanText } = splitAnswerFromText(line)
     currentQuestion = {
       ...question,
-      prompt: question.prompt ? `${question.prompt} ${line}` : line,
+      prompt: cleanText ? (question.prompt ? `${question.prompt} ${cleanText}` : cleanText) : question.prompt,
+      _correctAnswerText: answerText || question._correctAnswerText,
     }
   })
 
@@ -1323,7 +1364,9 @@ function QuizPage({
   onQuizAwardChange,
   onQuizDraftChange,
   onQuizQuestionChange,
+  onCloseQuizPreview,
   onOrganizeQuizDraft,
+  onOpenQuizPreview,
   onStartQuiz,
   onToggleQuizFullscreen,
   players,
@@ -1336,6 +1379,7 @@ function QuizPage({
   quizDraftResult,
   quizDraftText,
   quizFontScale,
+  quizPreviewOpen,
   quizQuestions,
   quizRewardsOpen,
   selectedPlayerId,
@@ -1396,7 +1440,12 @@ function QuizPage({
               <span>Memory verse fill in the blanks is last and worth {MEMORY_VERSE_QUIZ_POINTS * GOLD_PER_QUIZ_POINT} gold.</span>
             </div>
 
-            <div className="quiz-import-card">
+            <div className="quiz-import-card quiz-organizer-panel">
+              <div>
+                <div className="eyebrow">Organizer</div>
+                <h3>Paste and organize</h3>
+              </div>
+
               <label className="field">
                 <span>Paste quiz text</span>
                 <textarea
@@ -1408,60 +1457,75 @@ function QuizPage({
                 />
               </label>
               <div className="quiz-import-actions">
-                <p className="panel-note">Paste your questions, options, and correct answers here. I will organize them into the 5 slots below.</p>
+                <p className="panel-note">Paste your questions, options, and correct answers here. I will organize them into the 5 slots.</p>
                 <button className="primary-button compact-button" onClick={onOrganizeQuizDraft} type="button">
                   Organize pasted quiz
+                </button>
+                <button className="ghost-button compact-button" onClick={onOpenQuizPreview} type="button">
+                  Show preview
                 </button>
               </div>
               {quizDraftResult.text ? <p className={`status-line ${quizDraftResult.type}`}>{quizDraftResult.text}</p> : null}
             </div>
 
-            <div className="quiz-question-list quiz-fixed-question-list">
-              {quizQuestions.map((question, index) => (
-                <div className="quiz-question-card" key={question.id}>
-                  <div className="quiz-question-card-top">
-                    <strong>Question {index + 1} ({GOLD_PER_QUIZ_POINT} gold)</strong>
-                  </div>
-
-                  <label className="field">
-                    <span>Question text</span>
-                    <textarea
-                      name="prompt"
-                      onChange={(event) => onQuizQuestionChange(question.id, 'prompt', event.target.value)}
-                      rows={3}
-                      value={question.prompt}
-                    />
-                  </label>
-
-                  <div className="quiz-choice-grid">
-                    {question.choices.map((choice, choiceIndex) => (
-                      <label className="field" key={`${question.id}-choice-${choiceIndex + 1}`}>
-                        <span>Choice {choiceIndex + 1}</span>
-                        <input
-                          name={`choice-${choiceIndex + 1}`}
-                          onChange={(event) => onQuizQuestionChange(question.id, `choice-${choiceIndex}`, event.target.value)}
-                          value={choice}
-                        />
-                      </label>
-                    ))}
-                  </div>
-
-                  <label className="field quiz-answer-picker">
-                    <span>Correct answer</span>
-                    <select
-                      name="correctChoiceIndex"
-                      onChange={(event) => onQuizQuestionChange(question.id, 'correctChoiceIndex', event.target.value)}
-                      value={question.correctChoiceIndex}
-                    >
-                      {question.choices.map((_choice, choiceIndex) => (
-                        <option key={`${question.id}-answer-${choiceIndex}`} value={String(choiceIndex)}>
-                          {getChoiceLabel(choiceIndex)}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+            <div className="quiz-editor-panel">
+              <div className="quiz-editor-panel-heading">
+                <div>
+                  <div className="eyebrow">Editor</div>
+                  <h3>Final quiz slots</h3>
                 </div>
-              ))}
+                <button className="ghost-button compact-button" onClick={onOpenQuizPreview} type="button">
+                  Show preview
+                </button>
+              </div>
+
+              <div className="quiz-question-list quiz-fixed-question-list">
+                {quizQuestions.map((question, index) => (
+                  <div className="quiz-question-card" key={question.id}>
+                    <div className="quiz-question-card-top">
+                      <strong>Question {index + 1} ({GOLD_PER_QUIZ_POINT} gold)</strong>
+                    </div>
+
+                    <label className="field">
+                      <span>Question text</span>
+                      <textarea
+                        name="prompt"
+                        onChange={(event) => onQuizQuestionChange(question.id, 'prompt', event.target.value)}
+                        rows={3}
+                        value={question.prompt}
+                      />
+                    </label>
+
+                    <div className="quiz-choice-grid">
+                      {question.choices.map((choice, choiceIndex) => (
+                        <label className="field" key={`${question.id}-choice-${choiceIndex + 1}`}>
+                          <span>Choice {choiceIndex + 1}</span>
+                          <input
+                            name={`choice-${choiceIndex + 1}`}
+                            onChange={(event) => onQuizQuestionChange(question.id, `choice-${choiceIndex}`, event.target.value)}
+                            value={choice}
+                          />
+                        </label>
+                      ))}
+                    </div>
+
+                    <label className="field quiz-answer-picker">
+                      <span>Correct answer</span>
+                      <select
+                        name="correctChoiceIndex"
+                        onChange={(event) => onQuizQuestionChange(question.id, 'correctChoiceIndex', event.target.value)}
+                        value={question.correctChoiceIndex}
+                      >
+                        {question.choices.map((_choice, choiceIndex) => (
+                          <option key={`${question.id}-answer-${choiceIndex}`} value={String(choiceIndex)}>
+                            {getChoiceLabel(choiceIndex)}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         ) : null}
@@ -1612,6 +1676,49 @@ function QuizPage({
           </div>
         ) : null}
       </div>
+
+      {quizPreviewOpen ? (
+        <div className="memory-dialog-backdrop">
+          <div className="panel memory-dialog quiz-preview-dialog">
+            <div className="memory-dialog-header">
+              <div>
+                <div className="eyebrow">Quiz Preview</div>
+                <h3>Organized questions</h3>
+              </div>
+              <button className="ghost-button compact-button" onClick={onCloseQuizPreview} type="button">
+                Close
+              </button>
+            </div>
+
+            <div className="quiz-preview-list">
+              {quizQuestions.map((question, index) => {
+                const correctChoiceIndex = Number(question.correctChoiceIndex) || 0
+
+                return (
+                  <div className="quiz-preview-card" key={`quiz-preview-${question.id}`}>
+                    <div className="quiz-question-card-top">
+                      <strong>Question {index + 1}</strong>
+                      <span>{getChoiceLabel(correctChoiceIndex)} correct</span>
+                    </div>
+                    <p>{question.prompt || 'No question text yet.'}</p>
+                    <div className="quiz-preview-choice-list">
+                      {question.choices.map((choice, choiceIndex) => (
+                        <div
+                          className={`quiz-preview-choice ${correctChoiceIndex === choiceIndex ? 'correct' : ''}`}
+                          key={`${question.id}-preview-choice-${choiceIndex}`}
+                        >
+                          <strong>{getChoiceLabel(choiceIndex)}.</strong>
+                          <span>{choice || `Choice ${choiceIndex + 1}`}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </section>
   )
 }
@@ -1676,6 +1783,7 @@ export default function AdminApp() {
   const [quizAwardForm, setQuizAwardForm] = useState(createEmptyQuizAwardForm)
   const [quizRewardsOpen, setQuizRewardsOpen] = useState(false)
   const [quizDraftText, setQuizDraftText] = useState('')
+  const [quizPreviewOpen, setQuizPreviewOpen] = useState(false)
   const [quizFontScale, setQuizFontScale] = useState(1.8)
   const [isQuizFullscreen, setIsQuizFullscreen] = useState(false)
   const [goldForm, setGoldForm] = useState({
@@ -2458,6 +2566,7 @@ export default function AdminApp() {
     const filledQuestions = nextQuestions.filter((question) => question.prompt || question.choices.some(Boolean))
 
     setQuizQuestions(nextQuestions)
+    setQuizPreviewOpen(true)
     setQuizDraftResult({
       type: filledQuestions.length ? 'success' : 'error',
       text: filledQuestions.length
@@ -2466,6 +2575,14 @@ export default function AdminApp() {
     })
     setQuizCurrentIndex(-1)
     setQuizRewardsOpen(false)
+  }
+
+  const handleOpenQuizPreview = () => {
+    setQuizPreviewOpen(true)
+  }
+
+  const handleCloseQuizPreview = () => {
+    setQuizPreviewOpen(false)
   }
 
   const handleStartQuiz = () => {
@@ -2907,7 +3024,9 @@ export default function AdminApp() {
               onQuizAwardChange={handleQuizAwardChange}
               onQuizDraftChange={handleQuizDraftChange}
               onQuizQuestionChange={handleQuizQuestionChange}
+              onCloseQuizPreview={handleCloseQuizPreview}
               onOrganizeQuizDraft={handleOrganizeQuizDraft}
+              onOpenQuizPreview={handleOpenQuizPreview}
               onSelectPlayer={setSelectedPlayerId}
               onStartQuiz={handleStartQuiz}
               onToggleQuizFullscreen={handleToggleQuizFullscreen}
@@ -2921,6 +3040,7 @@ export default function AdminApp() {
               quizDraftResult={quizDraftResult}
               quizDraftText={quizDraftText}
               quizFontScale={quizFontScale}
+              quizPreviewOpen={quizPreviewOpen}
               quizQuestions={quizQuestions}
               quizRewardsOpen={quizRewardsOpen}
               selectedPlayerId={selectedPlayerId}
