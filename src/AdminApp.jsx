@@ -85,8 +85,24 @@ function getQuizQuestionGold(question) {
 
 function createEmptyQuizAwardForm() {
   return {
-    amount: String(GOLD_PER_QUIZ_POINT),
+    score: '1',
   }
+}
+
+function normalizeQuizAwardForm(form = {}) {
+  return {
+    score: String(form.score ?? form.amount ?? '1'),
+  }
+}
+
+function getQuizAwardGold(score) {
+  const scoreNumber = Number(score)
+
+  if (!Number.isInteger(scoreNumber) || scoreNumber <= 0) {
+    return 0
+  }
+
+  return scoreNumber * GOLD_PER_QUIZ_POINT
 }
 
 function createFixedQuizQuestions(savedQuestions = []) {
@@ -1182,15 +1198,20 @@ function MemoryVersePage({
 
 function QuizPage({
   activeMemoryVerse,
+  isQuizFullscreen,
   isAdmin,
   onAwardPlayer,
+  onBackToQuizEditor,
   onCloseQuizRewards,
+  onDecreaseQuizFont,
+  onIncreaseQuizFont,
   onNextQuizQuestion,
   onOpenQuizRewards,
   onPreviousQuizQuestion,
   onQuizAwardChange,
   onQuizQuestionChange,
   onStartQuiz,
+  onToggleQuizFullscreen,
   players,
   playersLoading,
   playersMessage,
@@ -1198,6 +1219,7 @@ function QuizPage({
   quizAwardPendingPlayerId,
   quizAwardResult,
   quizCurrentIndex,
+  quizFontScale,
   quizQuestions,
   quizRewardsOpen,
   selectedPlayerId,
@@ -1220,6 +1242,7 @@ function QuizPage({
     quizCurrentIndex >= 0 && quizCurrentIndex < quizItems.length ? quizItems[quizCurrentIndex] : null
   const quizStarted = quizCurrentIndex >= 0
   const isLastQuestion = quizStarted && quizCurrentIndex === quizItems.length - 1
+  const quizAwardGold = getQuizAwardGold(quizAwardForm.score)
 
   return (
     <section className="panel memory-verse-shell memory-page-shell quiz-page-shell">
@@ -1278,7 +1301,7 @@ function QuizPage({
             <div className="workspace-card memory-helper-card memory-helper-card-large">
               <div className="memory-verse-display quiz-display-card">
                 {activeQuestion ? (
-                  <div className="quiz-display-content">
+                  <div className="quiz-display-content" style={{ '--quiz-font-scale': quizFontScale }}>
                     <div className="quiz-display-label">
                       {activeQuestion.isMemoryVerse ? 'Memory Verse' : `Question ${quizCurrentIndex + 1}`} (
                       {getQuizQuestionGold(activeQuestion)} gold)
@@ -1304,6 +1327,9 @@ function QuizPage({
               </div>
 
               <div className="quiz-presentation-controls">
+                <button className="ghost-button compact-button" onClick={onBackToQuizEditor} type="button">
+                  Back to quiz editor
+                </button>
                 <button className="ghost-button compact-button" onClick={onPreviousQuizQuestion} type="button">
                   Back
                 </button>
@@ -1316,6 +1342,15 @@ function QuizPage({
                     Next
                   </button>
                 )}
+                <button className="ghost-button compact-button" onClick={onDecreaseQuizFont} type="button">
+                  A-
+                </button>
+                <button className="ghost-button compact-button" onClick={onIncreaseQuizFont} type="button">
+                  A+
+                </button>
+                <button className="ghost-button compact-button" onClick={onToggleQuizFullscreen} type="button">
+                  {isQuizFullscreen ? 'Exit full screen' : 'Full screen'}
+                </button>
               </div>
             </div>
           </div>
@@ -1325,9 +1360,14 @@ function QuizPage({
           <div className="workspace-card quiz-rewards-panel">
             <div className="card-heading">
               <h3>Quiz rewards</h3>
-              <button className="ghost-button compact-button" onClick={onCloseQuizRewards} type="button">
-                Back to quiz
-              </button>
+              <div className="quiz-heading-actions">
+                <button className="ghost-button compact-button" onClick={onBackToQuizEditor} type="button">
+                  Back to quiz editor
+                </button>
+                <button className="ghost-button compact-button" onClick={onCloseQuizRewards} type="button">
+                  Back to quiz
+                </button>
+              </div>
             </div>
 
             {!isAdmin ? (
@@ -1353,14 +1393,18 @@ function QuizPage({
                 </div>
 
                 <label className="field">
-                  <span>Gold amount</span>
+                  <span>Score</span>
                   <input
                     inputMode="numeric"
-                    name="amount"
+                    name="score"
                     onChange={onQuizAwardChange}
-                    value={quizAwardForm.amount}
+                    value={quizAwardForm.score}
                   />
                 </label>
+
+                <p className="quiz-score-preview">
+                  {quizAwardGold > 0 ? `${quizAwardGold} gold coins` : 'Type a score to calculate gold.'}
+                </p>
 
                 <button
                   className="primary-button"
@@ -1442,6 +1486,8 @@ export default function AdminApp() {
   const [quizCurrentIndex, setQuizCurrentIndex] = useState(-1)
   const [quizAwardForm, setQuizAwardForm] = useState(createEmptyQuizAwardForm)
   const [quizRewardsOpen, setQuizRewardsOpen] = useState(false)
+  const [quizFontScale, setQuizFontScale] = useState(1.8)
+  const [isQuizFullscreen, setIsQuizFullscreen] = useState(false)
   const [goldForm, setGoldForm] = useState({
     amount: '',
   })
@@ -1488,7 +1534,7 @@ export default function AdminApp() {
       const parsed = JSON.parse(savedValue)
       setQuizQuestions(createFixedQuizQuestions(parsed.questions || []))
       setQuizCurrentIndex(typeof parsed.currentIndex === 'number' ? parsed.currentIndex : -1)
-      setQuizAwardForm(parsed.awardForm || createEmptyQuizAwardForm())
+      setQuizAwardForm(normalizeQuizAwardForm(parsed.awardForm))
     } catch {
       setQuizQuestions(createFixedQuizQuestions())
       setQuizCurrentIndex(-1)
@@ -1519,7 +1565,9 @@ export default function AdminApp() {
 
   useEffect(() => {
     const handleFullscreenChange = () => {
-      setIsMemoryFullscreen(Boolean(document.fullscreenElement))
+      const isFullscreen = Boolean(document.fullscreenElement)
+      setIsMemoryFullscreen(isFullscreen && window.location.pathname === MEMORY_PATH)
+      setIsQuizFullscreen(isFullscreen && window.location.pathname === QUIZ_PATH)
     }
 
     document.addEventListener('fullscreenchange', handleFullscreenChange)
@@ -2251,6 +2299,12 @@ export default function AdminApp() {
     setQuizCurrentIndex(Math.max(0, quizQuestions.length))
   }
 
+  const handleBackToQuizEditor = () => {
+    setQuizRewardsOpen(false)
+    setQuizCurrentIndex(-1)
+    setQuizAwardResult(createEmptyMessage())
+  }
+
   const handleAwardMemoryGold = async (playerId) => {
     setVerseAwardResult(createEmptyMessage())
     setAwardPendingPlayerId(playerId)
@@ -2306,11 +2360,13 @@ export default function AdminApp() {
         throw new Error('Sign in as admin to reward players.')
       }
 
-      const amount = Number(quizAwardForm.amount)
+      const score = Number(quizAwardForm.score)
 
-      if (!Number.isInteger(amount) || amount <= 0) {
-        throw new Error('Enter a whole gold amount greater than zero.')
+      if (!Number.isInteger(score) || score <= 0) {
+        throw new Error('Enter a whole score greater than zero.')
       }
+
+      const amount = score * GOLD_PER_QUIZ_POINT
 
       const response = await fetch('/api/adjust-player-gold', {
         method: 'POST',
@@ -2483,6 +2539,30 @@ export default function AdminApp() {
     setMemoryFontScale((current) => clampMemoryFontSize(current - 0.4))
   }
 
+  const handleToggleQuizFullscreen = async () => {
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen()
+        return
+      }
+
+      await document.documentElement.requestFullscreen()
+    } catch (error) {
+      setQuizAwardResult({
+        type: 'error',
+        text: error.message || 'Unable to enter full screen mode.',
+      })
+    }
+  }
+
+  const handleIncreaseQuizFont = () => {
+    setQuizFontScale((current) => clampMemoryFontSize(current + 0.4))
+  }
+
+  const handleDecreaseQuizFont = () => {
+    setQuizFontScale((current) => clampMemoryFontSize(current - 0.4))
+  }
+
   const handleOpenQuiz = () => {
     setAuthMenuOpen(false)
     setProfileMenuOpen(false)
@@ -2501,6 +2581,7 @@ export default function AdminApp() {
   const showSetupMessage = !hasSupabaseEnv
   const readyForProtectedView = !authLoading && !profileLoading && session && profile
   const showGameScene = !viewingMemory && !viewingQuiz && (readyForProtectedView || viewingAdmin)
+  const isTeachingFullscreen = isMemoryFullscreen || isQuizFullscreen
 
   return (
     <div className={`portal-shell ${showGameScene ? 'game-mode' : 'auth-mode'}`}>
@@ -2510,8 +2591,8 @@ export default function AdminApp() {
         </div>
       ) : null}
 
-      <div className={`portal-overlay top-layout ${isMemoryFullscreen ? 'fullscreen-active' : ''}`}>
-        {isMemoryFullscreen ? null : (
+      <div className={`portal-overlay top-layout ${isTeachingFullscreen ? 'fullscreen-active' : ''}`}>
+        {isTeachingFullscreen ? null : (
           <GameTopBar
           authMenuOpen={authMenuOpen}
           authPending={authPending}
@@ -2595,9 +2676,13 @@ export default function AdminApp() {
           <div className="memory-stage">
             <QuizPage
               activeMemoryVerse={activeMemoryVerse}
+              isQuizFullscreen={isQuizFullscreen}
               isAdmin={isAdmin}
               onAwardPlayer={handleAwardQuizGold}
+              onBackToQuizEditor={handleBackToQuizEditor}
               onCloseQuizRewards={handleCloseQuizRewards}
+              onDecreaseQuizFont={handleDecreaseQuizFont}
+              onIncreaseQuizFont={handleIncreaseQuizFont}
               onNextQuizQuestion={handleNextQuizQuestion}
               onOpenQuizRewards={handleOpenQuizRewards}
               onPreviousQuizQuestion={handlePreviousQuizQuestion}
@@ -2605,6 +2690,7 @@ export default function AdminApp() {
               onQuizQuestionChange={handleQuizQuestionChange}
               onSelectPlayer={setSelectedPlayerId}
               onStartQuiz={handleStartQuiz}
+              onToggleQuizFullscreen={handleToggleQuizFullscreen}
               players={players}
               playersLoading={playersLoading}
               playersMessage={playersMessage}
@@ -2612,6 +2698,7 @@ export default function AdminApp() {
               quizAwardPendingPlayerId={quizAwardPendingPlayerId}
               quizAwardResult={quizAwardResult}
               quizCurrentIndex={quizCurrentIndex}
+              quizFontScale={quizFontScale}
               quizQuestions={quizQuestions}
               quizRewardsOpen={quizRewardsOpen}
               selectedPlayerId={selectedPlayerId}
