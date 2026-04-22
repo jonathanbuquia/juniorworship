@@ -84,16 +84,8 @@ function getQuizQuestionGold(question) {
   return getQuizQuestionPoints(question) * GOLD_PER_QUIZ_POINT
 }
 
-function createEmptyQuizAwardForm() {
-  return {
-    score: '1',
-  }
-}
-
-function normalizeQuizAwardForm(form = {}) {
-  return {
-    score: String(form.score ?? form.amount ?? '1'),
-  }
+function createEmptyQuizAwardScores() {
+  return {}
 }
 
 function getQuizAwardGold(score) {
@@ -1449,7 +1441,7 @@ function QuizPage({
   players,
   playersLoading,
   playersMessage,
-  quizAwardForm,
+  quizAwardScores,
   quizAwardPendingPlayerId,
   quizAwardResult,
   quizCurrentIndex,
@@ -1459,8 +1451,6 @@ function QuizPage({
   quizPreviewOpen,
   quizQuestions,
   quizRewardsOpen,
-  selectedPlayerId,
-  onSelectPlayer,
 }) {
   const memoryVerseDetails = useMemo(() => buildMemoryVerseQuizDetails(activeMemoryVerse), [activeMemoryVerse])
   const quizItems = useMemo(
@@ -1498,7 +1488,6 @@ function QuizPage({
     quizCurrentIndex >= 0 && quizCurrentIndex < quizItems.length ? quizItems[quizCurrentIndex] : null
   const quizStarted = quizCurrentIndex >= 0
   const isLastQuestion = quizStarted && quizCurrentIndex === quizItems.length - 1
-  const quizAwardGold = getQuizAwardGold(quizAwardForm.score)
 
   return (
     <section className="panel memory-verse-shell memory-page-shell quiz-page-shell">
@@ -1704,46 +1693,41 @@ function QuizPage({
             ) : playersLoading ? (
               <p className="panel-note">Loading players...</p>
             ) : players.length ? (
-              <>
-                <div className="player-browser-list">
-                  {players.map((player) => (
-                    <button
-                      className={`player-browser-item ${selectedPlayerId === player.id ? 'active' : ''}`}
-                      key={player.id}
-                      onClick={() => onSelectPlayer(player.id)}
-                      type="button"
-                    >
+              <div className="quiz-reward-list">
+                {players.map((player) => {
+                  const score = quizAwardScores[player.id] || ''
+                  const gold = getQuizAwardGold(score)
+
+                  return (
+                    <div className="quiz-reward-row" key={player.id}>
                       <div>
                         <strong>{player.display_name}</strong>
                         <span>{player.gold} gold</span>
                       </div>
-                    </button>
-                  ))}
-                </div>
-
-                <label className="field">
-                  <span>Score</span>
-                  <input
-                    inputMode="numeric"
-                    name="score"
-                    onChange={onQuizAwardChange}
-                    value={quizAwardForm.score}
-                  />
-                </label>
-
-                <p className="quiz-score-preview">
-                  {quizAwardGold > 0 ? `${quizAwardGold} gold coins` : 'Type a score to calculate gold.'}
-                </p>
-
-                <button
-                  className="primary-button"
-                  disabled={!selectedPlayerId || Boolean(quizAwardPendingPlayerId)}
-                  onClick={() => onAwardPlayer(selectedPlayerId)}
-                  type="button"
-                >
-                  {quizAwardPendingPlayerId ? 'Adding gold...' : 'Add gold to selected player'}
-                </button>
-              </>
+                      <label className="field quiz-reward-score-field">
+                        <span>Score</span>
+                        <input
+                          inputMode="numeric"
+                          onChange={(event) => onQuizAwardChange(player.id, event.target.value)}
+                          value={score}
+                        />
+                      </label>
+                      <div className="quiz-reward-gold-preview">
+                        <span>Gold</span>
+                        <strong>{gold}</strong>
+                      </div>
+                      <button
+                        className="primary-button compact-button"
+                        disabled={!gold || quizAwardPendingPlayerId === player.id}
+                        onClick={() => onAwardPlayer(player.id)}
+                        type="button"
+                      >
+                        {quizAwardPendingPlayerId === player.id ? 'Adding...' : 'Add gold'}
+                      </button>
+                    </div>
+                  )
+                })}
+              </div>
             ) : (
               <p className="panel-note">Create player accounts first.</p>
             )}
@@ -1857,7 +1841,7 @@ export default function AdminApp() {
   const [isMemoryFullscreen, setIsMemoryFullscreen] = useState(false)
   const [quizQuestions, setQuizQuestions] = useState(() => createFixedQuizQuestions())
   const [quizCurrentIndex, setQuizCurrentIndex] = useState(-1)
-  const [quizAwardForm, setQuizAwardForm] = useState(createEmptyQuizAwardForm)
+  const [quizAwardScores, setQuizAwardScores] = useState(createEmptyQuizAwardScores)
   const [quizRewardsOpen, setQuizRewardsOpen] = useState(false)
   const [quizDraftText, setQuizDraftText] = useState('')
   const [quizPreviewOpen, setQuizPreviewOpen] = useState(false)
@@ -1909,11 +1893,11 @@ export default function AdminApp() {
       const parsed = JSON.parse(savedValue)
       setQuizQuestions(createFixedQuizQuestions(parsed.questions || []))
       setQuizCurrentIndex(typeof parsed.currentIndex === 'number' ? parsed.currentIndex : -1)
-      setQuizAwardForm(normalizeQuizAwardForm(parsed.awardForm))
+      setQuizAwardScores(parsed.awardScores || createEmptyQuizAwardScores())
     } catch {
       setQuizQuestions(createFixedQuizQuestions())
       setQuizCurrentIndex(-1)
-      setQuizAwardForm(createEmptyQuizAwardForm())
+      setQuizAwardScores(createEmptyQuizAwardScores())
     }
   }, [])
 
@@ -1933,10 +1917,10 @@ export default function AdminApp() {
       JSON.stringify({
         questions: quizQuestions,
         currentIndex: quizCurrentIndex,
-        awardForm: quizAwardForm,
+        awardScores: quizAwardScores,
       }),
     )
-  }, [quizAwardForm, quizCurrentIndex, quizQuestions])
+  }, [quizAwardScores, quizCurrentIndex, quizQuestions])
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -2241,11 +2225,10 @@ export default function AdminApp() {
     }))
   }
 
-  const handleQuizAwardChange = (event) => {
-    const { name, value } = event.target
-    setQuizAwardForm((current) => ({
+  const handleQuizAwardChange = (playerId, value) => {
+    setQuizAwardScores((current) => ({
       ...current,
-      [name]: value,
+      [playerId]: value,
     }))
   }
 
@@ -2772,7 +2755,7 @@ export default function AdminApp() {
         throw new Error('Sign in as admin to reward players.')
       }
 
-      const score = Number(quizAwardForm.score)
+      const score = Number(quizAwardScores[playerId])
 
       if (!Number.isInteger(score) || score <= 0) {
         throw new Error('Enter a whole score greater than zero.')
@@ -3104,15 +3087,14 @@ export default function AdminApp() {
               onCloseQuizPreview={handleCloseQuizPreview}
               onOrganizeQuizDraft={handleOrganizeQuizDraft}
               onOpenQuizPreview={handleOpenQuizPreview}
-              onSelectPlayer={setSelectedPlayerId}
               onStartQuiz={handleStartQuiz}
               onToggleQuizFullscreen={handleToggleQuizFullscreen}
               players={players}
               playersLoading={playersLoading}
               playersMessage={playersMessage}
-              quizAwardForm={quizAwardForm}
               quizAwardPendingPlayerId={quizAwardPendingPlayerId}
               quizAwardResult={quizAwardResult}
+              quizAwardScores={quizAwardScores}
               quizCurrentIndex={quizCurrentIndex}
               quizDraftResult={quizDraftResult}
               quizDraftText={quizDraftText}
@@ -3120,7 +3102,6 @@ export default function AdminApp() {
               quizPreviewOpen={quizPreviewOpen}
               quizQuestions={quizQuestions}
               quizRewardsOpen={quizRewardsOpen}
-              selectedPlayerId={selectedPlayerId}
             />
           </div>
         ) : null}
