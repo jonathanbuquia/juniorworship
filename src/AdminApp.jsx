@@ -72,6 +72,7 @@ function createEmptyQuizQuestion(index = 0) {
     prompt: '',
     points: '1',
     choices: ['', '', '', ''],
+    correctChoiceIndex: '0',
   }
 }
 
@@ -105,10 +106,15 @@ function getQuizAwardGold(score) {
   return scoreNumber * GOLD_PER_QUIZ_POINT
 }
 
+function getChoiceLabel(choiceIndex) {
+  return String.fromCharCode(65 + Number(choiceIndex || 0))
+}
+
 function createFixedQuizQuestions(savedQuestions = []) {
   return Array.from({ length: QUIZ_QUESTION_COUNT }, (_unused, index) => {
     const savedQuestion = savedQuestions[index] || {}
     const savedChoices = Array.isArray(savedQuestion.choices) ? savedQuestion.choices : []
+    const correctChoiceIndex = Number(savedQuestion.correctChoiceIndex)
 
     return {
       ...createEmptyQuizQuestion(index),
@@ -116,6 +122,9 @@ function createFixedQuizQuestions(savedQuestions = []) {
       id: savedQuestion.id || `quiz-question-${index + 1}`,
       points: '1',
       choices: Array.from({ length: 4 }, (_choice, choiceIndex) => savedChoices[choiceIndex] || ''),
+      correctChoiceIndex: Number.isInteger(correctChoiceIndex) && correctChoiceIndex >= 0 && correctChoiceIndex <= 3
+        ? String(correctChoiceIndex)
+        : '0',
     }
   })
 }
@@ -179,12 +188,15 @@ function shuffleWordIndexes(totalWords) {
   return wordIndexes
 }
 
-function buildMemoryVerseQuizPrompt(memoryVerse) {
+function buildMemoryVerseQuizDetails(memoryVerse) {
   const tokens = buildMemoryVerseTokens(memoryVerse?.text || '')
   const wordTokens = tokens.filter((token) => token.isWord)
 
   if (!memoryVerse?.text || wordTokens.length === 0) {
-    return ''
+    return {
+      answers: [],
+      prompt: '',
+    }
   }
 
   const blankCount = Math.min(5, wordTokens.length)
@@ -193,16 +205,26 @@ function buildMemoryVerseQuizPrompt(memoryVerse) {
       Math.min(wordTokens.length - 1, Math.floor(((index + 1) * wordTokens.length) / (blankCount + 1))),
     ).map((wordTokenIndex, index) => [wordTokens[wordTokenIndex].wordIndex, index + 6]),
   )
+  const answerByNumber = new Map(
+    wordTokens
+      .filter((token) => blankWordIndexes.has(token.wordIndex))
+      .map((token) => [blankWordIndexes.get(token.wordIndex), token.text]),
+  )
 
-  return tokens
-    .map((token) => {
-      if (!token.isWord) {
-        return token.text
-      }
+  return {
+    answers: Array.from(answerByNumber, ([number, answer]) => ({ answer, number })).sort(
+      (first, second) => first.number - second.number,
+    ),
+    prompt: tokens
+      .map((token) => {
+        if (!token.isWord) {
+          return token.text
+        }
 
-      return blankWordIndexes.has(token.wordIndex) ? `(${blankWordIndexes.get(token.wordIndex)}) _____` : token.text
-    })
-    .join('')
+        return blankWordIndexes.has(token.wordIndex) ? `(${blankWordIndexes.get(token.wordIndex)}) _____` : token.text
+      })
+      .join(''),
+  }
 }
 
 function mergeViewedPlayer(player, profile) {
@@ -1225,7 +1247,7 @@ function QuizPage({
   selectedPlayerId,
   onSelectPlayer,
 }) {
-  const memoryVersePrompt = useMemo(() => buildMemoryVerseQuizPrompt(activeMemoryVerse), [activeMemoryVerse])
+  const memoryVerseDetails = useMemo(() => buildMemoryVerseQuizDetails(activeMemoryVerse), [activeMemoryVerse])
   const quizItems = useMemo(
     () => [
       ...quizQuestions,
@@ -1233,10 +1255,29 @@ function QuizPage({
         id: 'memory-verse-fill-blanks',
         isMemoryVerse: true,
         points: String(MEMORY_VERSE_QUIZ_POINTS),
-        prompt: memoryVersePrompt || 'Set the memory verse first, then blanks 6 to 10 will appear here.',
+        prompt: memoryVerseDetails.prompt || 'Set the memory verse first, then blanks 6 to 10 will appear here.',
       },
     ],
-    [memoryVersePrompt, quizQuestions],
+    [memoryVerseDetails.prompt, quizQuestions],
+  )
+  const answerKey = useMemo(
+    () => [
+      ...quizQuestions.map((question, index) => {
+        const correctChoiceIndex = Number(question.correctChoiceIndex) || 0
+
+        return {
+          answer: question.choices[correctChoiceIndex] || `Choice ${correctChoiceIndex + 1}`,
+          label: `Question ${index + 1}`,
+          marker: getChoiceLabel(correctChoiceIndex),
+        }
+      }),
+      ...memoryVerseDetails.answers.map((item) => ({
+        answer: item.answer,
+        label: `Blank ${item.number}`,
+        marker: String(item.number),
+      })),
+    ],
+    [memoryVerseDetails.answers, quizQuestions],
   )
   const activeQuestion =
     quizCurrentIndex >= 0 && quizCurrentIndex < quizItems.length ? quizItems[quizCurrentIndex] : null
@@ -1290,6 +1331,21 @@ function QuizPage({
                       </label>
                     ))}
                   </div>
+
+                  <label className="field quiz-answer-picker">
+                    <span>Correct answer</span>
+                    <select
+                      name="correctChoiceIndex"
+                      onChange={(event) => onQuizQuestionChange(question.id, 'correctChoiceIndex', event.target.value)}
+                      value={question.correctChoiceIndex}
+                    >
+                      {question.choices.map((_choice, choiceIndex) => (
+                        <option key={`${question.id}-answer-${choiceIndex}`} value={String(choiceIndex)}>
+                          {getChoiceLabel(choiceIndex)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
                 </div>
               ))}
             </div>
@@ -1368,6 +1424,24 @@ function QuizPage({
                   Back to quiz
                 </button>
               </div>
+            </div>
+
+            <div className="quiz-answer-key">
+              <div className="eyebrow">Correct Answers</div>
+              {answerKey.length ? (
+                <div className="quiz-answer-grid">
+                  {answerKey.map((item) => (
+                    <div className="quiz-answer-row" key={`${item.label}-${item.marker}`}>
+                      <strong>{item.label}</strong>
+                      <span>
+                        {item.marker}. {item.answer}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="panel-note">The answer key will appear after you set the quiz answers.</p>
+              )}
             </div>
 
             {!isAdmin ? (
