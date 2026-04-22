@@ -12,6 +12,9 @@ const ADMIN_SECTIONS = {
   deletePlayer: 'delete-player',
 }
 const QUICK_GOLD_ACTIONS = [25, 50, 100, -25, -50, -100]
+const QUIZ_POINT_BUDGET = 5
+const GOLD_PER_QUIZ_POINT = 20
+const MEMORY_VERSE_QUIZ_POINTS = 5
 const AUTH_VIEWS = {
   player: 'player',
   admin: 'admin',
@@ -71,11 +74,41 @@ function createEmptyQuizQuestion() {
   }
 }
 
+function normalizeQuizPoints(value) {
+  const points = Number(value)
+
+  if (!Number.isInteger(points)) {
+    return 1
+  }
+
+  return Math.min(QUIZ_POINT_BUDGET, Math.max(1, points))
+}
+
+function getQuizQuestionPoints(question) {
+  return normalizeQuizPoints(question?.points)
+}
+
+function getQuizQuestionGold(question) {
+  return getQuizQuestionPoints(question) * GOLD_PER_QUIZ_POINT
+}
+
+function getQuizUsedPoints(questions) {
+  return questions.reduce((total, question) => total + getQuizQuestionPoints(question), 0)
+}
+
+function getQuizRemainingPoints(questions) {
+  return Math.max(0, QUIZ_POINT_BUDGET - getQuizUsedPoints(questions))
+}
+
+function formatQuestionRange(start, end) {
+  return start === end ? `Question ${start}` : `Questions ${start}-${end}`
+}
+
 function buildQuizPointGroups(questions) {
   const groups = []
 
   questions.forEach((question, index) => {
-    const points = Number(question.points) || 0
+    const points = getQuizQuestionPoints(question)
     const questionNumber = index + 1
     const lastGroup = groups[groups.length - 1]
 
@@ -96,7 +129,7 @@ function buildQuizPointGroups(questions) {
 
 function createEmptyQuizAwardForm() {
   return {
-    amount: '50',
+    amount: String(GOLD_PER_QUIZ_POINT),
   }
 }
 
@@ -157,6 +190,32 @@ function shuffleWordIndexes(totalWords) {
   }
 
   return wordIndexes
+}
+
+function buildMemoryVerseQuizPrompt(memoryVerse) {
+  const tokens = buildMemoryVerseTokens(memoryVerse?.text || '')
+  const wordTokens = tokens.filter((token) => token.isWord)
+
+  if (!memoryVerse?.text || wordTokens.length === 0) {
+    return ''
+  }
+
+  const blankCount = Math.min(5, wordTokens.length)
+  const blankWordIndexes = new Set(
+    Array.from({ length: blankCount }, (_unused, index) =>
+      Math.min(wordTokens.length - 1, Math.floor(((index + 1) * wordTokens.length) / (blankCount + 1))),
+    ).map((wordTokenIndex) => wordTokens[wordTokenIndex].wordIndex),
+  )
+
+  return tokens
+    .map((token) => {
+      if (!token.isWord) {
+        return token.text
+      }
+
+      return blankWordIndexes.has(token.wordIndex) ? '_____' : token.text
+    })
+    .join('')
 }
 
 function mergeViewedPlayer(player, profile) {
@@ -1151,6 +1210,7 @@ function MemoryVersePage({
 }
 
 function QuizPage({
+  activeMemoryVerse,
   isAdmin,
   onAddQuizQuestion,
   onAwardPlayer,
@@ -1178,9 +1238,28 @@ function QuizPage({
   onSelectPlayer,
 }) {
   const pointGroups = useMemo(() => buildQuizPointGroups(quizQuestions), [quizQuestions])
+  const usedPoints = useMemo(() => getQuizUsedPoints(quizQuestions), [quizQuestions])
+  const remainingPoints = Math.max(0, QUIZ_POINT_BUDGET - usedPoints)
+  const memoryVersePrompt = useMemo(() => buildMemoryVerseQuizPrompt(activeMemoryVerse), [activeMemoryVerse])
+  const quizItems = useMemo(
+    () => [
+      ...quizQuestions,
+      ...(memoryVersePrompt
+        ? [
+            {
+              id: 'memory-verse-fill-blanks',
+              isMemoryVerse: true,
+              points: String(MEMORY_VERSE_QUIZ_POINTS),
+              prompt: memoryVersePrompt,
+            },
+          ]
+        : []),
+    ],
+    [memoryVersePrompt, quizQuestions],
+  )
   const activeQuestion =
-    quizCurrentIndex >= 0 && quizCurrentIndex < quizQuestions.length ? quizQuestions[quizCurrentIndex] : null
-  const quizFinished = quizQuestions.length > 0 && quizCurrentIndex >= quizQuestions.length
+    quizCurrentIndex >= 0 && quizCurrentIndex < quizItems.length ? quizItems[quizCurrentIndex] : null
+  const quizFinished = quizItems.length > 0 && quizCurrentIndex >= quizItems.length
 
   return (
     <section className="panel memory-verse-shell memory-page-shell quiz-page-shell">
@@ -1198,7 +1277,7 @@ function QuizPage({
           <div className="memory-drawer-heading">
             <div>
               <div className="eyebrow">Quiz Controls</div>
-              <strong>{quizQuestions.length} question{quizQuestions.length === 1 ? '' : 's'}</strong>
+              <strong>{usedPoints}/{QUIZ_POINT_BUDGET} normal points used</strong>
             </div>
             <button className="ghost-button compact-button" onClick={onToggleQuizControls} type="button">
               Hide
@@ -1206,7 +1285,12 @@ function QuizPage({
           </div>
 
           <div className="quiz-drawer-actions">
-            <button className="ghost-button compact-button" onClick={onAddQuizQuestion} type="button">
+            <button
+              className="ghost-button compact-button"
+              disabled={remainingPoints <= 0}
+              onClick={onAddQuizQuestion}
+              type="button"
+            >
               Add question
             </button>
             <button className="ghost-button compact-button" onClick={onStartQuiz} type="button">
@@ -1228,12 +1312,20 @@ function QuizPage({
             ) : null}
           </div>
 
+          <div className="quiz-budget-card">
+            <strong>{remainingPoints} point{remainingPoints === 1 ? '' : 's'} left</strong>
+            <span>Normal quiz: {QUIZ_POINT_BUDGET * GOLD_PER_QUIZ_POINT} gold total</span>
+            <span>Memory verse: {MEMORY_VERSE_QUIZ_POINTS * GOLD_PER_QUIZ_POINT} gold separate</span>
+          </div>
+
           <div className="quiz-question-list">
             {quizQuestions.length ? (
               quizQuestions.map((question, index) => (
                 <div className="quiz-question-card" key={question.id}>
                   <div className="quiz-question-card-top">
-                    <strong>Question {index + 1}</strong>
+                  <strong>
+                    Question {index + 1} ({getQuizQuestionGold(question)} gold)
+                  </strong>
                     <button
                       className="ghost-button compact-button"
                       onClick={() => onRemoveQuizQuestion(question.id)}
@@ -1254,35 +1346,37 @@ function QuizPage({
                   </label>
 
                   <label className="field">
-                    <span>Points</span>
+                    <span>Gold value</span>
                     <input
                       inputMode="numeric"
-                      name="points"
-                      onChange={(event) => onQuizQuestionChange(question.id, 'points', event.target.value)}
-                      value={question.points}
+                      name="gold"
+                      onChange={(event) => onQuizQuestionChange(question.id, 'gold', event.target.value)}
+                      step={GOLD_PER_QUIZ_POINT}
+                      value={getQuizQuestionGold(question)}
                     />
                   </label>
                 </div>
               ))
             ) : (
-              <p className="panel-note">Add your first question.</p>
+              <p className="panel-note">Add questions until the 5-point normal quiz budget is filled.</p>
             )}
           </div>
 
-          {pointGroups.length ? (
+          {pointGroups.length || memoryVersePrompt ? (
             <div className="quiz-points-summary">
-              <div className="eyebrow">Point Summary</div>
+              <div className="eyebrow">Gold Summary</div>
               {pointGroups.map((group) => (
                 <div className="quiz-summary-row" key={`${group.start}-${group.end}-${group.points}`}>
-                  <strong>
-                    Question{group.start === group.end ? '' : 's'} {group.start}
-                    {group.start === group.end ? '' : `-${group.end}`}
-                  </strong>
-                  <span>
-                    {group.points} pt{group.points === 1 ? '' : 's'}
-                  </span>
+                  <strong>{formatQuestionRange(group.start, group.end)}</strong>
+                  <span>{group.points * GOLD_PER_QUIZ_POINT} gold</span>
                 </div>
               ))}
+              {memoryVersePrompt ? (
+                <div className="quiz-summary-row">
+                  <strong>Memory verse fill in the blanks</strong>
+                  <span>{MEMORY_VERSE_QUIZ_POINTS * GOLD_PER_QUIZ_POINT} gold</span>
+                </div>
+              ) : null}
             </div>
           ) : null}
         </aside>
@@ -1291,7 +1385,7 @@ function QuizPage({
       <div className="memory-verse-main">
         <div className="memory-verse-grid presentation-mode">
           <div className="workspace-card memory-helper-card memory-helper-card-large">
-            {quizQuestions.length ? (
+            {quizItems.length ? (
               <div className="memory-verse-display quiz-display-card">
                 {quizFinished ? (
                   <div className="quiz-finished-state">
@@ -1301,8 +1395,8 @@ function QuizPage({
                 ) : activeQuestion ? (
                   <div className="quiz-display-content">
                     <div className="quiz-display-label">
-                      Question {quizCurrentIndex + 1} ({Number(activeQuestion.points) || 0} pt
-                      {(Number(activeQuestion.points) || 0) === 1 ? '' : 's'})
+                      {activeQuestion.isMemoryVerse ? 'Memory Verse' : `Question ${quizCurrentIndex + 1}`} (
+                      {getQuizQuestionGold(activeQuestion)} gold)
                     </div>
                     <div className="quiz-display-question">{activeQuestion.prompt || 'Add the question text in controls.'}</div>
                   </div>
@@ -2187,15 +2281,44 @@ export default function AdminApp() {
   }
 
   const handleAddQuizQuestion = () => {
-    setQuizQuestions((current) => [...current, createEmptyQuizQuestion()])
     setQuizAwardResult(createEmptyMessage())
+    setQuizQuestions((current) => {
+      const remainingPoints = getQuizRemainingPoints(current)
+
+      if (remainingPoints <= 0) {
+        setQuizAwardResult({
+          type: 'error',
+          text: 'The normal quiz already uses all 5 points.',
+        })
+        return current
+      }
+
+      return [
+        ...current,
+        {
+          ...createEmptyQuizQuestion(),
+          points: String(Math.min(1, remainingPoints)),
+        },
+      ]
+    })
     setQuizControlsOpen(true)
   }
 
   const handleQuizQuestionChange = (questionId, field, value) => {
-    setQuizQuestions((current) =>
-      current.map((question) => (question.id === questionId ? { ...question, [field]: value } : question)),
-    )
+    setQuizQuestions((current) => {
+      if (field !== 'gold') {
+        return current.map((question) => (question.id === questionId ? { ...question, [field]: value } : question))
+      }
+
+      const requestedPoints = normalizeQuizPoints(Math.ceil(Number(value) / GOLD_PER_QUIZ_POINT))
+      const otherQuestions = current.filter((question) => question.id !== questionId)
+      const availablePoints = Math.max(1, QUIZ_POINT_BUDGET - getQuizUsedPoints(otherQuestions))
+      const nextPoints = Math.min(requestedPoints, availablePoints)
+
+      return current.map((question) =>
+        question.id === questionId ? { ...question, points: String(nextPoints) } : question,
+      )
+    })
   }
 
   const handleRemoveQuizQuestion = (questionId) => {
@@ -2217,10 +2340,12 @@ export default function AdminApp() {
   }
 
   const handleStartQuiz = () => {
-    if (!quizQuestions.length) {
+    const hasMemoryVerseQuiz = Boolean(buildMemoryVerseQuizPrompt(activeMemoryVerse))
+
+    if (!quizQuestions.length && !hasMemoryVerseQuiz) {
       setQuizAwardResult({
         type: 'error',
-        text: 'Add at least one question first.',
+        text: 'Add at least one question or set a memory verse first.',
       })
       return
     }
@@ -2236,20 +2361,24 @@ export default function AdminApp() {
 
   const handleNextQuizQuestion = () => {
     setQuizCurrentIndex((current) => {
-      if (!quizQuestions.length) {
+      const quizItemCount = quizQuestions.length + (buildMemoryVerseQuizPrompt(activeMemoryVerse) ? 1 : 0)
+
+      if (!quizItemCount) {
         return -1
       }
 
-      return Math.min(current + 1, quizQuestions.length)
+      return Math.min(current + 1, quizItemCount)
     })
   }
 
   const handleFinishQuiz = () => {
-    if (!quizQuestions.length) {
+    const quizItemCount = quizQuestions.length + (buildMemoryVerseQuizPrompt(activeMemoryVerse) ? 1 : 0)
+
+    if (!quizItemCount) {
       return
     }
 
-    setQuizCurrentIndex(quizQuestions.length)
+    setQuizCurrentIndex(quizItemCount)
     setQuizControlsOpen(true)
   }
 
@@ -2258,7 +2387,9 @@ export default function AdminApp() {
   }
 
   const handleOpenQuizRewards = () => {
-    if (!quizQuestions.length || quizCurrentIndex < quizQuestions.length) {
+    const quizItemCount = quizQuestions.length + (buildMemoryVerseQuizPrompt(activeMemoryVerse) ? 1 : 0)
+
+    if (!quizItemCount || quizCurrentIndex < quizItemCount) {
       setQuizAwardResult({
         type: 'error',
         text: 'Finish the quiz first before giving quiz rewards.',
@@ -2616,6 +2747,7 @@ export default function AdminApp() {
         {viewingQuiz && isAdmin ? (
           <div className="memory-stage">
             <QuizPage
+              activeMemoryVerse={activeMemoryVerse}
               isAdmin={isAdmin}
               onAddQuizQuestion={handleAddQuizQuestion}
               onAwardPlayer={handleAwardQuizGold}
