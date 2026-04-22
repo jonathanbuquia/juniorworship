@@ -979,7 +979,7 @@ function MemoryVersePage({
             </form>
           ) : null}
 
-          <div className="workspace-card memory-helper-card memory-helper-card-large">
+          <div className={`workspace-card memory-helper-card memory-helper-card-large ${memoryControlsOpen ? '' : 'controls-hidden'}`}>
             {hasVerse ? (
               <>
                 <div className="memory-helper-header">

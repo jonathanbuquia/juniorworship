@@ -416,9 +416,9 @@
 }
 
 .memory-verse-main {
-  padding: 22px;
+  padding: 14px;
   display: grid;
-  gap: 18px;
+  gap: 10px;
   min-height: 0;
   overflow: auto;
 }
@@ -428,6 +428,7 @@
   justify-content: space-between;
   gap: 12px;
   align-items: center;
+  min-height: 44px;
 }
 
 .memory-toolbar-actions {
@@ -458,7 +459,7 @@
 .memory-verse-grid {
   display: grid;
   grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.2fr);
-  gap: 16px;
+  gap: 10px;
   min-height: 0;
 }
 
@@ -472,7 +473,7 @@
 .memory-player-rewards,
 .quiz-question-list {
   display: grid;
-  gap: 14px;
+  gap: 10px;
 }
 
 .memory-helper-header {
@@ -495,8 +496,8 @@
 .memory-verse-display {
   min-height: 0;
   flex: 1;
-  padding: 28px;
-  border-radius: 20px;
+  padding: 18px;
+  border-radius: 18px;
   line-height: 2;
   color: #17344a;
   background: rgba(244, 251, 255, 0.82);
@@ -506,10 +507,23 @@
 }
 
 .memory-helper-card-large {
-  min-height: calc(100vh - 270px);
+  min-height: calc(100vh - 220px);
   display: flex;
   flex-direction: column;
   align-content: start;
+}
+
+.memory-helper-card-large.controls-hidden {
+  padding: 14px;
+  gap: 8px;
+}
+
+.memory-helper-card-large.controls-hidden .memory-helper-header {
+  align-items: center;
+}
+
+.memory-helper-card-large.controls-hidden .memory-helper-header h3 {
+  font-size: 1rem;
 }
 
 .memory-token.hidden {
