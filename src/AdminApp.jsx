@@ -1017,6 +1017,31 @@ function ProfileMenu({ onSelectPlayer, players, selectedPlayerId }) {
   )
 }
 
+function ActivePlayerHud({ player }) {
+  if (!player) {
+    return null
+  }
+
+  return (
+    <MotionDiv
+      animate={{ opacity: 1, x: 0, y: 0, scale: 1 }}
+      className="active-player-hud panel"
+      exit={{ opacity: 0, x: 16, y: -12, scale: 0.96 }}
+      initial={{ opacity: 0, x: 20, y: -16, scale: 0.96 }}
+      transition={POPOVER_TRANSITION}
+    >
+      <div className="active-player-hud-copy">
+        <div className="eyebrow">Active Player</div>
+        <strong>{player.display_name}</strong>
+      </div>
+      <div className="active-player-hud-gold">
+        <span>Gold</span>
+        <strong>{player.gold ?? 0}</strong>
+      </div>
+    </MotionDiv>
+  )
+}
+
 function RailIcon({ type }) {
   if (type === 'brand') {
     return (
@@ -3143,6 +3168,8 @@ export default function AdminApp() {
   const readyForProtectedView = !authLoading && !profileLoading && session && profile
   const showGameScene = !viewingMemory && !viewingQuiz && (readyForProtectedView || viewingAdmin)
   const isTeachingFullscreen = isMemoryFullscreen || isQuizFullscreen
+  const showActivePlayerHud =
+    Boolean(viewedPlayer) && !viewingAdmin && !viewingMemory && !viewingQuiz && !isTeachingFullscreen
 
   return (
     <div className={`portal-shell ${showGameScene ? 'game-mode' : 'auth-mode'}`}>
@@ -3190,6 +3217,8 @@ export default function AdminApp() {
             viewingAdmin={viewingAdmin}
           />
         )}
+
+        <AnimatePresence>{showActivePlayerHud ? <ActivePlayerHud player={viewedPlayer} /> : null}</AnimatePresence>
 
         <MotionMain className="layout-main" layout transition={RAIL_TRANSITION}>
         {showSetupMessage ? (

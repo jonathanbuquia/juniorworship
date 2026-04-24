@@ -261,6 +261,57 @@
   bottom: 0;
 }
 
+.active-player-hud {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 70;
+  min-width: 250px;
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(230, 247, 255, 0.9)),
+    rgba(255, 255, 255, 0.92);
+}
+
+.active-player-hud-copy {
+  display: grid;
+  gap: 4px;
+}
+
+.active-player-hud-copy strong {
+  font-size: 1.05rem;
+  color: #12344a;
+}
+
+.active-player-hud-gold {
+  min-width: 104px;
+  border-radius: 18px;
+  padding: 12px 14px;
+  color: #0d4c67;
+  background: linear-gradient(180deg, rgba(255, 236, 170, 0.92), rgba(255, 214, 115, 0.92));
+  box-shadow: inset 0 0 0 1px rgba(196, 153, 36, 0.16);
+}
+
+.active-player-hud-gold span {
+  display: block;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #7a5a00;
+}
+
+.active-player-hud-gold strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 1.65rem;
+  line-height: 1;
+}
+
 .eyebrow {
   font-size: 0.75rem;
   font-weight: 700;
@@ -1394,6 +1445,13 @@
 @media (max-width: 700px) {
   .portal-overlay {
     padding: 14px;
+  }
+
+  .active-player-hud {
+    top: 14px;
+    right: 14px;
+    left: 14px;
+    min-width: 0;
   }
 
   .game-header {
