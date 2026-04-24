@@ -1579,6 +1579,27 @@
   border: 1px solid rgba(110, 194, 228, 0.28);
 }
 
+.shop-player-view-note {
+  display: grid;
+  gap: 8px;
+  padding: 16px 18px;
+  border-radius: 20px;
+  background: rgba(17, 99, 139, 0.08);
+  border: 1px dashed rgba(17, 99, 139, 0.16);
+  color: #21485d;
+}
+
+.shop-player-view-note span {
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #5e7d91;
+}
+
+.shop-player-view-note strong {
+  line-height: 1.45;
+}
+
 .shop-player-field select {
   width: 100%;
 }

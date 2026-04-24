@@ -1428,6 +1428,7 @@ function ShopFishPreview({ item, index }) {
 }
 
 function ShopPage({
+  isAdmin,
   onBuyItem,
   onCategoryChange,
   onPlayerChange,
@@ -1448,27 +1449,38 @@ function ShopPage({
             <div className="eyebrow">Admin Assisted Shop</div>
             <h2>Buy aquarium items for a player</h2>
             <p className="panel-copy">
-              Pick a player first, check their gold, then choose an item from the starter shop below.
+              {isAdmin
+                ? 'Pick a player first, check their gold, then choose an item from the starter shop below.'
+                : 'Players can browse the shop here. Purchases still need the admin to choose your name and confirm the buy.'}
             </p>
           </div>
 
           <div className="shop-player-panel">
-            <label className="field shop-player-field">
-              <span>Player</span>
-              <select onChange={onPlayerChange} value={selectedPlayerId}>
-                <option value="">Choose a player</option>
-                {players.map((player) => (
-                  <option key={player.id} value={player.id}>
-                    {player.display_name}
-                  </option>
-                ))}
-              </select>
-            </label>
+            {isAdmin ? (
+              <>
+                <label className="field shop-player-field">
+                  <span>Player</span>
+                  <select onChange={onPlayerChange} value={selectedPlayerId}>
+                    <option value="">Choose a player</option>
+                    {players.map((player) => (
+                      <option key={player.id} value={player.id}>
+                        {player.display_name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
 
-            <div className={`shop-player-gold ${selectedPlayer ? 'ready' : ''}`}>
-              <span>Available gold</span>
-              <strong>{selectedPlayer ? `${selectedPlayer.gold} gold` : 'Pick a player first'}</strong>
-            </div>
+                <div className={`shop-player-gold ${selectedPlayer ? 'ready' : ''}`}>
+                  <span>Available gold</span>
+                  <strong>{selectedPlayer ? `${selectedPlayer.gold} gold` : 'Pick a player first'}</strong>
+                </div>
+              </>
+            ) : (
+              <div className="shop-player-view-note">
+                <span>Browsing mode</span>
+                <strong>Only the admin can choose a player and complete a purchase.</strong>
+              </div>
+            )}
           </div>
         </div>
 
@@ -1519,11 +1531,11 @@ function ShopPage({
                       </div>
                       <button
                         className={`primary-button compact-button ${needsMoreGold ? 'warning' : ''}`}
-                        disabled={Boolean(pendingItemSlug)}
-                        onClick={() => onBuyItem(item)}
+                        disabled={!isAdmin || Boolean(pendingItemSlug)}
+                        onClick={isAdmin ? () => onBuyItem(item) : undefined}
                         type="button"
                       >
-                        {pendingItemSlug === item.slug ? 'Buying...' : 'Buy'}
+                        {!isAdmin ? 'Admin only' : pendingItemSlug === item.slug ? 'Buying...' : 'Buy'}
                       </button>
                     </div>
                   </div>
@@ -3639,9 +3651,10 @@ export default function AdminApp() {
           </div>
         ) : null}
 
-        {viewingShop && readyForProtectedView && isAdmin ? (
+        {viewingShop ? (
           <div className="shop-stage">
             <ShopPage
+              isAdmin={isAdmin}
               onBuyItem={handleBuyShopItem}
               onCategoryChange={setShopCategory}
               onPlayerChange={handleShopPlayerChange}
@@ -3654,7 +3667,7 @@ export default function AdminApp() {
           </div>
         ) : null}
 
-        {(viewingMemory || viewingQuiz || viewingShop) && !isAdmin ? (
+        {(viewingMemory || viewingQuiz) && !isAdmin ? (
           <section className="panel memory-locked-panel">
             <div className="eyebrow">Admin Only</div>
             <h2>This page is only for the admin.</h2>
