@@ -1017,7 +1017,7 @@ function ProfileMenu({ onSelectPlayer, players, selectedPlayerId }) {
   )
 }
 
-function ActivePlayerHud({ player }) {
+function ActivePlayerHud({ collapsed, onToggleCollapsed, player }) {
   if (!player) {
     return null
   }
@@ -1025,15 +1025,39 @@ function ActivePlayerHud({ player }) {
   return (
     <MotionDiv
       animate={{ opacity: 1, x: 0, y: 0, scale: 1 }}
-      className="active-player-hud panel"
+      className={`active-player-hud panel ${collapsed ? 'collapsed' : ''}`}
       exit={{ opacity: 0, x: 16, y: -12, scale: 0.96 }}
       initial={{ opacity: 0, x: 20, y: -16, scale: 0.96 }}
+      layout
       transition={POPOVER_TRANSITION}
     >
-      <div className="active-player-hud-copy">
-        <div className="eyebrow">Active Player</div>
-        <strong>{player.display_name}</strong>
-      </div>
+      <MotionButton
+        aria-label={collapsed ? 'Expand active player card' : 'Collapse active player card'}
+        className="active-player-hud-toggle"
+        onClick={onToggleCollapsed}
+        type="button"
+        whileHover={{ scale: 1.06 }}
+        whileTap={{ scale: 0.96 }}
+      >
+        {collapsed ? '+' : '−'}
+      </MotionButton>
+
+      <AnimatePresence initial={false}>
+        {!collapsed ? (
+          <MotionDiv
+            animate={{ opacity: 1, x: 0 }}
+            className="active-player-hud-copy"
+            exit={{ opacity: 0, x: 8 }}
+            initial={{ opacity: 0, x: 8 }}
+            key="active-player-copy"
+            transition={POPOVER_TRANSITION}
+          >
+            <div className="eyebrow">Active Player</div>
+            <strong>{player.display_name}</strong>
+          </MotionDiv>
+        ) : null}
+      </AnimatePresence>
+
       <div className="active-player-hud-gold">
         <span>Gold</span>
         <strong>{player.gold ?? 0}</strong>
@@ -1970,6 +1994,7 @@ export default function AdminApp() {
   const [adminSection, setAdminSection] = useState(ADMIN_SECTIONS.createPlayer)
   const [selectedPlayerId, setSelectedPlayerId] = useState('')
   const [viewedPlayerId, setViewedPlayerId] = useState('')
+  const [activePlayerHudCollapsed, setActivePlayerHudCollapsed] = useState(false)
   const [authMenuOpen, setAuthMenuOpen] = useState(false)
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
   const [navCollapsed, setNavCollapsed] = useState(false)
@@ -3154,6 +3179,7 @@ export default function AdminApp() {
 
   const handleSelectViewedPlayer = (playerId) => {
     setViewedPlayerId(playerId)
+    setActivePlayerHudCollapsed(false)
     setProfileMenuOpen(false)
 
     if (pathname !== '/') {
@@ -3215,7 +3241,15 @@ export default function AdminApp() {
           />
         )}
 
-        <AnimatePresence>{showActivePlayerHud ? <ActivePlayerHud player={viewedPlayer} /> : null}</AnimatePresence>
+        <AnimatePresence>
+          {showActivePlayerHud ? (
+            <ActivePlayerHud
+              collapsed={activePlayerHudCollapsed}
+              onToggleCollapsed={() => setActivePlayerHudCollapsed((current) => !current)}
+              player={viewedPlayer}
+            />
+          ) : null}
+        </AnimatePresence>
 
         <MotionMain className="layout-main" layout transition={RAIL_TRANSITION}>
         {showSetupMessage ? (
