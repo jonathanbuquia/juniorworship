@@ -1760,6 +1760,7 @@
 }
 
 .shop-card-preview {
+  --shop-card-fish-zoom: 1.08;
   position: relative;
   min-height: 210px;
   padding: 18px;
@@ -1855,7 +1856,8 @@
   position: relative;
   inset: auto;
   margin: 0 auto;
-  transform: none;
+  transform: scale(var(--shop-card-fish-zoom));
+  transform-origin: center center;
   cursor: default;
   touch-action: auto;
   will-change: auto;
@@ -1984,6 +1986,7 @@
   }
 
   .shop-card-preview {
+    --shop-card-fish-zoom: 1.14;
     min-height: 230px;
   }
 }
@@ -1996,11 +1999,12 @@
   }
 
   .shop-card-preview {
-    min-height: 210px;
+    --shop-card-fish-zoom: 1.22;
+    min-height: 230px;
   }
 
   .shop-fish-swim {
-    width: min(100%, 260px);
-    min-width: min(210px, 100%);
+    width: min(100%, 290px);
+    min-width: min(240px, 100%);
   }
 }
