@@ -1,8 +1,9 @@
+import { randomUUID } from 'node:crypto'
+
 import {
   allowMethods,
   buildInternalEmail,
   createServiceClient,
-  normalizeLoginName,
   parseBody,
   requireAdmin,
   sendJson,
@@ -23,26 +24,22 @@ export default async function handler(req, res) {
 
     const body = parseBody(req.body)
     const displayName = String(body.displayName || '').trim()
-    const loginName = normalizeLoginName(body.loginName)
-    const password = String(body.password || '')
     const startingGold = Number(body.startingGold)
 
-    if (!displayName || !loginName || !password) {
-      return sendJson(res, 400, { error: 'Display name, login name, and password are required.' })
-    }
-
-    if (password.length < 6) {
-      return sendJson(res, 400, { error: 'Password must be at least 6 characters long.' })
+    if (!displayName) {
+      return sendJson(res, 400, { error: 'Display name is required.' })
     }
 
     if (!Number.isInteger(startingGold) || startingGold < 0) {
       return sendJson(res, 400, { error: 'Starting gold must be a whole number that is zero or higher.' })
     }
 
-    const loginEmail = buildInternalEmail(loginName)
+    const hiddenPlayerKey = `player ${randomUUID()}`
+    const hiddenPassword = randomUUID()
+    const loginEmail = buildInternalEmail(hiddenPlayerKey)
     const { data: createdUser, error: createError } = await admin.auth.admin.createUser({
       email: loginEmail,
-      password,
+      password: hiddenPassword,
       email_confirm: true,
       user_metadata: {
         display_name: displayName,
@@ -59,7 +56,7 @@ export default async function handler(req, res) {
       id: createdUser.user.id,
       display_name: displayName,
       gold: startingGold,
-      login_name: loginName,
+      login_name: null,
       login_email: loginEmail,
       role: 'player',
     })
@@ -72,7 +69,6 @@ export default async function handler(req, res) {
       player: {
         id: createdUser.user.id,
         displayName,
-        loginName,
         startingGold,
       },
     })

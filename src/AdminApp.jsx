@@ -15,10 +15,6 @@ const QUICK_GOLD_ACTIONS = [25, 50, 100, -25, -50, -100]
 const QUIZ_QUESTION_COUNT = 5
 const GOLD_PER_QUIZ_POINT = 20
 const MEMORY_VERSE_QUIZ_POINTS = 5
-const AUTH_VIEWS = {
-  player: 'player',
-  admin: 'admin',
-}
 const MEMORY_VERSE_STORAGE_KEY = 'memory-verse-helper'
 const QUIZ_STORAGE_KEY = 'quiz-helper'
 
@@ -459,9 +455,7 @@ function CreatePlayerSection({
           <div className="eyebrow">Player Accounts</div>
           <h2>Add a new player</h2>
         </div>
-        <p className="panel-copy">
-          Create the account yourself, then hand the login name and password to the player.
-        </p>
+        <p className="panel-copy">Add a player profile with a name and starting gold.</p>
       </div>
 
       <div className="workspace-grid">
@@ -473,29 +467,6 @@ function CreatePlayerSection({
               onChange={onCreatePlayerChange}
               placeholder="Alyssa"
               value={createPlayerForm.displayName}
-            />
-          </label>
-
-          <label className="field">
-            <span>Player login name</span>
-            <input
-              autoComplete="off"
-              name="loginName"
-              onChange={onCreatePlayerChange}
-              placeholder="alyssa"
-              value={createPlayerForm.loginName}
-            />
-          </label>
-
-          <label className="field">
-            <span>Password</span>
-            <input
-              autoComplete="new-password"
-              name="password"
-              onChange={onCreatePlayerChange}
-              placeholder="Set the password they requested"
-              type="password"
-              value={createPlayerForm.password}
             />
           </label>
 
@@ -531,7 +502,6 @@ function CreatePlayerSection({
                 <div className="player-preview-row" key={player.id}>
                   <div>
                     <strong>{player.display_name}</strong>
-                    <span>{player.login_name}</span>
                   </div>
                   <strong>{player.gold} gold</strong>
                 </div>
@@ -593,7 +563,6 @@ function GoldManagerSection({
                 >
                   <div>
                     <strong>{player.display_name}</strong>
-                    <span>{player.login_name}</span>
                   </div>
                   <strong>{player.gold}</strong>
                 </button>
@@ -611,7 +580,7 @@ function GoldManagerSection({
                 <div>
                   <div className="eyebrow">Selected Player</div>
                   <h3>{selectedPlayer.display_name}</h3>
-                  <p className="panel-note">Login: {selectedPlayer.login_name}</p>
+                  <p className="panel-note">Use the controls below to update this player's gold.</p>
                 </div>
                 <div className="gold-balance-badge">
                   <span>Current gold</span>
@@ -684,9 +653,7 @@ function DeletePlayerSection({
           <div className="eyebrow">Delete Players</div>
           <h2>Remove a player account</h2>
         </div>
-        <p className="panel-copy">
-          This permanently deletes the player login, profile, and anything saved under that account.
-        </p>
+        <p className="panel-copy">This permanently deletes the player profile and anything saved under it.</p>
       </div>
 
       {playersMessage.text ? <p className={`status-line ${playersMessage.type}`}>{playersMessage.text}</p> : null}
@@ -711,7 +678,6 @@ function DeletePlayerSection({
                 >
                   <div>
                     <strong>{player.display_name}</strong>
-                    <span>{player.login_name}</span>
                   </div>
                 </button>
               ))}
@@ -728,14 +694,14 @@ function DeletePlayerSection({
                 <div>
                   <div className="eyebrow">Selected Player</div>
                   <h3>{selectedPlayer.display_name}</h3>
-                  <p className="panel-note">Login: {selectedPlayer.login_name}</p>
+                  <p className="panel-note">This action cannot be undone.</p>
                 </div>
               </div>
 
               <div className="danger-zone">
                 <h3>Permanent delete</h3>
                 <p className="panel-note">
-                  This removes the player account completely, including their saved profile and owned data.
+                  This removes the player completely, including their saved profile and owned data.
                 </p>
 
                 {deleteResult.text ? <p className={`status-line ${deleteResult.type}`}>{deleteResult.text}</p> : null}
@@ -876,7 +842,6 @@ function AdminPanel({
 
 function AuthPopover({
   authPending,
-  authView,
   hasAdmin,
   isAdmin,
   loginForm,
@@ -886,15 +851,12 @@ function AuthPopover({
   onLogin,
   onLoginChange,
   onOpenAdmin,
-  onSelectView,
   onSignOut,
   profile,
   setupForm,
   setupMessage,
   viewingAdmin,
 }) {
-  const showingPlayer = authView === AUTH_VIEWS.player
-
   return (
     <div className="auth-popover panel">
       {profile ? (
@@ -914,57 +876,6 @@ function AuthPopover({
             </button>
           </div>
         </div>
-      ) : null}
-
-      <div className="auth-switcher">
-        <button
-          className={`auth-switcher-chip ${showingPlayer ? 'active' : ''}`}
-          onClick={() => onSelectView(AUTH_VIEWS.player)}
-          type="button"
-        >
-          Player
-        </button>
-        <button
-          className={`auth-switcher-chip ${!showingPlayer ? 'active' : ''}`}
-          onClick={() => onSelectView(AUTH_VIEWS.admin)}
-          type="button"
-        >
-          Admin
-        </button>
-      </div>
-
-      {showingPlayer ? (
-        <form className="stack-form" onSubmit={onLogin}>
-          <div className="eyebrow">Player Sign In</div>
-          <label className="field">
-            <span>Login name</span>
-            <input
-              autoComplete="username"
-              name="loginName"
-              onChange={onLoginChange}
-              placeholder="player login name"
-              value={loginForm.loginName}
-            />
-          </label>
-
-          <label className="field">
-            <span>Password</span>
-            <input
-              autoComplete="current-password"
-              name="password"
-              onChange={onLoginChange}
-              placeholder="Enter password"
-              type="password"
-              value={loginForm.password}
-            />
-          </label>
-
-          {loginMessage.text ? <p className={`status-line ${loginMessage.type}`}>{loginMessage.text}</p> : null}
-
-          <button className="primary-button" disabled={authPending} type="submit">
-            {authPending ? 'Signing in...' : 'Enter game'}
-          </button>
-        </form>
       ) : hasAdmin ? (
         <form className="stack-form" onSubmit={onLogin}>
           <div className="eyebrow">Admin Sign In</div>
@@ -1081,7 +992,6 @@ function ProfileMenu({ onSelectPlayer, players, selectedPlayerId }) {
 
 function GameTopBar({
   authMenuOpen,
-  authView,
   hasAdmin,
   isAdmin,
   loginForm,
@@ -1096,7 +1006,6 @@ function GameTopBar({
   onOpenQuiz,
   onOpenShop,
   onSelectViewedPlayer,
-  onSelectAuthView,
   onSignOut,
   onToggleAuthMenu,
   profile,
@@ -1154,12 +1063,11 @@ function GameTopBar({
 
         <div className="header-menu-wrap">
           <button className="primary-button" onClick={onToggleAuthMenu} type="button">
-            SIGN IN
+            {profile ? 'ADMIN' : hasAdmin ? 'ADMIN SIGN IN' : 'SET UP ADMIN'}
           </button>
           {authMenuOpen ? (
             <AuthPopover
               authPending={authPending}
-              authView={authView}
               hasAdmin={hasAdmin}
               isAdmin={isAdmin}
               loginForm={loginForm}
@@ -1169,7 +1077,6 @@ function GameTopBar({
               onLogin={onLogin}
               onLoginChange={onLoginChange}
               onOpenAdmin={onOpenAdmin}
-              onSelectView={onSelectAuthView}
               onSignOut={onSignOut}
               profile={profile}
               setupForm={setupForm}
@@ -1803,7 +1710,6 @@ export default function AdminApp() {
   const [viewedPlayerId, setViewedPlayerId] = useState('')
   const [authMenuOpen, setAuthMenuOpen] = useState(false)
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
-  const [authView, setAuthView] = useState(AUTH_VIEWS.player)
   const [loginMessage, setLoginMessage] = useState(createEmptyMessage)
   const [setupMessage, setSetupMessage] = useState(createEmptyMessage)
   const [createPlayerResult, setCreatePlayerResult] = useState(createEmptyMessage)
@@ -1828,8 +1734,6 @@ export default function AdminApp() {
   })
   const [createPlayerForm, setCreatePlayerForm] = useState({
     displayName: '',
-    loginName: '',
-    password: '',
     startingGold: '250',
   })
   const [memoryVerseForm, setMemoryVerseForm] = useState(createEmptyMemoryVerseForm)
@@ -2349,10 +2253,6 @@ export default function AdminApp() {
         throw new Error('Your admin session is missing. Please log in again.')
       }
 
-      if (createPlayerForm.password.length < 6) {
-        throw new Error('Player passwords must be at least 6 characters long.')
-      }
-
       if (!Number.isInteger(startingGold) || startingGold < 0) {
         throw new Error('Starting gold must be a whole number that is zero or higher.')
       }
@@ -2365,8 +2265,6 @@ export default function AdminApp() {
         },
         body: JSON.stringify({
           displayName: createPlayerForm.displayName,
-          loginName: normalizeLoginName(createPlayerForm.loginName),
-          password: createPlayerForm.password,
           startingGold,
         }),
       })
@@ -2378,13 +2276,11 @@ export default function AdminApp() {
 
       setCreatePlayerForm({
         displayName: '',
-        loginName: '',
-        password: '',
         startingGold: String(startingGold),
       })
       setCreatePlayerResult({
         type: 'success',
-        text: `Player "${data.player.displayName}" created. Share the login name "${data.player.loginName}" with the password you set.`,
+        text: `Player "${data.player.displayName}" created.`,
       })
       setDeleteResult(createEmptyMessage())
       await loadPlayers({
@@ -2840,7 +2736,7 @@ export default function AdminApp() {
       }
 
       const confirmed = window.confirm(
-        `Delete ${selectedPlayer.display_name}? This permanently removes the player account and saved data.`,
+        `Delete ${selectedPlayer.display_name}? This permanently removes the player and saved data.`,
       )
 
       if (!confirmed) {
@@ -3015,36 +2911,34 @@ export default function AdminApp() {
       <div className={`portal-overlay top-layout ${isTeachingFullscreen ? 'fullscreen-active' : ''}`}>
         {isTeachingFullscreen ? null : (
           <GameTopBar
-          authMenuOpen={authMenuOpen}
-          authPending={authPending}
-          authView={authView}
-          hasAdmin={hasAdmin}
-          isAdmin={isAdmin}
-          loginForm={loginForm}
-          loginMessage={loginMessage}
-          onBootstrapChange={handleBootstrapChange}
-          onCreateAdmin={handleCreateAdmin}
-          onLogin={handleLogin}
-          onLoginChange={handleLoginChange}
-          onOpenAdmin={handleToggleAdmin}
-          onOpenMemoryVerse={handleOpenMemoryVerse}
-          onOpenProfileMenu={handleOpenProfileMenu}
-          onOpenQuiz={handleOpenQuiz}
-          onOpenShop={() => {}}
-          onSelectViewedPlayer={handleSelectViewedPlayer}
-          onSelectAuthView={setAuthView}
-          onSignOut={handleSignOut}
-          onToggleAuthMenu={handleToggleAuthMenu}
-          profile={profile}
-          publicPlayers={publicPlayers}
-          profileMenuOpen={profileMenuOpen}
-          setupForm={setupForm}
-          setupMessage={setupMessage}
-          viewedPlayer={viewedPlayer}
-          viewingMemory={viewingMemory}
-          viewingQuiz={viewingQuiz}
-          viewingAdmin={viewingAdmin}
-        />
+            authMenuOpen={authMenuOpen}
+            authPending={authPending}
+            hasAdmin={hasAdmin}
+            isAdmin={isAdmin}
+            loginForm={loginForm}
+            loginMessage={loginMessage}
+            onBootstrapChange={handleBootstrapChange}
+            onCreateAdmin={handleCreateAdmin}
+            onLogin={handleLogin}
+            onLoginChange={handleLoginChange}
+            onOpenAdmin={handleToggleAdmin}
+            onOpenMemoryVerse={handleOpenMemoryVerse}
+            onOpenProfileMenu={handleOpenProfileMenu}
+            onOpenQuiz={handleOpenQuiz}
+            onOpenShop={() => {}}
+            onSelectViewedPlayer={handleSelectViewedPlayer}
+            onSignOut={handleSignOut}
+            onToggleAuthMenu={handleToggleAuthMenu}
+            profile={profile}
+            publicPlayers={publicPlayers}
+            profileMenuOpen={profileMenuOpen}
+            setupForm={setupForm}
+            setupMessage={setupMessage}
+            viewedPlayer={viewedPlayer}
+            viewingMemory={viewingMemory}
+            viewingQuiz={viewingQuiz}
+            viewingAdmin={viewingAdmin}
+          />
         )}
 
         {showSetupMessage ? (

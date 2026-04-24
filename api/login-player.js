@@ -24,11 +24,11 @@ export default async function handler(req, res) {
     const admin = createServiceClient()
     const { data: profile, error: lookupError } = await admin
       .from('profiles')
-      .select('login_email')
+      .select('login_email, role')
       .eq('login_name', loginName)
       .single()
 
-    if (lookupError || !profile?.login_email) {
+    if (lookupError || !profile?.login_email || profile.role !== 'admin') {
       return sendJson(res, 401, { error: 'Invalid login name or password.' })
     }
 
