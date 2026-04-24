@@ -42,6 +42,22 @@ const PURCHASED_FISH_DEFAULTS = [
   { directionX: 1, directionY: 0.12, scale: 0.8, speed: 46, startX: 0.46, startY: 0.42 },
 ]
 
+function getTankContentScale(viewportWidth) {
+  if (viewportWidth <= 520) {
+    return 0.82
+  }
+
+  if (viewportWidth <= 700) {
+    return 0.9
+  }
+
+  if (viewportWidth <= 900) {
+    return 0.96
+  }
+
+  return 1
+}
+
 function randomBetween(min, max) {
   return min + Math.random() * (max - min)
 }
@@ -1072,6 +1088,7 @@ function MovableCoral({ coral, movable = false, position, dragging, onPointerDow
 export default function AquariumScene({ ownedFish = [], playerId = '', movable = false }) {
   const tankRef = useRef(null)
   const [tankSize, setTankSize] = useState({ width: 0, height: 0 })
+  const [contentScale, setContentScale] = useState(() => getTankContentScale(window.innerWidth))
   const [sceneState, setSceneState] = useState(() => readAquariumState(playerId))
   const [dragState, setDragState] = useState(null)
   const hasSelectedPlayer = Boolean(playerId)
@@ -1114,12 +1131,16 @@ export default function AquariumScene({ ownedFish = [], playerId = '', movable =
 
     const updateSize = () => {
       const { width, height } = tank.getBoundingClientRect()
+      const nextContentScale = getTankContentScale(window.innerWidth)
       setTankSize({ width, height })
+      setContentScale(nextContentScale)
 
+      const scaledCoralWidth = CORAL_WIDTH * nextContentScale
+      const scaledCoralHeight = CORAL_HEIGHT * nextContentScale
       const minX = 12
-      const maxX = Math.max(minX, width - CORAL_WIDTH - 12)
+      const maxX = Math.max(minX, width - scaledCoralWidth - 12)
       const minY = Math.max(44, height * 0.42)
-      const maxY = Math.max(minY, height - height * 0.14 - CORAL_HEIGHT)
+      const maxY = Math.max(minY, height - height * 0.14 - scaledCoralHeight)
 
       setSceneState((current) => {
         const currentCorals = current.coralPositions ?? {}
@@ -1174,10 +1195,12 @@ export default function AquariumScene({ ownedFish = [], playerId = '', movable =
       }
 
       const rect = tank.getBoundingClientRect()
+      const scaledCoralWidth = CORAL_WIDTH * contentScale
+      const scaledCoralHeight = CORAL_HEIGHT * contentScale
       const minX = 12
-      const maxX = Math.max(minX, rect.width - CORAL_WIDTH - 12)
+      const maxX = Math.max(minX, rect.width - scaledCoralWidth - 12)
       const minY = Math.max(44, rect.height * 0.42)
-      const maxY = Math.max(minY, rect.height - rect.height * 0.14 - CORAL_HEIGHT)
+      const maxY = Math.max(minY, rect.height - rect.height * 0.14 - scaledCoralHeight)
       const nextX = clamp(event.clientX - rect.left - dragState.offsetX, minX, maxX)
       const nextY = clamp(event.clientY - rect.top - dragState.offsetY, minY, maxY)
 
@@ -1206,7 +1229,7 @@ export default function AquariumScene({ ownedFish = [], playerId = '', movable =
       window.removeEventListener('pointerup', handlePointerUp)
       window.removeEventListener('pointercancel', handlePointerUp)
     }
-  }, [dragState])
+  }, [contentScale, dragState])
 
   const handleCoralPointerDown = (event, coralId) => {
     const tank = tankRef.current
@@ -1234,8 +1257,8 @@ export default function AquariumScene({ ownedFish = [], playerId = '', movable =
 
         <div className="tank-wrap">
           <div className="tank-shadow" aria-hidden="true" />
-          <div className="tank" ref={tankRef}>
-            <div className="tank-content">
+          <div className="tank" ref={tankRef} style={{ '--tank-content-scale': contentScale }}>
+            <div className="tank-content tank-scenery">
               <div className="pixel-grid" aria-hidden="true" />
               <div className="water-shine" aria-hidden="true" />
               <div className="water-ripple" aria-hidden="true" />
@@ -1264,7 +1287,10 @@ export default function AquariumScene({ ownedFish = [], playerId = '', movable =
                       key={coral.id}
                       coral={coral}
                       movable={movable}
-                      position={position}
+                      position={{
+                        x: position.x / contentScale,
+                        y: position.y / contentScale,
+                      }}
                       dragging={dragState?.coralId === coral.id}
                       onPointerDown={handleCoralPointerDown}
                     />
@@ -1274,6 +1300,9 @@ export default function AquariumScene({ ownedFish = [], playerId = '', movable =
               <div className="sand" aria-hidden="true" />
               <div className="rock rock-a" aria-hidden="true" />
               <div className="rock rock-b" aria-hidden="true" />
+            </div>
+
+            <div className="tank-content tank-animated">
               {hasSelectedPlayer && hasSavedCreatures && tankSize.width > 0 && (
                 <CuteTurtle
                   movable={movable}
