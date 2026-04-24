@@ -1014,17 +1014,47 @@ function GameTopBar({
   setupForm,
   setupMessage,
   authPending,
+  navCollapsed,
+  onToggleNavCollapsed,
   viewedPlayer,
   viewingMemory,
   viewingQuiz,
   viewingAdmin,
 }) {
+  const adminActionLabel = profile ? 'ADMIN' : hasAdmin ? 'ADMIN SIGN IN' : 'SET UP ADMIN'
+
   return (
-    <header className="game-header">
-      <div className="header-left">
+    <header className={`game-header ${navCollapsed ? 'collapsed' : ''}`}>
+      <div className="rail-header">
+        <div className="rail-brand">
+          <div className="rail-brand-mark">AQ</div>
+          <div className="rail-brand-copy">
+            <div className="eyebrow">Dashboard</div>
+            <strong>AQUARIUM</strong>
+          </div>
+        </div>
+        <button
+          aria-label={navCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          className="rail-collapse-button"
+          onClick={onToggleNavCollapsed}
+          type="button"
+        >
+          {navCollapsed ? '>' : '<'}
+        </button>
+      </div>
+
+      <div className="rail-top">
         <div className="header-menu-wrap">
-          <button className="header-menu-button" onClick={onOpenProfileMenu} type="button">
-            PROFILE
+          <button
+            aria-label="Profile"
+            className="rail-button rail-button-secondary"
+            onClick={onOpenProfileMenu}
+            type="button"
+          >
+            <span aria-hidden="true" className="rail-button-icon">
+              P
+            </span>
+            <span className="rail-button-label">PROFILE</span>
           </button>
           {profileMenuOpen ? (
             <ProfileMenu
@@ -1034,36 +1064,49 @@ function GameTopBar({
             />
           ) : null}
         </div>
-        <button className="ghost-button" onClick={onOpenShop} type="button">
-          SHOP
+
+        <button aria-label="Shop" className="rail-button rail-button-secondary" onClick={onOpenShop} type="button">
+          <span aria-hidden="true" className="rail-button-icon">
+            S
+          </span>
+          <span className="rail-button-label">SHOP</span>
         </button>
       </div>
 
-      <div className="header-center" />
-
-      <div className="header-right">
+      <div className="rail-bottom">
         {isAdmin ? (
-          <>
+          <div className="rail-admin-tools">
             <button
-              className={`header-menu-button ${viewingMemory ? 'active' : ''}`}
+              aria-label="Memory"
+              className={`rail-button rail-button-secondary ${viewingMemory ? 'active' : ''}`}
               onClick={onOpenMemoryVerse}
               type="button"
             >
-              MEMORY
+              <span aria-hidden="true" className="rail-button-icon">
+                M
+              </span>
+              <span className="rail-button-label">MEMORY</span>
             </button>
             <button
-              className={`header-menu-button ${viewingQuiz ? 'active' : ''}`}
+              aria-label="Quiz"
+              className={`rail-button rail-button-secondary ${viewingQuiz ? 'active' : ''}`}
               onClick={onOpenQuiz}
               type="button"
             >
-              QUIZ
+              <span aria-hidden="true" className="rail-button-icon">
+                Q
+              </span>
+              <span className="rail-button-label">QUIZ</span>
             </button>
-          </>
+          </div>
         ) : null}
 
         <div className="header-menu-wrap">
-          <button className="primary-button" onClick={onToggleAuthMenu} type="button">
-            {profile ? 'ADMIN' : hasAdmin ? 'ADMIN SIGN IN' : 'SET UP ADMIN'}
+          <button aria-label={adminActionLabel} className="rail-button rail-button-primary" onClick={onToggleAuthMenu} type="button">
+            <span aria-hidden="true" className="rail-button-icon">
+              A
+            </span>
+            <span className="rail-button-label">{adminActionLabel}</span>
           </button>
           {authMenuOpen ? (
             <AuthPopover
@@ -1710,6 +1753,7 @@ export default function AdminApp() {
   const [viewedPlayerId, setViewedPlayerId] = useState('')
   const [authMenuOpen, setAuthMenuOpen] = useState(false)
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
+  const [navCollapsed, setNavCollapsed] = useState(false)
   const [loginMessage, setLoginMessage] = useState(createEmptyMessage)
   const [setupMessage, setSetupMessage] = useState(createEmptyMessage)
   const [createPlayerResult, setCreatePlayerResult] = useState(createEmptyMessage)
@@ -2095,6 +2139,12 @@ export default function AdminApp() {
   const handleOpenProfileMenu = () => {
     setProfileMenuOpen((current) => !current)
     setAuthMenuOpen(false)
+  }
+
+  const handleToggleNavCollapsed = () => {
+    setNavCollapsed((current) => !current)
+    setAuthMenuOpen(false)
+    setProfileMenuOpen(false)
   }
 
   const handleLoginChange = (event) => {
@@ -2917,6 +2967,7 @@ export default function AdminApp() {
             isAdmin={isAdmin}
             loginForm={loginForm}
             loginMessage={loginMessage}
+            navCollapsed={navCollapsed}
             onBootstrapChange={handleBootstrapChange}
             onCreateAdmin={handleCreateAdmin}
             onLogin={handleLogin}
@@ -2928,6 +2979,7 @@ export default function AdminApp() {
             onOpenShop={() => {}}
             onSelectViewedPlayer={handleSelectViewedPlayer}
             onSignOut={handleSignOut}
+            onToggleNavCollapsed={handleToggleNavCollapsed}
             onToggleAuthMenu={handleToggleAuthMenu}
             profile={profile}
             publicPlayers={publicPlayers}
@@ -2941,6 +2993,7 @@ export default function AdminApp() {
           />
         )}
 
+        <main className="layout-main">
         {showSetupMessage ? (
           <section className="env-warning panel">
             <div className="eyebrow">Setup Needed</div>
@@ -3064,6 +3117,7 @@ export default function AdminApp() {
             />
           </div>
         ) : null}
+        </main>
       </div>
     </div>
   )
