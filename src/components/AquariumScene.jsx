@@ -1,76 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import '../PixelAquarium.css'
-
-const school = [
-  {
-    id: 'sunfin',
-    startX: 0.14,
-    startY: 0.2,
-    scale: 1,
-    speed: 60,
-    directionX: 1,
-    directionY: -0.18,
-    palette: {
-      main: '#ffe668',
-      light: '#fff6b9',
-      accent: '#ff9a2f',
-      fin: '#4fc5ff',
-      eye: '#1f2c46',
-      mouth: '#8b3f25',
-    },
-  },
-  {
-    id: 'berrybyte',
-    startX: 0.62,
-    startY: 0.3,
-    scale: 0.86,
-    speed: 54,
-    directionX: -1,
-    directionY: 0.24,
-    palette: {
-      main: '#ffd46f',
-      light: '#fff3c2',
-      accent: '#ff6ab0',
-      fin: '#8d7cff',
-      eye: '#2a2345',
-      mouth: '#883b55',
-    },
-  },
-  {
-    id: 'mintchip',
-    startX: 0.24,
-    startY: 0.52,
-    scale: 0.8,
-    speed: 48,
-    directionX: 1,
-    directionY: 0.32,
-    palette: {
-      main: '#b8ff78',
-      light: '#e8ffbf',
-      accent: '#31d483',
-      fin: '#54b7ff',
-      eye: '#1f3248',
-      mouth: '#2f7a45',
-    },
-  },
-  {
-    id: 'lavafin',
-    startX: 0.7,
-    startY: 0.58,
-    scale: 1.08,
-    speed: 62,
-    directionX: -1,
-    directionY: -0.26,
-    palette: {
-      main: '#ffe072',
-      light: '#fff3b8',
-      accent: '#ff7a31',
-      fin: '#57d6ff',
-      eye: '#1b243c',
-      mouth: '#94421d',
-    },
-  },
-]
+import { findShopItemBySlug } from '../../shared/shopCatalog.js'
 
 const BASE_FISH_WIDTH = 198
 const BASE_FISH_HEIGHT = 126
@@ -104,6 +34,13 @@ const EMPTY_AQUARIUM_STATE = {
   coralPositions: {},
   creatures: {},
 }
+const PURCHASED_FISH_DEFAULTS = [
+  { directionX: 1, directionY: -0.18, scale: 0.92, speed: 54, startX: 0.16, startY: 0.24 },
+  { directionX: -1, directionY: 0.14, scale: 0.82, speed: 48, startX: 0.66, startY: 0.36 },
+  { directionX: 1, directionY: 0.22, scale: 0.98, speed: 58, startX: 0.28, startY: 0.56 },
+  { directionX: -1, directionY: -0.16, scale: 0.88, speed: 52, startX: 0.74, startY: 0.62 },
+  { directionX: 1, directionY: 0.12, scale: 0.8, speed: 46, startX: 0.46, startY: 0.42 },
+]
 
 function randomBetween(min, max) {
   return min + Math.random() * (max - min)
@@ -111,6 +48,38 @@ function randomBetween(min, max) {
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max)
+}
+
+function buildOwnedFishConfigs(ownedFish) {
+  return ownedFish.flatMap((entry, entryIndex) => {
+    const item = findShopItemBySlug(entry.slug)
+
+    if (!item || !Number.isInteger(entry.quantity) || entry.quantity <= 0) {
+      return []
+    }
+
+    return Array.from({ length: entry.quantity }, (_unused, index) => {
+      const defaults = PURCHASED_FISH_DEFAULTS[(entryIndex + index) % PURCHASED_FISH_DEFAULTS.length]
+
+      return {
+        directionX: defaults.directionX,
+        directionY: defaults.directionY,
+        id: `${entry.slug}-${index + 1}`,
+        palette: {
+          accent: item.accentColor,
+          eye: '#17324f',
+          fin: item.finColor,
+          light: item.detailColor,
+          main: item.bodyColor,
+          mouth: '#8b3f25',
+        },
+        scale: defaults.scale + ((entryIndex + index) % 3) * 0.04,
+        speed: defaults.speed + ((entryIndex + index) % 2) * 4,
+        startX: clamp(defaults.startX + index * 0.06, 0.12, 0.82),
+        startY: clamp(defaults.startY + (index % 2 === 0 ? 0.04 : -0.03), 0.16, 0.68),
+      }
+    })
+  })
 }
 
 function createAquariumStorageKey(playerId) {
@@ -1100,12 +1069,13 @@ function MovableCoral({ coral, movable = false, position, dragging, onPointerDow
   )
 }
 
-export default function AquariumScene({ playerId = '', movable = false }) {
+export default function AquariumScene({ ownedFish = [], playerId = '', movable = false }) {
   const tankRef = useRef(null)
   const [tankSize, setTankSize] = useState({ width: 0, height: 0 })
   const [sceneState, setSceneState] = useState(() => readAquariumState(playerId))
   const [dragState, setDragState] = useState(null)
   const hasSelectedPlayer = Boolean(playerId)
+  const purchasedFish = buildOwnedFishConfigs(ownedFish)
   const coralPositions = sceneState.coralPositions ?? {}
   const creatureStarts = sceneState.creatures ?? {}
   const hasSavedCreatures = Object.keys(creatureStarts).length > 0
@@ -1359,15 +1329,14 @@ export default function AquariumScene({ playerId = '', movable = false }) {
             )}
 
             {hasSelectedPlayer &&
-              hasSavedCreatures &&
               tankSize.width > 0 &&
-              school.map((fish) => (
+              purchasedFish.map((fish) => (
                 <NaturalFish
                   key={fish.id}
                   fish={fish}
                   movable={movable}
-                  onPersistPosition={(position) => handlePersistCreaturePosition(`fish:${fish.id}`, position)}
-                  persistedStart={creatureStarts[`fish:${fish.id}`] ?? null}
+                  onPersistPosition={(position) => handlePersistCreaturePosition(`owned-fish:${fish.id}`, position)}
+                  persistedStart={creatureStarts[`owned-fish:${fish.id}`] ?? null}
                   tankRef={tankRef}
                   tankSize={tankSize}
                 />

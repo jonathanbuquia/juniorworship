@@ -1617,11 +1617,29 @@
   font-size: 0.76rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  color: #5f7f92;
 }
 
 .shop-player-gold strong {
-  font-size: 1.35rem;
-  line-height: 1.1;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.3rem;
+  line-height: 1.05;
+  color: #10384e;
+}
+
+.shop-player-gold strong i {
+  width: 18px;
+  height: 18px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  color: #c17b00;
+  background: radial-gradient(circle at 32% 32%, #fff6b9, #ffcb4d 62%, #d5940d 100%);
+  box-shadow: 0 6px 14px rgba(210, 155, 30, 0.28);
+  font-size: 0.55rem;
+  font-style: normal;
 }
 
 .shop-category-row {

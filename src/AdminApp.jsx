@@ -1470,8 +1470,11 @@ function ShopPage({
                 </label>
 
                 <div className={`shop-player-gold ${selectedPlayer ? 'ready' : ''}`}>
-                  <span>Available gold</span>
-                  <strong>{selectedPlayer ? `${selectedPlayer.gold} gold` : 'Pick a player first'}</strong>
+                  <span>{selectedPlayer ? selectedPlayer.display_name : 'Player'}</span>
+                  <strong>
+                    <i aria-hidden="true">●</i>
+                    {selectedPlayer ? `${selectedPlayer.gold} gold` : 'Pick a player'}
+                  </strong>
                 </div>
               </>
             ) : (
@@ -2170,6 +2173,7 @@ export default function AdminApp() {
   const [deletePending, setDeletePending] = useState(false)
   const [players, setPlayers] = useState([])
   const [publicPlayers, setPublicPlayers] = useState([])
+  const [aquariumFish, setAquariumFish] = useState([])
   const [adminSection, setAdminSection] = useState(ADMIN_SECTIONS.createPlayer)
   const [selectedPlayerId, setSelectedPlayerId] = useState('')
   const [viewedPlayerId, setViewedPlayerId] = useState('')
@@ -2577,6 +2581,26 @@ export default function AdminApp() {
     [selectedPlayerId, session?.access_token],
   )
 
+  const loadViewedPlayerAquarium = useCallback(async (playerId) => {
+    if (!playerId) {
+      setAquariumFish([])
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/public-player-aquarium?playerId=${encodeURIComponent(playerId)}`)
+      const data = await readJson(response)
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Unable to load aquarium items.')
+      }
+
+      setAquariumFish(data.fish ?? [])
+    } catch {
+      setAquariumFish([])
+    }
+  }, [])
+
   useEffect(() => {
     if ((!viewingAdmin && !viewingMemory && !viewingQuiz) || !isAdmin || !session?.access_token) {
       return
@@ -2584,6 +2608,10 @@ export default function AdminApp() {
 
     loadPlayers()
   }, [viewingAdmin, viewingMemory, viewingQuiz, isAdmin, session?.access_token, loadPlayers])
+
+  useEffect(() => {
+    loadViewedPlayerAquarium(viewedPlayerId)
+  }, [loadViewedPlayerAquarium, viewedPlayerId])
 
   const handleToggleAuthMenu = () => {
     setAuthMenuOpen((current) => !current)
@@ -3293,6 +3321,7 @@ export default function AdminApp() {
 
     setProfile(null)
     setPlayers([])
+    setAquariumFish([])
     setSelectedPlayerId('')
     setShopPlayerId('')
     setShopPendingSlug('')
@@ -3451,16 +3480,21 @@ export default function AdminApp() {
         throw new Error(data.error || 'Unable to complete the purchase.')
       }
 
-      setPlayers((current) =>
-        current.map((player) => (player.id === data.player.id ? { ...player, ...data.player } : player)),
-      )
-      setPublicPlayers((current) =>
-        current.map((player) => (player.id === data.player.id ? { ...player, ...data.player } : player)),
-      )
-      setShopNotice({
-        type: 'success',
-        text: `${data.item.name} bought for ${data.player.display_name}. ${data.player.gold} gold left.`,
-      })
+        setPlayers((current) =>
+          current.map((player) => (player.id === data.player.id ? { ...player, ...data.player } : player)),
+        )
+        setPublicPlayers((current) =>
+          current.map((player) => (player.id === data.player.id ? { ...player, ...data.player } : player)),
+        )
+
+        if (viewedPlayerId === data.player.id) {
+          await loadViewedPlayerAquarium(data.player.id)
+        }
+
+        setShopNotice({
+          type: 'success',
+          text: `${data.item.name} bought for ${data.player.display_name}. ${data.player.gold} gold left.`,
+        })
     } catch (error) {
       setShopNotice({
         type: 'warning',
@@ -3492,7 +3526,12 @@ export default function AdminApp() {
     <div className={`portal-shell ${showGameScene ? 'game-mode' : 'auth-mode'}`}>
         {showGameScene ? (
           <div className="portal-scene">
-            <AquariumScene key={viewedPlayer?.id ?? 'no-player'} movable={false} playerId={viewedPlayer?.id ?? ''} />
+            <AquariumScene
+              key={viewedPlayer?.id ?? 'no-player'}
+              movable={false}
+              ownedFish={aquariumFish}
+              playerId={viewedPlayer?.id ?? ''}
+            />
           </div>
         ) : null}
 
