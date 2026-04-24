@@ -1391,14 +1391,17 @@ function GameTopBar({
 function ShopFishPreview({ item, index }) {
   return (
     <div className="shop-card-preview">
+      <span className="shop-card-glow" style={{ '--shop-glow': item.accentColor }} />
       <span className="shop-card-bubble bubble-a" />
       <span className="shop-card-bubble bubble-b" />
       <span className="shop-card-bubble bubble-c" />
+      <span className="shop-card-seaweed seaweed-a" />
+      <span className="shop-card-seaweed seaweed-b" />
       <motion.div
         animate={{
-          rotate: [-2, 2, -2],
-          x: ['-8%', '10%', '-8%'],
-          y: [0, -8, 0, 6, 0],
+          rotate: [-3, 2, -3],
+          x: ['-10%', '8%', '-10%'],
+          y: [0, -7, 0, 5, 0],
         }}
         className="shop-fish-swim"
         transition={{
@@ -1407,20 +1410,21 @@ function ShopFishPreview({ item, index }) {
           repeat: Infinity,
         }}
       >
-        <svg aria-hidden="true" viewBox="0 0 220 120">
-          <path d="M40 60 5 32v56z" fill={item.finColor} />
-          <ellipse cx="112" cy="60" fill={item.bodyColor} rx="58" ry="35" />
-          <path
-            d="M82 39c15-8 44-8 64 0-10 8-19 14-32 14S92 47 82 39Z"
-            fill={item.detailColor}
-            opacity="0.95"
-          />
-          <path d="M166 48c17 0 29 10 39 22-10 7-21 10-33 10z" fill={item.finColor} opacity="0.95" />
-          <path d="M86 82c18 12 47 12 68 0-18-4-26-6-35-6s-17 2-33 6Z" fill={item.finColor} opacity="0.8" />
-          <circle cx="136" cy="56" fill="#17324f" r="7" />
-          <circle cx="138" cy="54" fill="#ffffff" r="2.2" />
-          <path d="M145 73c-5 3-11 4-17 1" fill="none" opacity="0.55" stroke="#17324f" strokeLinecap="round" strokeWidth="3" />
-          <path d="M68 52c10 0 16 14 16 14s-6 13-16 13" fill="none" opacity="0.4" stroke={item.finColor} strokeLinecap="round" strokeWidth="4" />
+        <svg aria-hidden="true" viewBox="0 0 260 160">
+          <path d="M58 83 20 52v63z" fill={item.finColor} />
+          <path d="M69 79c-7-9-18-11-27-11 9-13 20-17 31-18z" fill={item.detailColor} opacity="0.75" />
+          <ellipse cx="132" cy="84" fill={item.bodyColor} rx="72" ry="44" />
+          <ellipse cx="146" cy="74" fill={item.detailColor} opacity="0.95" rx="49" ry="23" />
+          <path d="M124 120c24 7 47 4 65-8-17-4-31-6-43-6-10 0-20 4-22 14z" fill={item.finColor} opacity="0.92" />
+          <path d="M132 50c18-18 42-22 60-12-13 12-24 22-42 24-8 1-15-3-18-12z" fill={item.finColor} opacity="0.9" />
+          <path d="M191 71c22 2 35 14 45 29-14 9-29 12-44 8z" fill={item.finColor} />
+          <ellipse cx="167" cy="80" fill="#17324f" rx="9.5" ry="10.5" />
+          <circle cx="170" cy="77" fill="#ffffff" r="3.2" />
+          <circle cx="171.5" cy="75.5" fill="#ffffff" opacity="0.55" r="1.3" />
+          <circle cx="154" cy="97" fill="#ff9fb2" opacity="0.55" r="6" />
+          <path d="M177 103c-7 5-15 6-23 2" fill="none" opacity="0.65" stroke="#17324f" strokeLinecap="round" strokeWidth="3.8" />
+          <path d="M99 67c10 3 16 11 18 17-8 2-15 5-21 10-5-10-3-19 3-27z" fill="#ffffff" opacity="0.3" />
+          <path d="M108 90c14 0 22 6 29 14-12 3-22 5-30 1-4-2-6-8 1-15z" fill="#ffffff" opacity="0.2" />
         </svg>
       </motion.div>
     </div>
@@ -1441,19 +1445,14 @@ function ShopPage({
   const activeCategory = SHOP_CATEGORIES.find((category) => category.id === selectedCategory) ?? SHOP_CATEGORIES[0]
   const visibleItems = getShopItemsByCategory(activeCategory.id)
 
-  return (
-    <section className="panel shop-page-shell">
-      <div className="shop-shell">
-        <div className="shop-hero">
-          <div>
-            <div className="eyebrow">Admin Assisted Shop</div>
-            <h2>Buy aquarium items for a player</h2>
-            <p className="panel-copy">
-              {isAdmin
-                ? 'Pick a player first, check their gold, then choose an item from the starter shop below.'
-                : 'Players can browse the shop here. Purchases still need the admin to choose your name and confirm the buy.'}
-            </p>
-          </div>
+    return (
+      <section className="panel shop-page-shell">
+        <div className="shop-shell">
+          <div className="shop-hero">
+            <div>
+              <div className="eyebrow">Shop</div>
+              <h2>Aquarium Shop</h2>
+            </div>
 
           <div className="shop-player-panel">
             {isAdmin ? (
@@ -1477,8 +1476,7 @@ function ShopPage({
               </>
             ) : (
               <div className="shop-player-view-note">
-                <span>Browsing mode</span>
-                <strong>Only the admin can choose a player and complete a purchase.</strong>
+                <strong>Admin only</strong>
               </div>
             )}
           </div>
@@ -1499,7 +1497,6 @@ function ShopPage({
 
         <div className="shop-category-copy">
           <strong>{activeCategory.label}</strong>
-          <span>{activeCategory.description}</span>
         </div>
 
         {visibleItems.length ? (
@@ -1521,7 +1518,6 @@ function ShopPage({
                   <div className="shop-item-copy">
                     <div className="shop-item-heading">
                       <strong>{item.name}</strong>
-                      <span>{item.description}</span>
                     </div>
 
                     <div className="shop-item-footer">
