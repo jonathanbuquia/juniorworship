@@ -1024,7 +1024,7 @@ function GameTopBar({
       <div className="header-left">
         <div className="header-menu-wrap">
           <button className="header-menu-button" onClick={onOpenProfileMenu} type="button">
-            VISIT
+            PROFILE
           </button>
           {profileMenuOpen ? (
             <ProfileMenu
@@ -1034,6 +1034,14 @@ function GameTopBar({
             />
           ) : null}
         </div>
+        <button className="ghost-button" onClick={onOpenShop} type="button">
+          SHOP
+        </button>
+      </div>
+
+      <div className="header-center" />
+
+      <div className="header-right">
         {isAdmin ? (
           <>
             <button
@@ -1052,14 +1060,6 @@ function GameTopBar({
             </button>
           </>
         ) : null}
-      </div>
-
-      <div className="header-center" />
-
-      <div className="header-right">
-        <button className="ghost-button" onClick={onOpenShop} type="button">
-          SHOP
-        </button>
 
         <div className="header-menu-wrap">
           <button className="primary-button" onClick={onToggleAuthMenu} type="button">
