@@ -75,6 +75,17 @@
 .tank {
   position: relative;
   --tank-content-scale: 1;
+  --plant-width: 18px;
+  --plant-outline: 3px;
+  --plant-a-height: 110px;
+  --plant-b-height: 92px;
+  --plant-c-height: 124px;
+  --plant-d-height: 84px;
+  --rock-outline: 3px;
+  --rock-a-width: 54px;
+  --rock-a-height: 42px;
+  --rock-b-width: 76px;
+  --rock-b-height: 56px;
   width: min(76vw, 820px);
   aspect-ratio: 4 / 3;
   overflow: hidden;
@@ -215,19 +226,19 @@
   background: #7b8a93;
   box-shadow:
     inset -6px -6px 0 rgba(71, 83, 91, 0.28),
-    0 0 0 3px #56656d;
+    0 0 0 var(--rock-outline) #56656d;
 }
 
 .rock-a {
   left: 24%;
-  width: 54px;
-  height: 42px;
+  width: var(--rock-a-width);
+  height: var(--rock-a-height);
 }
 
 .rock-b {
   right: 20%;
-  width: 76px;
-  height: 56px;
+  width: var(--rock-b-width);
+  height: var(--rock-b-height);
 }
 
 .coral-drag {
@@ -338,9 +349,9 @@
 
 .pixel-plant {
   bottom: 18%;
-  width: 18px;
+  width: var(--plant-width);
   background: #39b267;
-  box-shadow: 0 0 0 3px #2f8450;
+  box-shadow: 0 0 0 var(--plant-outline) #2f8450;
   transform-origin: center bottom;
   animation: plantSway 4.6s ease-in-out infinite;
 }
@@ -349,7 +360,7 @@
 .pixel-plant::after {
   content: '';
   position: absolute;
-  width: 18px;
+  width: var(--plant-width);
   background: inherit;
   box-shadow: inherit;
 }
@@ -368,13 +379,13 @@
 
 .plant-a {
   left: 16%;
-  height: 110px;
+  height: var(--plant-a-height);
   animation-duration: 4.8s;
 }
 
 .plant-b {
   left: 50%;
-  height: 92px;
+  height: var(--plant-b-height);
   transform: translateX(-50%);
   animation-duration: 5.4s;
   animation-delay: -1.4s;
@@ -382,16 +393,16 @@
 
 .plant-c {
   right: 14%;
-  height: 124px;
+  height: var(--plant-c-height);
   animation-duration: 4.2s;
   animation-delay: -0.9s;
 }
 
 .plant-d {
   left: 34%;
-  height: 84px;
+  height: var(--plant-d-height);
   background: #57ca8a;
-  box-shadow: 0 0 0 3px #318661;
+  box-shadow: 0 0 0 var(--plant-outline) #318661;
   animation-duration: 5.9s;
   animation-delay: -2.2s;
 }
@@ -2185,6 +2196,16 @@
 
 @media (max-width: 900px) {
   .tank {
+    --plant-width: 16px;
+    --plant-outline: 3px;
+    --plant-a-height: 96px;
+    --plant-b-height: 82px;
+    --plant-c-height: 108px;
+    --plant-d-height: 74px;
+    --rock-a-width: 48px;
+    --rock-a-height: 38px;
+    --rock-b-width: 66px;
+    --rock-b-height: 50px;
     width: min(92vw, 640px);
   }
 
@@ -2236,6 +2257,17 @@
 
 @media (max-width: 700px) {
   .tank {
+    --plant-width: 14px;
+    --plant-outline: 2px;
+    --plant-a-height: 80px;
+    --plant-b-height: 68px;
+    --plant-c-height: 92px;
+    --plant-d-height: 62px;
+    --rock-outline: 2px;
+    --rock-a-width: 40px;
+    --rock-a-height: 32px;
+    --rock-b-width: 56px;
+    --rock-b-height: 42px;
     width: min(88vw, 500px);
   }
 
@@ -2290,6 +2322,17 @@
 
 @media (max-width: 520px) {
   .tank {
+    --plant-width: 12px;
+    --plant-outline: 2px;
+    --plant-a-height: 64px;
+    --plant-b-height: 54px;
+    --plant-c-height: 74px;
+    --plant-d-height: 48px;
+    --rock-outline: 2px;
+    --rock-a-width: 32px;
+    --rock-a-height: 26px;
+    --rock-b-width: 46px;
+    --rock-b-height: 34px;
     width: min(86vw, 360px);
   }
 
