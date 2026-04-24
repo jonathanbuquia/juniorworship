@@ -1137,9 +1137,12 @@ function GameTopBar({
   authMenuOpen,
   hasAdmin,
   isAdmin,
+  isCompactNav,
   loginForm,
   loginMessage,
+  navDrawerOpen,
   onBootstrapChange,
+  onCloseCompactNav,
   onCreateAdmin,
   onLogin,
   onLoginChange,
@@ -1166,28 +1169,36 @@ function GameTopBar({
   viewingAdmin,
 }) {
   const adminActionLabel = profile ? 'ADMIN' : hasAdmin ? 'ADMIN SIGN IN' : 'SET UP ADMIN'
+  const effectiveCollapsed = isCompactNav ? false : navCollapsed
 
   return (
     <MotionHeader
-      animate={{ width: navCollapsed ? 96 : 240 }}
-      className={`game-header ${navCollapsed ? 'collapsed' : ''}`}
-      layout
+      animate={
+        isCompactNav
+          ? {
+              opacity: navDrawerOpen ? 1 : 0.92,
+              x: navDrawerOpen ? 0 : -340,
+            }
+          : { width: navCollapsed ? 96 : 240 }
+      }
+      className={`game-header ${effectiveCollapsed ? 'collapsed' : ''} ${isCompactNav ? 'compact' : ''}`}
+      layout={!isCompactNav}
       transition={RAIL_TRANSITION}
     >
       <div className="rail-header">
         <div className="rail-brand">
           <MotionButton
-            aria-label={navCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            aria-label={isCompactNav ? 'Close menu' : navCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             className="rail-brand-mark"
-            onClick={onToggleNavCollapsed}
+            onClick={isCompactNav ? onCloseCompactNav : onToggleNavCollapsed}
             type="button"
-            whileHover={{ scale: 1.06, rotate: navCollapsed ? -6 : 6 }}
+            whileHover={{ scale: 1.06, rotate: effectiveCollapsed ? -6 : 6 }}
             whileTap={{ scale: 0.96 }}
           >
             <RailIcon type="brand" />
           </MotionButton>
           <AnimatePresence initial={false}>
-            {!navCollapsed ? (
+            {!effectiveCollapsed ? (
               <MotionDiv
                 animate={{ opacity: 1, x: 0 }}
                 className="rail-brand-copy"
@@ -1219,7 +1230,7 @@ function GameTopBar({
               <RailIcon type="profile" />
             </span>
             <AnimatePresence initial={false}>
-              {!navCollapsed ? (
+              {!effectiveCollapsed ? (
                 <MotionSpan
                   animate={{ opacity: 1, x: 0 }}
                   className="rail-button-label"
@@ -1253,14 +1264,14 @@ function GameTopBar({
           whileHover={{ y: -2 }}
           whileTap={{ scale: 0.98 }}
         >
-          <span aria-hidden="true" className="rail-button-icon">
-            <RailIcon type="shop" />
-          </span>
-          <AnimatePresence initial={false}>
-            {!navCollapsed ? (
-              <MotionSpan
-                animate={{ opacity: 1, x: 0 }}
-                className="rail-button-label"
+            <span aria-hidden="true" className="rail-button-icon">
+              <RailIcon type="shop" />
+            </span>
+            <AnimatePresence initial={false}>
+              {!effectiveCollapsed ? (
+                <MotionSpan
+                  animate={{ opacity: 1, x: 0 }}
+                  className="rail-button-label"
                 exit={{ opacity: 0, x: -8 }}
                 initial={{ opacity: 0, x: -8 }}
                 key="shop-label"
@@ -1285,14 +1296,14 @@ function GameTopBar({
               whileHover={{ y: -2 }}
               whileTap={{ scale: 0.98 }}
             >
-              <span aria-hidden="true" className="rail-button-icon">
-                <RailIcon type="memory" />
-              </span>
-              <AnimatePresence initial={false}>
-                {!navCollapsed ? (
-                  <MotionSpan
-                    animate={{ opacity: 1, x: 0 }}
-                    className="rail-button-label"
+                <span aria-hidden="true" className="rail-button-icon">
+                  <RailIcon type="memory" />
+                </span>
+                <AnimatePresence initial={false}>
+                  {!effectiveCollapsed ? (
+                    <MotionSpan
+                      animate={{ opacity: 1, x: 0 }}
+                      className="rail-button-label"
                     exit={{ opacity: 0, x: -8 }}
                     initial={{ opacity: 0, x: -8 }}
                     key="memory-label"
@@ -1312,14 +1323,14 @@ function GameTopBar({
               whileHover={{ y: -2 }}
               whileTap={{ scale: 0.98 }}
             >
-              <span aria-hidden="true" className="rail-button-icon">
-                <RailIcon type="quiz" />
-              </span>
-              <AnimatePresence initial={false}>
-                {!navCollapsed ? (
-                  <MotionSpan
-                    animate={{ opacity: 1, x: 0 }}
-                    className="rail-button-label"
+                <span aria-hidden="true" className="rail-button-icon">
+                  <RailIcon type="quiz" />
+                </span>
+                <AnimatePresence initial={false}>
+                  {!effectiveCollapsed ? (
+                    <MotionSpan
+                      animate={{ opacity: 1, x: 0 }}
+                      className="rail-button-label"
                     exit={{ opacity: 0, x: -8 }}
                     initial={{ opacity: 0, x: -8 }}
                     key="quiz-label"
@@ -1343,14 +1354,14 @@ function GameTopBar({
             whileHover={{ y: -2 }}
             whileTap={{ scale: 0.98 }}
           >
-            <span aria-hidden="true" className="rail-button-icon">
-              <RailIcon type="admin" />
-            </span>
-            <AnimatePresence initial={false}>
-              {!navCollapsed ? (
-                <MotionSpan
-                  animate={{ opacity: 1, x: 0 }}
-                  className="rail-button-label"
+              <span aria-hidden="true" className="rail-button-icon">
+                <RailIcon type="admin" />
+              </span>
+              <AnimatePresence initial={false}>
+                {!effectiveCollapsed ? (
+                  <MotionSpan
+                    animate={{ opacity: 1, x: 0 }}
+                    className="rail-button-label"
                   exit={{ opacity: 0, x: -8 }}
                   initial={{ opacity: 0, x: -8 }}
                   key="admin-label"
@@ -1585,6 +1596,26 @@ function ShopPage({
         )}
       </div>
     </section>
+  )
+}
+
+function CompactNavToggle({ onClick, open }) {
+  return (
+    <MotionButton
+      animate={{ opacity: 1, scale: 1 }}
+      aria-label={open ? 'Close menu' : 'Open menu'}
+      className="compact-nav-toggle"
+      initial={{ opacity: 0, scale: 0.92 }}
+      onClick={onClick}
+      transition={POPOVER_TRANSITION}
+      type="button"
+      whileHover={{ y: -1 }}
+      whileTap={{ scale: 0.96 }}
+    >
+      <span />
+      <span />
+      <span />
+    </MotionButton>
   )
 }
 
@@ -2215,6 +2246,8 @@ export default function AdminApp() {
   const [authMenuOpen, setAuthMenuOpen] = useState(false)
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
   const [navCollapsed, setNavCollapsed] = useState(false)
+  const [isCompactNav, setIsCompactNav] = useState(() => window.innerWidth <= 980)
+  const [navDrawerOpen, setNavDrawerOpen] = useState(() => window.innerWidth > 980)
   const [loginMessage, setLoginMessage] = useState(createEmptyMessage)
   const [setupMessage, setSetupMessage] = useState(createEmptyMessage)
   const [createPlayerResult, setCreatePlayerResult] = useState(createEmptyMessage)
@@ -2269,6 +2302,19 @@ export default function AdminApp() {
     window.addEventListener('popstate', handlePopState)
     return () => {
       window.removeEventListener('popstate', handlePopState)
+    }
+  }, [])
+
+  useEffect(() => {
+    const handleResize = () => {
+      const nextIsCompactNav = window.innerWidth <= 980
+      setIsCompactNav(nextIsCompactNav)
+      setNavDrawerOpen(!nextIsCompactNav)
+    }
+
+    window.addEventListener('resize', handleResize)
+    return () => {
+      window.removeEventListener('resize', handleResize)
     }
   }, [])
 
@@ -2653,7 +2699,18 @@ export default function AdminApp() {
     setAuthMenuOpen(false)
   }
 
+  const closeCompactNav = () => {
+    if (isCompactNav) {
+      setNavDrawerOpen(false)
+    }
+  }
+
   const handleToggleNavCollapsed = () => {
+    if (isCompactNav) {
+      setNavDrawerOpen((current) => !current)
+      return
+    }
+
     setNavCollapsed((current) => !current)
     setAuthMenuOpen(false)
     setProfileMenuOpen(false)
@@ -3366,18 +3423,21 @@ export default function AdminApp() {
     setQuizAwardResult(createEmptyMessage())
     setMemoryRewardsOpen(false)
     setQuizRewardsOpen(false)
+    closeCompactNav()
     navigate('/')
   }
 
   const handleToggleAdmin = () => {
     setAuthMenuOpen(false)
     setProfileMenuOpen(false)
+    closeCompactNav()
     navigate(viewingAdmin ? '/' : ADMIN_PATH)
   }
 
   const handleOpenMemoryVerse = () => {
     setAuthMenuOpen(false)
     setProfileMenuOpen(false)
+    closeCompactNav()
     navigate(MEMORY_PATH)
   }
 
@@ -3449,12 +3509,14 @@ export default function AdminApp() {
   const handleOpenQuiz = () => {
     setAuthMenuOpen(false)
     setProfileMenuOpen(false)
+    closeCompactNav()
     navigate(QUIZ_PATH)
   }
 
   const handleOpenShop = () => {
     setAuthMenuOpen(false)
     setProfileMenuOpen(false)
+    closeCompactNav()
     navigate(SHOP_PATH)
   }
 
@@ -3539,6 +3601,7 @@ export default function AdminApp() {
     setViewedPlayerId(playerId)
     setActivePlayerHudCollapsed(false)
     setProfileMenuOpen(false)
+    closeCompactNav()
 
     if (pathname !== '/') {
       navigate('/')
@@ -3566,20 +3629,42 @@ export default function AdminApp() {
         ) : null}
 
       <MotionDiv
-        className={`portal-overlay top-layout ${isTeachingFullscreen ? 'fullscreen-active' : ''}`}
+        className={`portal-overlay top-layout ${isTeachingFullscreen ? 'fullscreen-active' : ''} ${isCompactNav ? 'compact-nav-mode' : ''}`}
         layout
         transition={RAIL_TRANSITION}
       >
+        {!isTeachingFullscreen && isCompactNav ? (
+          <CompactNavToggle onClick={handleToggleNavCollapsed} open={navDrawerOpen} />
+        ) : null}
+
+        <AnimatePresence>
+          {!isTeachingFullscreen && isCompactNav && navDrawerOpen ? (
+            <MotionButton
+              animate={{ opacity: 1 }}
+              aria-label="Close menu"
+              className="compact-nav-backdrop"
+              exit={{ opacity: 0 }}
+              initial={{ opacity: 0 }}
+              onClick={closeCompactNav}
+              transition={POPOVER_TRANSITION}
+              type="button"
+            />
+          ) : null}
+        </AnimatePresence>
+
         {isTeachingFullscreen ? null : (
           <GameTopBar
             authMenuOpen={authMenuOpen}
             authPending={authPending}
             hasAdmin={hasAdmin}
             isAdmin={isAdmin}
+            isCompactNav={isCompactNav}
             loginForm={loginForm}
             loginMessage={loginMessage}
             navCollapsed={navCollapsed}
+            navDrawerOpen={navDrawerOpen}
             onBootstrapChange={handleBootstrapChange}
+            onCloseCompactNav={closeCompactNav}
             onCreateAdmin={handleCreateAdmin}
             onLogin={handleLogin}
             onLoginChange={handleLoginChange}
