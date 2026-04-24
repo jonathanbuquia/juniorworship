@@ -68,18 +68,95 @@ export default async function handler(req, res) {
       })
     }
 
-    const { data: purchase, error: purchaseError } = await admin
-      .rpc('buy_shop_item', {
-        p_item_id: itemRecord.id,
-        p_user_id: player.id,
+    const nextGold = player.gold - itemRecord.price
+    const { data: updatedPlayer, error: goldError } = await admin
+      .from('profiles')
+      .update({
+        gold: nextGold,
       })
+      .eq('id', player.id)
+      .eq('gold', player.gold)
+      .select('id, display_name, gold')
       .single()
 
-    if (purchaseError || !purchase) {
+    if (goldError || !updatedPlayer) {
       return sendJson(res, 400, {
-        error: purchaseError?.message || 'The purchase could not be completed.',
+        error: goldError?.message || 'The purchase could not be completed.',
       })
     }
+
+    const { data: existingInventory, error: inventoryLookupError } = await admin
+      .from('inventory')
+      .select('id, quantity')
+      .eq('user_id', player.id)
+      .eq('item_id', itemRecord.id)
+      .maybeSingle()
+
+    if (inventoryLookupError) {
+      await admin
+        .from('profiles')
+        .update({
+          gold: player.gold,
+        })
+        .eq('id', player.id)
+
+      return sendJson(res, 400, {
+        error: inventoryLookupError.message || 'The purchase could not be completed.',
+      })
+    }
+
+    let quantity = 1
+
+    if (existingInventory?.id) {
+      quantity = (existingInventory.quantity ?? 0) + 1
+
+      const { error: inventoryUpdateError } = await admin
+        .from('inventory')
+        .update({
+          quantity,
+        })
+        .eq('id', existingInventory.id)
+
+      if (inventoryUpdateError) {
+        await admin
+          .from('profiles')
+          .update({
+            gold: player.gold,
+          })
+          .eq('id', player.id)
+
+        return sendJson(res, 400, {
+          error: inventoryUpdateError.message || 'The purchase could not be completed.',
+        })
+      }
+    } else {
+      const { error: inventoryInsertError } = await admin
+        .from('inventory')
+        .insert({
+          item_id: itemRecord.id,
+          quantity,
+          user_id: player.id,
+        })
+
+      if (inventoryInsertError) {
+        await admin
+          .from('profiles')
+          .update({
+            gold: player.gold,
+          })
+          .eq('id', player.id)
+
+        return sendJson(res, 400, {
+          error: inventoryInsertError.message || 'The purchase could not be completed.',
+        })
+      }
+    }
+
+    await admin.from('purchase_log').insert({
+      item_id: itemRecord.id,
+      price_paid: itemRecord.price,
+      user_id: player.id,
+    })
 
     return sendJson(res, 200, {
       item: {
@@ -88,11 +165,11 @@ export default async function handler(req, res) {
         slug: itemRecord.slug,
       },
       player: {
-        id: player.id,
-        display_name: player.display_name,
-        gold: purchase.gold,
+        id: updatedPlayer.id,
+        display_name: updatedPlayer.display_name,
+        gold: updatedPlayer.gold,
       },
-      quantity: purchase.quantity,
+      quantity,
     })
   } catch (error) {
     return sendJson(res, 500, {

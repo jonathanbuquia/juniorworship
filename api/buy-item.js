@@ -21,6 +21,123 @@ function readItemId(body) {
   return Number(body.itemId)
 }
 
+async function updateInventory(admin, { itemId, playerId }) {
+  const { data: itemRecord, error: itemError } = await admin
+    .from('shop_items')
+    .select('id, name, price')
+    .eq('id', itemId)
+    .single()
+
+  if (itemError || !itemRecord) {
+    return { error: itemError?.message || 'That shop item could not be found.', status: 400 }
+  }
+
+  const { data: player, error: playerError } = await admin
+    .from('profiles')
+    .select('id, gold')
+    .eq('id', playerId)
+    .single()
+
+  if (playerError || !player) {
+    return { error: playerError?.message || 'Your profile could not be loaded.', status: 400 }
+  }
+
+  if (player.gold < itemRecord.price) {
+    return { error: 'Not enough gold for that item.', status: 400 }
+  }
+
+  const nextGold = player.gold - itemRecord.price
+  const { data: updatedPlayer, error: goldError } = await admin
+    .from('profiles')
+    .update({
+      gold: nextGold,
+    })
+    .eq('id', playerId)
+    .eq('gold', player.gold)
+    .select('gold')
+    .single()
+
+  if (goldError || !updatedPlayer) {
+    return { error: goldError?.message || 'The purchase could not be completed.', status: 400 }
+  }
+
+  const { data: existingInventory, error: inventoryLookupError } = await admin
+    .from('inventory')
+    .select('id, quantity')
+    .eq('user_id', playerId)
+    .eq('item_id', itemId)
+    .maybeSingle()
+
+  if (inventoryLookupError) {
+    await admin
+      .from('profiles')
+      .update({
+        gold: player.gold,
+      })
+      .eq('id', playerId)
+
+    return { error: inventoryLookupError.message || 'The purchase could not be completed.', status: 400 }
+  }
+
+  let quantity = 1
+
+  if (existingInventory?.id) {
+    quantity = (existingInventory.quantity ?? 0) + 1
+
+    const { error: inventoryUpdateError } = await admin
+      .from('inventory')
+      .update({
+        quantity,
+      })
+      .eq('id', existingInventory.id)
+
+    if (inventoryUpdateError) {
+      await admin
+        .from('profiles')
+        .update({
+          gold: player.gold,
+        })
+        .eq('id', playerId)
+
+      return { error: inventoryUpdateError.message || 'The purchase could not be completed.', status: 400 }
+    }
+  } else {
+    const { error: inventoryInsertError } = await admin
+      .from('inventory')
+      .insert({
+        item_id: itemId,
+        quantity,
+        user_id: playerId,
+      })
+
+    if (inventoryInsertError) {
+      await admin
+        .from('profiles')
+        .update({
+          gold: player.gold,
+        })
+        .eq('id', playerId)
+
+      return { error: inventoryInsertError.message || 'The purchase could not be completed.', status: 400 }
+    }
+  }
+
+  await admin.from('purchase_log').insert({
+    item_id: itemId,
+    price_paid: itemRecord.price,
+    user_id: playerId,
+  })
+
+  return {
+    data: {
+      gold: updatedPlayer.gold,
+      itemId: itemRecord.id,
+      itemName: itemRecord.name,
+      quantity,
+    },
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST')
@@ -71,23 +188,21 @@ export default async function handler(req, res) {
     return sendJson(res, 401, { error: 'Your session is not valid anymore.' })
   }
 
-  const { data, error } = await admin
-    .rpc('buy_shop_item', {
-      p_item_id: itemId,
-      p_user_id: user.id,
-    })
-    .single()
+  const result = await updateInventory(admin, {
+    itemId,
+    playerId: user.id,
+  })
 
-  if (error) {
+  if (result.error) {
     return sendJson(res, 400, {
-      error: error.message || 'The purchase could not be completed.',
+      error: result.error || 'The purchase could not be completed.',
     })
   }
 
   return sendJson(res, 200, {
-    itemId: data.item_id,
-    itemName: data.item_name,
-    gold: data.gold,
-    quantity: data.quantity,
+    itemId: result.data.itemId,
+    itemName: result.data.itemName,
+    gold: result.data.gold,
+    quantity: result.data.quantity,
   })
 }
