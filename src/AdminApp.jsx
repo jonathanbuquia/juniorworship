@@ -3630,7 +3630,7 @@ export default function AdminApp() {
 
       <MotionDiv
         className={`portal-overlay top-layout ${isTeachingFullscreen ? 'fullscreen-active' : ''} ${isCompactNav ? 'compact-nav-mode' : ''}`}
-        layout
+        layout={!isCompactNav}
         transition={RAIL_TRANSITION}
       >
         {!isTeachingFullscreen && isCompactNav ? (
@@ -3715,7 +3715,7 @@ export default function AdminApp() {
           ) : null}
         </AnimatePresence>
 
-        <MotionMain className="layout-main" layout transition={RAIL_TRANSITION}>
+        <MotionMain className="layout-main" layout={!isCompactNav} transition={RAIL_TRANSITION}>
         {showSetupMessage ? (
           <section className="env-warning panel">
             <div className="eyebrow">Setup Needed</div>

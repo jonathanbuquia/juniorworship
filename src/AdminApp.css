@@ -114,7 +114,7 @@
 .compact-nav-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 85;
+  z-index: 84;
   border: 0;
   background: rgba(7, 23, 34, 0.3);
   backdrop-filter: blur(3px);
@@ -130,6 +130,7 @@
   min-height: auto;
   max-height: calc(100vh - 28px);
   overflow: auto;
+  z-index: 90;
 }
 
 .layout-main {
