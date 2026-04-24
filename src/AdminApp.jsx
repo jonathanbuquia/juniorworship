@@ -2261,14 +2261,11 @@ export default function AdminApp() {
         const nextPlayers = data.players ?? []
         setPublicPlayers(nextPlayers)
 
-        const currentProfileId = profile?.role === 'player' ? profile.id : ''
-        const preferredId = preferredPlayerId || (preserveSelection ? viewedPlayerId : '') || currentProfileId
+        const preferredId = preferredPlayerId || (preserveSelection ? viewedPlayerId : '')
         const hasPreferred = nextPlayers.some((player) => player.id === preferredId)
 
         if (hasPreferred) {
           setViewedPlayerId(preferredId)
-        } else if (nextPlayers.length) {
-          setViewedPlayerId(nextPlayers[0].id)
         } else {
           setViewedPlayerId('')
         }
@@ -2279,7 +2276,7 @@ export default function AdminApp() {
         })
       }
     },
-    [profile, viewedPlayerId],
+    [viewedPlayerId],
   )
 
   useEffect(() => {
