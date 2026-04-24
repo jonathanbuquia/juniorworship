@@ -110,13 +110,27 @@
   height: 44px;
   display: grid;
   place-items: center;
+  border: 0;
   border-radius: 16px;
+  padding: 0;
   font-size: 0.95rem;
+  font-family: inherit;
   font-weight: 800;
   letter-spacing: 0.12em;
   color: white;
   background: linear-gradient(135deg, #0f9eb7, #0f75a7);
   box-shadow: 0 12px 24px rgba(15, 117, 167, 0.24);
+  cursor: pointer;
+}
+
+.rail-brand-mark svg {
+  width: 22px;
+  height: 22px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .rail-brand-copy {
@@ -127,19 +141,6 @@
 .rail-brand-copy strong {
   font-size: 1.1rem;
   letter-spacing: 0.12em;
-}
-
-.rail-collapse-button {
-  width: 100%;
-  border: 0;
-  border-radius: 16px;
-  padding: 10px 12px;
-  font: inherit;
-  font-weight: 800;
-  color: #123a52;
-  background: rgba(255, 255, 255, 0.72);
-  box-shadow: inset 0 0 0 1px rgba(52, 109, 139, 0.2);
-  cursor: pointer;
 }
 
 .rail-top,
@@ -186,6 +187,16 @@
   letter-spacing: 0.08em;
   color: #0e5d7c;
   background: rgba(207, 240, 255, 0.92);
+}
+
+.rail-button-icon svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .rail-button-label {
