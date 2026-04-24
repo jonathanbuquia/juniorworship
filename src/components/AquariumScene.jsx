@@ -88,10 +88,22 @@ const BASE_TURTLE_WIDTH = 176
 const BASE_TURTLE_HEIGHT = 138
 const CORAL_WIDTH = 118
 const CORAL_HEIGHT = 136
+const jellyfishMessages = [
+  'UMATTEND KA NG JUNIOR WORSHIP',
+  'nagpray ka ba?',
+  'ang ganda mo',
+  'ano tara?',
+  'ang OA mo',
+  'Happy Yarn?',
+]
 const coralDecorations = [
   { id: 'pink-coral', color: 'pink', startX: 0.14 },
   { id: 'green-coral', color: 'green', startX: 0.72 },
 ]
+const EMPTY_AQUARIUM_STATE = {
+  coralPositions: {},
+  creatures: {},
+}
 
 function randomBetween(min, max) {
   return min + Math.random() * (max - min)
@@ -99,6 +111,34 @@ function randomBetween(min, max) {
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max)
+}
+
+function createAquariumStorageKey(playerId) {
+  return playerId ? `aquarium-player:${playerId}` : ''
+}
+
+function readAquariumState(playerId) {
+  const storageKey = createAquariumStorageKey(playerId)
+
+  if (!storageKey) {
+    return EMPTY_AQUARIUM_STATE
+  }
+
+  try {
+    const savedValue = window.localStorage.getItem(storageKey)
+
+    if (!savedValue) {
+      return EMPTY_AQUARIUM_STATE
+    }
+
+    const parsed = JSON.parse(savedValue)
+    return {
+      coralPositions: parsed.coralPositions ?? {},
+      creatures: parsed.creatures ?? {},
+    }
+  } catch {
+    return EMPTY_AQUARIUM_STATE
+  }
 }
 
 function normalizeVelocity(x, y, speed) {
@@ -143,6 +183,8 @@ function useCreatureMotion({
   initialPauseMax = 0.7,
   bounceVerticalJitter = 14,
   fixedY = null,
+  startOverride = null,
+  restartKey = 0,
 }) {
   const [pose, setPose] = useState(() => ({
     x: 0,
@@ -166,9 +208,18 @@ function useCreatureMotion({
       maxY: fixedY ?? Math.max(minY, tankSize.height - tankSize.height * maxYInset - height),
     }
     const start = normalizeVelocity(directionX, directionY, speed)
+    const startPosition = startOverride
+      ? {
+          x: clamp(startOverride.x, bounds.minX, bounds.maxX),
+          y: fixedY ?? clamp(startOverride.y, bounds.minY, bounds.maxY),
+        }
+      : {
+          x: bounds.minX + (bounds.maxX - bounds.minX) * startX,
+          y: bounds.minY + (bounds.maxY - bounds.minY) * startY,
+        }
     const state = {
-      x: bounds.minX + (bounds.maxX - bounds.minX) * startX,
-      y: bounds.minY + (bounds.maxY - bounds.minY) * startY,
+      x: startPosition.x,
+      y: startPosition.y,
       vx: start.vx,
       vy: start.vy,
       speed,
@@ -314,12 +365,116 @@ function useCreatureMotion({
     tankSize.width,
     width,
     fixedY,
+    restartKey,
+    startOverride,
   ])
 
   return pose
 }
 
-function NaturalFish({ fish, tankSize }) {
+function useDraggableSwimmer({
+  tankRef,
+  width,
+  height,
+  minY = 14,
+  maxYInset = 0.24,
+  persistedStart = null,
+  onPersistPosition,
+}) {
+  const [dragState, setDragState] = useState(null)
+  const [restartKey, setRestartKey] = useState(0)
+
+  useEffect(() => {
+    if (!dragState) {
+      return undefined
+    }
+
+    const handlePointerMove = (event) => {
+      const tank = tankRef.current
+
+      if (!tank) {
+        return
+      }
+
+      const rect = tank.getBoundingClientRect()
+      const minX = 10
+      const maxX = Math.max(minX, rect.width - width - 10)
+      const boundedMinY = dragState.fixedY ?? minY
+      const boundedMaxY =
+        dragState.fixedY ?? Math.max(boundedMinY, rect.height - rect.height * maxYInset - height)
+      const nextX = clamp(event.clientX - rect.left - dragState.offsetX, minX, maxX)
+      const nextY = dragState.fixedY ?? clamp(event.clientY - rect.top - dragState.offsetY, boundedMinY, boundedMaxY)
+
+      setDragState((previous) =>
+        previous
+          ? {
+              ...previous,
+              position: {
+                x: nextX,
+                y: nextY,
+              },
+            }
+          : previous,
+      )
+    }
+
+    const handlePointerUp = () => {
+      setDragState((previous) => {
+        if (!previous) {
+          return previous
+        }
+
+        onPersistPosition?.(previous.position)
+        setRestartKey((value) => value + 1)
+        return null
+      })
+    }
+
+    window.addEventListener('pointermove', handlePointerMove)
+    window.addEventListener('pointerup', handlePointerUp)
+    window.addEventListener('pointercancel', handlePointerUp)
+
+    return () => {
+      window.removeEventListener('pointermove', handlePointerMove)
+      window.removeEventListener('pointerup', handlePointerUp)
+      window.removeEventListener('pointercancel', handlePointerUp)
+    }
+  }, [dragState, height, maxYInset, minY, onPersistPosition, tankRef, width])
+
+  const startDragging = (event, currentPosition, fixedY = null) => {
+    const tank = tankRef.current
+
+    if (!tank) {
+      return
+    }
+
+    const rect = tank.getBoundingClientRect()
+
+    setDragState({
+      fixedY,
+      offsetX: event.clientX - rect.left - currentPosition.x,
+      offsetY: event.clientY - rect.top - currentPosition.y,
+      position: currentPosition,
+    })
+  }
+
+  return {
+    dragging: dragState != null,
+    dragPosition: dragState?.position ?? null,
+    restartKey,
+    startDragging,
+    startOverride: persistedStart,
+  }
+}
+
+function NaturalFish({ fish, persistedStart, tankRef, tankSize, onPersistPosition }) {
+  const draggable = useDraggableSwimmer({
+    tankRef,
+    width: BASE_FISH_WIDTH * fish.scale,
+    height: BASE_FISH_HEIGHT * fish.scale,
+    persistedStart,
+    onPersistPosition,
+  })
   const pose = useCreatureMotion({
     tankSize,
     width: BASE_FISH_WIDTH * fish.scale,
@@ -329,11 +484,14 @@ function NaturalFish({ fish, tankSize }) {
     speed: fish.speed,
     directionX: fish.directionX,
     directionY: fish.directionY,
+    restartKey: draggable.restartKey,
+    startOverride: draggable.startOverride,
   })
+  const displayPosition = draggable.dragPosition ?? pose
 
   return (
     <div
-      className={`fish-swim ${pose.paused ? 'paused' : ''}`}
+      className={`fish-swim ${pose.paused ? 'paused' : ''} ${draggable.dragging ? 'dragging' : ''}`}
       style={{
         '--fish-scale': fish.scale,
         '--main': fish.palette.main,
@@ -342,13 +500,14 @@ function NaturalFish({ fish, tankSize }) {
         '--fin': fish.palette.fin,
         '--eye': fish.palette.eye,
         '--mouth': fish.palette.mouth,
-        '--swim-x': `${pose.x}px`,
-        '--swim-y': `${pose.y}px`,
+        '--swim-x': `${displayPosition.x}px`,
+        '--swim-y': `${displayPosition.y}px`,
         '--fish-facing': pose.facing,
         '--fish-tilt': `${pose.tilt}deg`,
         '--eye-x': pose.eyeX,
         '--eye-y': pose.eyeY,
       }}
+      onPointerDown={(event) => draggable.startDragging(event, displayPosition)}
       aria-label="Cute fish"
     >
       <div className="fish-motion">
@@ -382,7 +541,16 @@ function NaturalFish({ fish, tankSize }) {
   )
 }
 
-function CuteOctopus({ tankSize }) {
+function CuteOctopus({ persistedStart, tankRef, tankSize, onPersistPosition }) {
+  const draggable = useDraggableSwimmer({
+    tankRef,
+    width: BASE_OCTOPUS_WIDTH,
+    height: BASE_OCTOPUS_HEIGHT,
+    minY: 30,
+    maxYInset: 0.2,
+    persistedStart,
+    onPersistPosition,
+  })
   const pose = useCreatureMotion({
     tankSize,
     width: BASE_OCTOPUS_WIDTH,
@@ -404,17 +572,21 @@ function CuteOctopus({ tankSize }) {
     initialPauseMin: 0.5,
     initialPauseMax: 1.2,
     bounceVerticalJitter: 9,
+    restartKey: draggable.restartKey,
+    startOverride: draggable.startOverride,
   })
+  const displayPosition = draggable.dragPosition ?? pose
 
   return (
     <div
-      className={`octopus-swim ${pose.paused ? 'paused' : ''}`}
+      className={`octopus-swim ${pose.paused ? 'paused' : ''} ${draggable.dragging ? 'dragging' : ''}`}
       style={{
-        '--swim-x': `${pose.x}px`,
-        '--swim-y': `${pose.y}px`,
+        '--swim-x': `${displayPosition.x}px`,
+        '--swim-y': `${displayPosition.y}px`,
         '--octopus-facing': pose.facing,
         '--octopus-tilt': `${pose.tilt * 0.6}deg`,
       }}
+      onPointerDown={(event) => draggable.startDragging(event, displayPosition)}
       aria-label="Cute octopus"
     >
       <div className="octopus-bob">
@@ -447,7 +619,19 @@ function CuteOctopus({ tankSize }) {
   )
 }
 
-function CuteJellyfish({ tankSize }) {
+function CuteJellyfish({ persistedStart, tankRef, tankSize, onPersistPosition }) {
+  const [isTalking, setIsTalking] = useState(false)
+  const [message, setMessage] = useState(jellyfishMessages[0])
+  const hideTimerRef = useRef(null)
+  const draggable = useDraggableSwimmer({
+    tankRef,
+    width: BASE_JELLYFISH_WIDTH,
+    height: BASE_JELLYFISH_HEIGHT,
+    minY: 18,
+    maxYInset: 0.18,
+    persistedStart,
+    onPersistPosition,
+  })
   const pose = useCreatureMotion({
     tankSize,
     width: BASE_JELLYFISH_WIDTH,
@@ -469,19 +653,59 @@ function CuteJellyfish({ tankSize }) {
     initialPauseMin: 0.3,
     initialPauseMax: 1,
     bounceVerticalJitter: 7,
+    restartKey: draggable.restartKey,
+    startOverride: draggable.startOverride,
   })
+  const displayPosition = draggable.dragPosition ?? pose
+
+  useEffect(() => {
+    return () => {
+      if (hideTimerRef.current) {
+        window.clearTimeout(hideTimerRef.current)
+      }
+    }
+  }, [])
+
+  const showMessage = () => {
+    if (hideTimerRef.current) {
+      window.clearTimeout(hideTimerRef.current)
+    }
+
+    setMessage(jellyfishMessages[Math.floor(Math.random() * jellyfishMessages.length)])
+    setIsTalking(true)
+    hideTimerRef.current = window.setTimeout(() => {
+      setIsTalking(false)
+    }, 2600)
+  }
+
+  const handleKeyDown = (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      showMessage()
+    }
+  }
 
   return (
     <div
-      className={`jellyfish-swim ${pose.paused ? 'paused' : ''}`}
+      className={`jellyfish-swim ${pose.paused ? 'paused' : ''} ${draggable.dragging ? 'dragging' : ''}`}
       style={{
-        '--swim-x': `${pose.x}px`,
-        '--swim-y': `${pose.y}px`,
+        '--swim-x': `${displayPosition.x}px`,
+        '--swim-y': `${displayPosition.y}px`,
         '--jellyfish-facing': pose.facing,
         '--jellyfish-tilt': `${pose.tilt * 0.45}deg`,
       }}
+      onPointerDown={(event) => draggable.startDragging(event, displayPosition)}
+      onClick={showMessage}
+      onKeyDown={handleKeyDown}
+      role="button"
+      tabIndex={0}
       aria-label="Cute jellyfish"
     >
+      {isTalking && (
+        <div className="jellyfish-bubble" aria-hidden="true">
+          {message}
+        </div>
+      )}
       <div className="jellyfish-bob">
         <div className="jellyfish-motion">
           <div className="jellyfish">
@@ -512,8 +736,17 @@ function CuteJellyfish({ tankSize }) {
   )
 }
 
-function CuteCrab({ tankSize }) {
+function CuteCrab({ persistedStart, tankRef, tankSize, onPersistPosition }) {
   const crabFloorY = Math.max(110, tankSize.height - tankSize.height * 0.12 - BASE_CRAB_HEIGHT)
+  const draggable = useDraggableSwimmer({
+    tankRef,
+    width: BASE_CRAB_WIDTH,
+    height: BASE_CRAB_HEIGHT,
+    minY: crabFloorY,
+    maxYInset: 0.1,
+    persistedStart,
+    onPersistPosition,
+  })
   const pose = useCreatureMotion({
     tankSize,
     width: BASE_CRAB_WIDTH,
@@ -536,17 +769,21 @@ function CuteCrab({ tankSize }) {
     initialPauseMax: 0.9,
     bounceVerticalJitter: 0,
     fixedY: crabFloorY,
+    restartKey: draggable.restartKey,
+    startOverride: draggable.startOverride,
   })
+  const displayPosition = draggable.dragPosition ?? pose
 
   return (
     <div
-      className={`crab-swim ${pose.paused ? 'paused' : ''}`}
+      className={`crab-swim ${pose.paused ? 'paused' : ''} ${draggable.dragging ? 'dragging' : ''}`}
       style={{
-        '--swim-x': `${pose.x}px`,
-        '--swim-y': `${pose.y}px`,
+        '--swim-x': `${displayPosition.x}px`,
+        '--swim-y': `${displayPosition.y}px`,
         '--crab-facing': pose.facing,
         '--crab-tilt': `${pose.tilt * 0.22}deg`,
       }}
+      onPointerDown={(event) => draggable.startDragging(event, displayPosition, crabFloorY)}
       aria-label="Cute crab"
     >
       <div className="crab-bob">
@@ -584,7 +821,16 @@ function CuteCrab({ tankSize }) {
   )
 }
 
-function CutePufferfish({ tankSize }) {
+function CutePufferfish({ persistedStart, tankRef, tankSize, onPersistPosition }) {
+  const draggable = useDraggableSwimmer({
+    tankRef,
+    width: BASE_PUFFER_WIDTH,
+    height: BASE_PUFFER_HEIGHT,
+    minY: 26,
+    maxYInset: 0.22,
+    persistedStart,
+    onPersistPosition,
+  })
   const pose = useCreatureMotion({
     tankSize,
     width: BASE_PUFFER_WIDTH,
@@ -606,17 +852,21 @@ function CutePufferfish({ tankSize }) {
     initialPauseMin: 0.2,
     initialPauseMax: 0.7,
     bounceVerticalJitter: 8,
+    restartKey: draggable.restartKey,
+    startOverride: draggable.startOverride,
   })
+  const displayPosition = draggable.dragPosition ?? pose
 
   return (
     <div
-      className={`puffer-swim ${pose.paused ? 'paused' : ''}`}
+      className={`puffer-swim ${pose.paused ? 'paused' : ''} ${draggable.dragging ? 'dragging' : ''}`}
       style={{
-        '--swim-x': `${pose.x}px`,
-        '--swim-y': `${pose.y}px`,
+        '--swim-x': `${displayPosition.x}px`,
+        '--swim-y': `${displayPosition.y}px`,
         '--puffer-facing': pose.facing,
         '--puffer-tilt': `${pose.tilt * 0.45}deg`,
       }}
+      onPointerDown={(event) => draggable.startDragging(event, displayPosition)}
       aria-label="Cute pufferfish"
     >
       <div className="puffer-bob">
@@ -655,7 +905,16 @@ function CutePufferfish({ tankSize }) {
   )
 }
 
-function CuteStingray({ tankSize }) {
+function CuteStingray({ persistedStart, tankRef, tankSize, onPersistPosition }) {
+  const draggable = useDraggableSwimmer({
+    tankRef,
+    width: BASE_STINGRAY_WIDTH,
+    height: BASE_STINGRAY_HEIGHT,
+    minY: 34,
+    maxYInset: 0.18,
+    persistedStart,
+    onPersistPosition,
+  })
   const pose = useCreatureMotion({
     tankSize,
     width: BASE_STINGRAY_WIDTH,
@@ -677,17 +936,21 @@ function CuteStingray({ tankSize }) {
     initialPauseMin: 0.1,
     initialPauseMax: 0.5,
     bounceVerticalJitter: 6,
+    restartKey: draggable.restartKey,
+    startOverride: draggable.startOverride,
   })
+  const displayPosition = draggable.dragPosition ?? pose
 
   return (
     <div
-      className={`stingray-swim ${pose.paused ? 'paused' : ''}`}
+      className={`stingray-swim ${pose.paused ? 'paused' : ''} ${draggable.dragging ? 'dragging' : ''}`}
       style={{
-        '--swim-x': `${pose.x}px`,
-        '--swim-y': `${pose.y}px`,
+        '--swim-x': `${displayPosition.x}px`,
+        '--swim-y': `${displayPosition.y}px`,
         '--stingray-facing': pose.facing,
         '--stingray-tilt': `${pose.tilt * 0.35}deg`,
       }}
+      onPointerDown={(event) => draggable.startDragging(event, displayPosition)}
       aria-label="Cute stingray"
     >
       <div className="stingray-bob">
@@ -720,7 +983,16 @@ function CuteStingray({ tankSize }) {
   )
 }
 
-function CuteTurtle({ tankSize }) {
+function CuteTurtle({ persistedStart, tankRef, tankSize, onPersistPosition }) {
+  const draggable = useDraggableSwimmer({
+    tankRef,
+    width: BASE_TURTLE_WIDTH,
+    height: BASE_TURTLE_HEIGHT,
+    minY: 40,
+    maxYInset: 0.16,
+    persistedStart,
+    onPersistPosition,
+  })
   const pose = useCreatureMotion({
     tankSize,
     width: BASE_TURTLE_WIDTH,
@@ -742,17 +1014,21 @@ function CuteTurtle({ tankSize }) {
     initialPauseMin: 0.2,
     initialPauseMax: 0.7,
     bounceVerticalJitter: 5,
+    restartKey: draggable.restartKey,
+    startOverride: draggable.startOverride,
   })
+  const displayPosition = draggable.dragPosition ?? pose
 
   return (
     <div
-      className={`turtle-swim ${pose.paused ? 'paused' : ''}`}
+      className={`turtle-swim ${pose.paused ? 'paused' : ''} ${draggable.dragging ? 'dragging' : ''}`}
       style={{
-        '--swim-x': `${pose.x}px`,
-        '--swim-y': `${pose.y}px`,
+        '--swim-x': `${displayPosition.x}px`,
+        '--swim-y': `${displayPosition.y}px`,
         '--turtle-facing': pose.facing,
         '--turtle-tilt': `${pose.tilt * 0.35}deg`,
       }}
+      onPointerDown={(event) => draggable.startDragging(event, displayPosition)}
       aria-label="Cute turtle"
     >
       <div className="turtle-bob">
@@ -812,11 +1088,37 @@ function MovableCoral({ coral, position, dragging, onPointerDown }) {
   )
 }
 
-export default function AquariumScene() {
+export default function AquariumScene({ playerId = '' }) {
   const tankRef = useRef(null)
   const [tankSize, setTankSize] = useState({ width: 0, height: 0 })
-  const [coralPositions, setCoralPositions] = useState({})
+  const [sceneState, setSceneState] = useState(() => readAquariumState(playerId))
   const [dragState, setDragState] = useState(null)
+  const hasSelectedPlayer = Boolean(playerId)
+  const coralPositions = sceneState.coralPositions ?? {}
+
+  useEffect(() => {
+    const storageKey = createAquariumStorageKey(playerId)
+
+    if (!storageKey) {
+      return
+    }
+
+    window.localStorage.setItem(storageKey, JSON.stringify(sceneState))
+  }, [playerId, sceneState])
+
+  const handlePersistCreaturePosition = (creatureId, position) => {
+    if (!hasSelectedPlayer) {
+      return
+    }
+
+    setSceneState((current) => ({
+      ...current,
+      creatures: {
+        ...(current.creatures ?? {}),
+        [creatureId]: position,
+      },
+    }))
+  }
 
   useEffect(() => {
     const tank = tankRef.current
@@ -834,27 +1136,30 @@ export default function AquariumScene() {
       const minY = Math.max(44, height * 0.42)
       const maxY = Math.max(minY, height - height * 0.14 - CORAL_HEIGHT)
 
-      setCoralPositions((previous) => {
-        const next = { ...previous }
+      setSceneState((current) => {
+        const nextCorals = { ...(current.coralPositions ?? {}) }
 
         coralDecorations.forEach((coral) => {
-          const current = previous[coral.id]
+          const currentCoral = nextCorals[coral.id]
 
-          if (!current || current.x == null || current.y == null) {
-            next[coral.id] = {
+          if (!currentCoral || currentCoral.x == null || currentCoral.y == null) {
+            nextCorals[coral.id] = {
               x: clamp(width * coral.startX, minX, maxX),
               y: maxY,
             }
             return
           }
 
-          next[coral.id] = {
-            x: clamp(current.x, minX, maxX),
-            y: clamp(current.y, minY, maxY),
+          nextCorals[coral.id] = {
+            x: clamp(currentCoral.x, minX, maxX),
+            y: clamp(currentCoral.y, minY, maxY),
           }
         })
 
-        return next
+        return {
+          ...current,
+          coralPositions: nextCorals,
+        }
       })
     }
 
@@ -888,11 +1193,14 @@ export default function AquariumScene() {
       const nextX = clamp(event.clientX - rect.left - dragState.offsetX, minX, maxX)
       const nextY = clamp(event.clientY - rect.top - dragState.offsetY, minY, maxY)
 
-      setCoralPositions((previous) => ({
-        ...previous,
-        [dragState.coralId]: {
-          x: nextX,
-          y: nextY,
+      setSceneState((current) => ({
+        ...current,
+        coralPositions: {
+          ...(current.coralPositions ?? {}),
+          [dragState.coralId]: {
+            x: nextX,
+            y: nextY,
+          },
         },
       }))
     }
@@ -914,6 +1222,7 @@ export default function AquariumScene() {
 
   const handleCoralPointerDown = (event, coralId) => {
     const tank = tankRef.current
+
     const currentCoral = coralPositions[coralId]
 
     if (!tank || !currentCoral || currentCoral.x == null || currentCoral.y == null) {
@@ -928,6 +1237,8 @@ export default function AquariumScene() {
       offsetY: event.clientY - rect.top - currentCoral.y,
     })
   }
+
+  const creatureStarts = sceneState.creatures ?? {}
 
   return (
     <main className="app-shell">
@@ -952,37 +1263,88 @@ export default function AquariumScene() {
             <div className="pixel-plant plant-b" aria-hidden="true" />
             <div className="pixel-plant plant-c" aria-hidden="true" />
             <div className="pixel-plant plant-d" aria-hidden="true" />
-            {coralDecorations.map((coral) => {
-              const position = coralPositions[coral.id]
+            {hasSelectedPlayer &&
+              coralDecorations.map((coral) => {
+                const position = coralPositions[coral.id]
 
-              if (!position || position.x == null || position.y == null) {
-                return null
-              }
+                if (!position || position.x == null || position.y == null) {
+                  return null
+                }
 
-              return (
-                <MovableCoral
-                  key={coral.id}
-                  coral={coral}
-                  position={position}
-                  dragging={dragState?.coralId === coral.id}
-                  onPointerDown={handleCoralPointerDown}
-                />
-              )
-            })}
+                return (
+                  <MovableCoral
+                    key={coral.id}
+                    coral={coral}
+                    position={position}
+                    dragging={dragState?.coralId === coral.id}
+                    onPointerDown={handleCoralPointerDown}
+                  />
+                )
+              })}
 
             <div className="sand" aria-hidden="true" />
             <div className="rock rock-a" aria-hidden="true" />
             <div className="rock rock-b" aria-hidden="true" />
-            {tankSize.width > 0 && <CuteTurtle tankSize={tankSize} />}
-            {tankSize.width > 0 && <CuteStingray tankSize={tankSize} />}
-            {tankSize.width > 0 && <CutePufferfish tankSize={tankSize} />}
-            {tankSize.width > 0 && <CuteCrab tankSize={tankSize} />}
-            {tankSize.width > 0 && <CuteJellyfish tankSize={tankSize} />}
-            {tankSize.width > 0 && <CuteOctopus tankSize={tankSize} />}
+            {hasSelectedPlayer && tankSize.width > 0 && (
+              <CuteTurtle
+                onPersistPosition={(position) => handlePersistCreaturePosition('turtle', position)}
+                persistedStart={creatureStarts.turtle ?? null}
+                tankRef={tankRef}
+                tankSize={tankSize}
+              />
+            )}
+            {hasSelectedPlayer && tankSize.width > 0 && (
+              <CuteStingray
+                onPersistPosition={(position) => handlePersistCreaturePosition('stingray', position)}
+                persistedStart={creatureStarts.stingray ?? null}
+                tankRef={tankRef}
+                tankSize={tankSize}
+              />
+            )}
+            {hasSelectedPlayer && tankSize.width > 0 && (
+              <CutePufferfish
+                onPersistPosition={(position) => handlePersistCreaturePosition('pufferfish', position)}
+                persistedStart={creatureStarts.pufferfish ?? null}
+                tankRef={tankRef}
+                tankSize={tankSize}
+              />
+            )}
+            {hasSelectedPlayer && tankSize.width > 0 && (
+              <CuteCrab
+                onPersistPosition={(position) => handlePersistCreaturePosition('crab', position)}
+                persistedStart={creatureStarts.crab ?? null}
+                tankRef={tankRef}
+                tankSize={tankSize}
+              />
+            )}
+            {hasSelectedPlayer && tankSize.width > 0 && (
+              <CuteJellyfish
+                onPersistPosition={(position) => handlePersistCreaturePosition('jellyfish', position)}
+                persistedStart={creatureStarts.jellyfish ?? null}
+                tankRef={tankRef}
+                tankSize={tankSize}
+              />
+            )}
+            {hasSelectedPlayer && tankSize.width > 0 && (
+              <CuteOctopus
+                onPersistPosition={(position) => handlePersistCreaturePosition('octopus', position)}
+                persistedStart={creatureStarts.octopus ?? null}
+                tankRef={tankRef}
+                tankSize={tankSize}
+              />
+            )}
 
-            {tankSize.width > 0 &&
+            {hasSelectedPlayer &&
+              tankSize.width > 0 &&
               school.map((fish) => (
-                <NaturalFish key={fish.id} fish={fish} tankSize={tankSize} />
+                <NaturalFish
+                  key={fish.id}
+                  fish={fish}
+                  onPersistPosition={(position) => handlePersistCreaturePosition(`fish:${fish.id}`, position)}
+                  persistedStart={creatureStarts[`fish:${fish.id}`] ?? null}
+                  tankRef={tankRef}
+                  tankSize={tankSize}
+                />
               ))}
           </div>
         </div>

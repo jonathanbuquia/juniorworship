@@ -3204,11 +3204,11 @@ export default function AdminApp() {
 
   return (
     <div className={`portal-shell ${showGameScene ? 'game-mode' : 'auth-mode'}`}>
-      {showGameScene ? (
-        <div className="portal-scene">
-          <AquariumScene />
-        </div>
-      ) : null}
+        {showGameScene ? (
+          <div className="portal-scene">
+            <AquariumScene key={viewedPlayer?.id ?? 'no-player'} playerId={viewedPlayer?.id ?? ''} />
+          </div>
+        ) : null}
 
       <MotionDiv
         className={`portal-overlay top-layout ${isTeachingFullscreen ? 'fullscreen-active' : ''}`}
