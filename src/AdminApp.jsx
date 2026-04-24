@@ -3197,7 +3197,7 @@ export default function AdminApp() {
 
   const showSetupMessage = !hasSupabaseEnv
   const readyForProtectedView = !authLoading && !profileLoading && session && profile
-  const showGameScene = !viewingMemory && !viewingQuiz && (readyForProtectedView || viewingAdmin)
+  const showGameScene = !viewingMemory && !viewingQuiz && !viewingAdmin && Boolean(viewedPlayer)
   const isTeachingFullscreen = isMemoryFullscreen || isQuizFullscreen
   const showActivePlayerHud =
     Boolean(viewedPlayer) && !viewingAdmin && !viewingMemory && !viewingQuiz && !isTeachingFullscreen

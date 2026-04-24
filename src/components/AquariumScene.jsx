@@ -114,7 +114,7 @@ function clamp(value, min, max) {
 }
 
 function createAquariumStorageKey(playerId) {
-  return playerId ? `aquarium-player:${playerId}` : ''
+  return playerId ? `aquarium-player:v2:${playerId}` : ''
 }
 
 function readAquariumState(playerId) {
@@ -1095,6 +1095,9 @@ export default function AquariumScene({ playerId = '' }) {
   const [dragState, setDragState] = useState(null)
   const hasSelectedPlayer = Boolean(playerId)
   const coralPositions = sceneState.coralPositions ?? {}
+  const creatureStarts = sceneState.creatures ?? {}
+  const hasSavedCreatures = Object.keys(creatureStarts).length > 0
+  const hasSavedCorals = Object.keys(coralPositions).length > 0
 
   useEffect(() => {
     const storageKey = createAquariumStorageKey(playerId)
@@ -1137,20 +1140,23 @@ export default function AquariumScene({ playerId = '' }) {
       const maxY = Math.max(minY, height - height * 0.14 - CORAL_HEIGHT)
 
       setSceneState((current) => {
-        const nextCorals = { ...(current.coralPositions ?? {}) }
+        const currentCorals = current.coralPositions ?? {}
+        const coralIds = Object.keys(currentCorals)
 
-        coralDecorations.forEach((coral) => {
-          const currentCoral = nextCorals[coral.id]
+        if (!coralIds.length) {
+          return current
+        }
+
+        const nextCorals = {}
+
+        coralIds.forEach((coralId) => {
+          const currentCoral = currentCorals[coralId]
 
           if (!currentCoral || currentCoral.x == null || currentCoral.y == null) {
-            nextCorals[coral.id] = {
-              x: clamp(width * coral.startX, minX, maxX),
-              y: maxY,
-            }
             return
           }
 
-          nextCorals[coral.id] = {
+          nextCorals[coralId] = {
             x: clamp(currentCoral.x, minX, maxX),
             y: clamp(currentCoral.y, minY, maxY),
           }
@@ -1238,8 +1244,6 @@ export default function AquariumScene({ playerId = '' }) {
     })
   }
 
-  const creatureStarts = sceneState.creatures ?? {}
-
   return (
     <main className="app-shell">
       <section className="aquarium-scene" aria-label="Pixel aquarium">
@@ -1264,6 +1268,7 @@ export default function AquariumScene({ playerId = '' }) {
             <div className="pixel-plant plant-c" aria-hidden="true" />
             <div className="pixel-plant plant-d" aria-hidden="true" />
             {hasSelectedPlayer &&
+              hasSavedCorals &&
               coralDecorations.map((coral) => {
                 const position = coralPositions[coral.id]
 
@@ -1285,7 +1290,7 @@ export default function AquariumScene({ playerId = '' }) {
             <div className="sand" aria-hidden="true" />
             <div className="rock rock-a" aria-hidden="true" />
             <div className="rock rock-b" aria-hidden="true" />
-            {hasSelectedPlayer && tankSize.width > 0 && (
+            {hasSelectedPlayer && hasSavedCreatures && tankSize.width > 0 && (
               <CuteTurtle
                 onPersistPosition={(position) => handlePersistCreaturePosition('turtle', position)}
                 persistedStart={creatureStarts.turtle ?? null}
@@ -1293,7 +1298,7 @@ export default function AquariumScene({ playerId = '' }) {
                 tankSize={tankSize}
               />
             )}
-            {hasSelectedPlayer && tankSize.width > 0 && (
+            {hasSelectedPlayer && hasSavedCreatures && tankSize.width > 0 && (
               <CuteStingray
                 onPersistPosition={(position) => handlePersistCreaturePosition('stingray', position)}
                 persistedStart={creatureStarts.stingray ?? null}
@@ -1301,7 +1306,7 @@ export default function AquariumScene({ playerId = '' }) {
                 tankSize={tankSize}
               />
             )}
-            {hasSelectedPlayer && tankSize.width > 0 && (
+            {hasSelectedPlayer && hasSavedCreatures && tankSize.width > 0 && (
               <CutePufferfish
                 onPersistPosition={(position) => handlePersistCreaturePosition('pufferfish', position)}
                 persistedStart={creatureStarts.pufferfish ?? null}
@@ -1309,7 +1314,7 @@ export default function AquariumScene({ playerId = '' }) {
                 tankSize={tankSize}
               />
             )}
-            {hasSelectedPlayer && tankSize.width > 0 && (
+            {hasSelectedPlayer && hasSavedCreatures && tankSize.width > 0 && (
               <CuteCrab
                 onPersistPosition={(position) => handlePersistCreaturePosition('crab', position)}
                 persistedStart={creatureStarts.crab ?? null}
@@ -1317,7 +1322,7 @@ export default function AquariumScene({ playerId = '' }) {
                 tankSize={tankSize}
               />
             )}
-            {hasSelectedPlayer && tankSize.width > 0 && (
+            {hasSelectedPlayer && hasSavedCreatures && tankSize.width > 0 && (
               <CuteJellyfish
                 onPersistPosition={(position) => handlePersistCreaturePosition('jellyfish', position)}
                 persistedStart={creatureStarts.jellyfish ?? null}
@@ -1325,7 +1330,7 @@ export default function AquariumScene({ playerId = '' }) {
                 tankSize={tankSize}
               />
             )}
-            {hasSelectedPlayer && tankSize.width > 0 && (
+            {hasSelectedPlayer && hasSavedCreatures && tankSize.width > 0 && (
               <CuteOctopus
                 onPersistPosition={(position) => handlePersistCreaturePosition('octopus', position)}
                 persistedStart={creatureStarts.octopus ?? null}
@@ -1335,6 +1340,7 @@ export default function AquariumScene({ playerId = '' }) {
             )}
 
             {hasSelectedPlayer &&
+              hasSavedCreatures &&
               tankSize.width > 0 &&
               school.map((fish) => (
                 <NaturalFish
