@@ -3,10 +3,12 @@ import { AnimatePresence, motion } from 'framer-motion'
 import './AdminApp.css'
 import AquariumScene from './components/AquariumScene'
 import { hasSupabaseEnv, supabase } from './lib/supabase'
+import { SHOP_CATEGORIES, getShopItemsByCategory } from '../shared/shopCatalog.js'
 
 const ADMIN_PATH = '/admin'
 const MEMORY_PATH = '/memory-verse'
 const QUIZ_PATH = '/quiz'
+const SHOP_PATH = '/shop'
 const ADMIN_SECTIONS = {
   createPlayer: 'create-player',
   manageGold: 'manage-gold',
@@ -18,6 +20,7 @@ const GOLD_PER_QUIZ_POINT = 20
 const MEMORY_VERSE_QUIZ_POINTS = 5
 const MEMORY_VERSE_STORAGE_KEY = 'memory-verse-helper'
 const QUIZ_STORAGE_KEY = 'quiz-helper'
+const SHOP_NOTICE_DURATION = 3200
 const RAIL_TRANSITION = {
   type: 'spring',
   stiffness: 280,
@@ -1157,6 +1160,7 @@ function GameTopBar({
   navCollapsed,
   onToggleNavCollapsed,
   viewedPlayer,
+  viewingShop,
   viewingMemory,
   viewingQuiz,
   viewingAdmin,
@@ -1240,12 +1244,12 @@ function GameTopBar({
           </AnimatePresence>
         </div>
 
-        <MotionButton
-          aria-label="Shop"
-          className="rail-button rail-button-secondary"
-          layout
-          onClick={onOpenShop}
-          type="button"
+          <MotionButton
+            aria-label="Shop"
+            className={`rail-button rail-button-secondary ${viewingShop ? 'active' : ''}`}
+            layout
+            onClick={onOpenShop}
+            type="button"
           whileHover={{ y: -2 }}
           whileTap={{ scale: 0.98 }}
         >
@@ -1381,6 +1385,165 @@ function GameTopBar({
         </div>
       </div>
     </MotionHeader>
+  )
+}
+
+function ShopFishPreview({ item, index }) {
+  return (
+    <div className="shop-card-preview">
+      <span className="shop-card-bubble bubble-a" />
+      <span className="shop-card-bubble bubble-b" />
+      <span className="shop-card-bubble bubble-c" />
+      <motion.div
+        animate={{
+          rotate: [-2, 2, -2],
+          x: ['-8%', '10%', '-8%'],
+          y: [0, -8, 0, 6, 0],
+        }}
+        className="shop-fish-swim"
+        transition={{
+          duration: 4.8 + index * 0.55,
+          ease: 'easeInOut',
+          repeat: Infinity,
+        }}
+      >
+        <svg aria-hidden="true" viewBox="0 0 220 120">
+          <path d="M40 60 5 32v56z" fill={item.finColor} />
+          <ellipse cx="112" cy="60" fill={item.bodyColor} rx="58" ry="35" />
+          <path
+            d="M82 39c15-8 44-8 64 0-10 8-19 14-32 14S92 47 82 39Z"
+            fill={item.detailColor}
+            opacity="0.95"
+          />
+          <path d="M166 48c17 0 29 10 39 22-10 7-21 10-33 10z" fill={item.finColor} opacity="0.95" />
+          <path d="M86 82c18 12 47 12 68 0-18-4-26-6-35-6s-17 2-33 6Z" fill={item.finColor} opacity="0.8" />
+          <circle cx="136" cy="56" fill="#17324f" r="7" />
+          <circle cx="138" cy="54" fill="#ffffff" r="2.2" />
+          <path d="M145 73c-5 3-11 4-17 1" fill="none" opacity="0.55" stroke="#17324f" strokeLinecap="round" strokeWidth="3" />
+          <path d="M68 52c10 0 16 14 16 14s-6 13-16 13" fill="none" opacity="0.4" stroke={item.finColor} strokeLinecap="round" strokeWidth="4" />
+        </svg>
+      </motion.div>
+    </div>
+  )
+}
+
+function ShopPage({
+  onBuyItem,
+  onCategoryChange,
+  onPlayerChange,
+  pendingItemSlug,
+  players,
+  selectedCategory,
+  selectedPlayer,
+  selectedPlayerId,
+}) {
+  const activeCategory = SHOP_CATEGORIES.find((category) => category.id === selectedCategory) ?? SHOP_CATEGORIES[0]
+  const visibleItems = getShopItemsByCategory(activeCategory.id)
+
+  return (
+    <section className="panel shop-page-shell">
+      <div className="shop-shell">
+        <div className="shop-hero">
+          <div>
+            <div className="eyebrow">Admin Assisted Shop</div>
+            <h2>Buy aquarium items for a player</h2>
+            <p className="panel-copy">
+              Pick a player first, check their gold, then choose an item from the starter shop below.
+            </p>
+          </div>
+
+          <div className="shop-player-panel">
+            <label className="field shop-player-field">
+              <span>Player</span>
+              <select onChange={onPlayerChange} value={selectedPlayerId}>
+                <option value="">Choose a player</option>
+                {players.map((player) => (
+                  <option key={player.id} value={player.id}>
+                    {player.display_name}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <div className={`shop-player-gold ${selectedPlayer ? 'ready' : ''}`}>
+              <span>Available gold</span>
+              <strong>{selectedPlayer ? `${selectedPlayer.gold} gold` : 'Pick a player first'}</strong>
+            </div>
+          </div>
+        </div>
+
+        <div className="shop-category-row">
+          {SHOP_CATEGORIES.map((category) => (
+            <button
+              className={`shop-category-chip ${selectedCategory === category.id ? 'active' : ''}`}
+              key={category.id}
+              onClick={() => onCategoryChange(category.id)}
+              type="button"
+            >
+              {category.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="shop-category-copy">
+          <strong>{activeCategory.label}</strong>
+          <span>{activeCategory.description}</span>
+        </div>
+
+        {visibleItems.length ? (
+          <div className="shop-card-grid">
+            {visibleItems.map((item, index) => {
+              const needsMoreGold = selectedPlayer ? selectedPlayer.gold < item.price : false
+
+              return (
+                <MotionDiv
+                  animate={{ opacity: 1, y: 0 }}
+                  className="shop-item-card"
+                  initial={{ opacity: 0, y: 14 }}
+                  key={item.slug}
+                  transition={{ delay: index * 0.05, duration: 0.24, ease: 'easeOut' }}
+                  whileHover={{ y: -4 }}
+                >
+                  <ShopFishPreview index={index} item={item} />
+
+                  <div className="shop-item-copy">
+                    <div className="shop-item-heading">
+                      <strong>{item.name}</strong>
+                      <span>{item.description}</span>
+                    </div>
+
+                    <div className="shop-item-footer">
+                      <div className="shop-item-price">
+                        <span>Price</span>
+                        <strong>{item.price} gold</strong>
+                      </div>
+                      <button
+                        className={`primary-button compact-button ${needsMoreGold ? 'warning' : ''}`}
+                        disabled={Boolean(pendingItemSlug)}
+                        onClick={() => onBuyItem(item)}
+                        type="button"
+                      >
+                        {pendingItemSlug === item.slug ? 'Buying...' : 'Buy'}
+                      </button>
+                    </div>
+                  </div>
+                </MotionDiv>
+              )
+            })}
+          </div>
+        ) : (
+          <div className="shop-coming-grid">
+            {Array.from({ length: 3 }, (_unused, index) => (
+              <div className="shop-coming-card" key={`${activeCategory.id}-${index}`}>
+                <div className="eyebrow">Coming Soon</div>
+                <strong>{activeCategory.label} slot {index + 1}</strong>
+                <p className="panel-note">This part of the shop is still being prepared.</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
   )
 }
 
@@ -2002,6 +2165,10 @@ export default function AdminApp() {
   const [adminSection, setAdminSection] = useState(ADMIN_SECTIONS.createPlayer)
   const [selectedPlayerId, setSelectedPlayerId] = useState('')
   const [viewedPlayerId, setViewedPlayerId] = useState('')
+  const [shopPlayerId, setShopPlayerId] = useState('')
+  const [shopCategory, setShopCategory] = useState(() => SHOP_CATEGORIES[0]?.id ?? 'fish')
+  const [shopPendingSlug, setShopPendingSlug] = useState('')
+  const [shopNotice, setShopNotice] = useState(createEmptyMessage)
   const [activePlayerHudCollapsed, setActivePlayerHudCollapsed] = useState(false)
   const [authMenuOpen, setAuthMenuOpen] = useState(false)
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
@@ -2247,9 +2414,14 @@ export default function AdminApp() {
   const viewingAdmin = pathname === ADMIN_PATH
   const viewingMemory = pathname === MEMORY_PATH
   const viewingQuiz = pathname === QUIZ_PATH
+  const viewingShop = pathname === SHOP_PATH
   const selectedPlayer = useMemo(
     () => players.find((player) => player.id === selectedPlayerId) ?? null,
     [players, selectedPlayerId],
+  )
+  const shopPlayer = useMemo(
+    () => publicPlayers.find((player) => player.id === shopPlayerId) ?? null,
+    [publicPlayers, shopPlayerId],
   )
   const viewedPlayer = useMemo(() => {
     const currentPlayer = publicPlayers.find((player) => player.id === viewedPlayerId) ?? null
@@ -2325,6 +2497,31 @@ export default function AdminApp() {
       setViewedPlayerId(profile.id)
     }
   }, [profile, publicPlayers])
+
+  useEffect(() => {
+    if (!publicPlayers.length) {
+      setShopPlayerId('')
+      return
+    }
+
+    if (!publicPlayers.some((player) => player.id === shopPlayerId)) {
+      setShopPlayerId('')
+    }
+  }, [publicPlayers, shopPlayerId])
+
+  useEffect(() => {
+    if (!shopNotice.text) {
+      return undefined
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setShopNotice(createEmptyMessage())
+    }, SHOP_NOTICE_DURATION)
+
+    return () => {
+      window.clearTimeout(timeoutId)
+    }
+  }, [shopNotice])
 
   const loadPlayers = useCallback(
     async ({ preserveSelection = true, preferredPlayerId = '' } = {}) => {
@@ -3089,6 +3286,9 @@ export default function AdminApp() {
     setProfile(null)
     setPlayers([])
     setSelectedPlayerId('')
+    setShopPlayerId('')
+    setShopPendingSlug('')
+    setShopNotice(createEmptyMessage())
     setAuthMenuOpen(false)
     setProfileMenuOpen(false)
     setLoginMessage(createEmptyMessage())
@@ -3185,6 +3385,84 @@ export default function AdminApp() {
     navigate(QUIZ_PATH)
   }
 
+  const handleOpenShop = () => {
+    setAuthMenuOpen(false)
+    setProfileMenuOpen(false)
+    navigate(SHOP_PATH)
+  }
+
+  const handleShopPlayerChange = (event) => {
+    setShopPlayerId(event.target.value)
+    setShopNotice(createEmptyMessage())
+  }
+
+  const handleBuyShopItem = async (item) => {
+    setShopNotice(createEmptyMessage())
+
+    if (!session?.access_token || !isAdmin) {
+      setShopNotice({
+        type: 'warning',
+        text: 'Sign in as admin first before buying from the shop.',
+      })
+      return
+    }
+
+    if (!shopPlayer) {
+      setShopNotice({
+        type: 'warning',
+        text: 'Choose a player first before buying an item.',
+      })
+      return
+    }
+
+    if (shopPlayer.gold < item.price) {
+      setShopNotice({
+        type: 'warning',
+        text: `${shopPlayer.display_name} does not have enough gold for ${item.name}.`,
+      })
+      return
+    }
+
+    setShopPendingSlug(item.slug)
+
+    try {
+      const response = await fetch('/api/admin-buy-item', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          itemSlug: item.slug,
+          playerId: shopPlayer.id,
+        }),
+      })
+      const data = await readJson(response)
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Unable to complete the purchase.')
+      }
+
+      setPlayers((current) =>
+        current.map((player) => (player.id === data.player.id ? { ...player, ...data.player } : player)),
+      )
+      setPublicPlayers((current) =>
+        current.map((player) => (player.id === data.player.id ? { ...player, ...data.player } : player)),
+      )
+      setShopNotice({
+        type: 'success',
+        text: `${data.item.name} bought for ${data.player.display_name}. ${data.player.gold} gold left.`,
+      })
+    } catch (error) {
+      setShopNotice({
+        type: 'warning',
+        text: error.message,
+      })
+    } finally {
+      setShopPendingSlug('')
+    }
+  }
+
   const handleSelectViewedPlayer = (playerId) => {
     setViewedPlayerId(playerId)
     setActivePlayerHudCollapsed(false)
@@ -3197,10 +3475,10 @@ export default function AdminApp() {
 
   const showSetupMessage = !hasSupabaseEnv
   const readyForProtectedView = !authLoading && !profileLoading && session && profile
-  const showGameScene = !viewingMemory && !viewingQuiz && !viewingAdmin && Boolean(viewedPlayer)
+  const showGameScene = !viewingMemory && !viewingQuiz && !viewingAdmin && !viewingShop && Boolean(viewedPlayer)
   const isTeachingFullscreen = isMemoryFullscreen || isQuizFullscreen
   const showActivePlayerHud =
-    Boolean(viewedPlayer) && !viewingAdmin && !viewingMemory && !viewingQuiz && !isTeachingFullscreen
+    Boolean(viewedPlayer) && !viewingAdmin && !viewingMemory && !viewingQuiz && !viewingShop && !isTeachingFullscreen
 
   return (
     <div className={`portal-shell ${showGameScene ? 'game-mode' : 'auth-mode'}`}>
@@ -3232,7 +3510,7 @@ export default function AdminApp() {
             onOpenMemoryVerse={handleOpenMemoryVerse}
             onOpenProfileMenu={handleOpenProfileMenu}
             onOpenQuiz={handleOpenQuiz}
-            onOpenShop={() => {}}
+            onOpenShop={handleOpenShop}
             onSelectViewedPlayer={handleSelectViewedPlayer}
             onSignOut={handleSignOut}
             onToggleNavCollapsed={handleToggleNavCollapsed}
@@ -3243,6 +3521,7 @@ export default function AdminApp() {
             setupForm={setupForm}
             setupMessage={setupMessage}
             viewedPlayer={viewedPlayer}
+            viewingShop={viewingShop}
             viewingMemory={viewingMemory}
             viewingQuiz={viewingQuiz}
             viewingAdmin={viewingAdmin}
@@ -3256,6 +3535,21 @@ export default function AdminApp() {
               onToggleCollapsed={() => setActivePlayerHudCollapsed((current) => !current)}
               player={viewedPlayer}
             />
+          ) : null}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {viewingShop && shopNotice.text ? (
+            <MotionDiv
+              animate={{ opacity: 1, x: 0, y: 0 }}
+              className={`shop-floating-notice ${shopNotice.type || 'warning'}`}
+              exit={{ opacity: 0, x: 20, y: -12 }}
+              initial={{ opacity: 0, x: 20, y: -12 }}
+              transition={POPOVER_TRANSITION}
+            >
+              <strong>{shopNotice.type === 'success' ? 'Purchase complete' : 'Shop notice'}</strong>
+              <span>{shopNotice.text}</span>
+            </MotionDiv>
           ) : null}
         </AnimatePresence>
 
@@ -3345,11 +3639,26 @@ export default function AdminApp() {
           </div>
         ) : null}
 
-        {(viewingMemory || viewingQuiz) && !isAdmin ? (
+        {viewingShop && readyForProtectedView && isAdmin ? (
+          <div className="shop-stage">
+            <ShopPage
+              onBuyItem={handleBuyShopItem}
+              onCategoryChange={setShopCategory}
+              onPlayerChange={handleShopPlayerChange}
+              pendingItemSlug={shopPendingSlug}
+              players={publicPlayers}
+              selectedCategory={shopCategory}
+              selectedPlayer={shopPlayer}
+              selectedPlayerId={shopPlayerId}
+            />
+          </div>
+        ) : null}
+
+        {(viewingMemory || viewingQuiz || viewingShop) && !isAdmin ? (
           <section className="panel memory-locked-panel">
             <div className="eyebrow">Admin Only</div>
             <h2>This page is only for the admin.</h2>
-            <p className="panel-copy">Sign in with the admin account to open and control this teaching tool.</p>
+            <p className="panel-copy">Sign in with the admin account to open and control this page.</p>
           </section>
         ) : null}
 
