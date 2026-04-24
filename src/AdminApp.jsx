@@ -3206,7 +3206,7 @@ export default function AdminApp() {
     <div className={`portal-shell ${showGameScene ? 'game-mode' : 'auth-mode'}`}>
         {showGameScene ? (
           <div className="portal-scene">
-            <AquariumScene key={viewedPlayer?.id ?? 'no-player'} playerId={viewedPlayer?.id ?? ''} />
+            <AquariumScene key={viewedPlayer?.id ?? 'no-player'} movable={false} playerId={viewedPlayer?.id ?? ''} />
           </div>
         ) : null}
 
