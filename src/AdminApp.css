@@ -1784,11 +1784,27 @@
   margin: 10px auto 0;
 }
 
-.shop-fish-swim svg {
-  display: block;
-  width: 100%;
-  height: auto;
+.shop-card-fish {
+  position: relative;
+  inset: auto;
+  margin: 0 auto;
+  transform: none;
+  cursor: default;
+  touch-action: auto;
+  will-change: auto;
   filter: drop-shadow(0 16px 20px rgba(12, 52, 78, 0.18));
+}
+
+.shop-card-fish.dragging {
+  cursor: default;
+}
+
+.shop-card-preview .fish-motion {
+  transform: scaleX(var(--fish-facing)) rotate(var(--fish-tilt));
+}
+
+.shop-card-preview .fish-bob {
+  animation-duration: 2.8s;
 }
 
 .shop-item-copy {

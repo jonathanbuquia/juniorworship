@@ -1410,22 +1410,52 @@ function ShopFishPreview({ item, index }) {
           repeat: Infinity,
         }}
       >
-        <svg aria-hidden="true" viewBox="0 0 260 160">
-          <path d="M58 83 20 52v63z" fill={item.finColor} />
-          <path d="M69 79c-7-9-18-11-27-11 9-13 20-17 31-18z" fill={item.detailColor} opacity="0.75" />
-          <ellipse cx="132" cy="84" fill={item.bodyColor} rx="72" ry="44" />
-          <ellipse cx="146" cy="74" fill={item.detailColor} opacity="0.95" rx="49" ry="23" />
-          <path d="M124 120c24 7 47 4 65-8-17-4-31-6-43-6-10 0-20 4-22 14z" fill={item.finColor} opacity="0.92" />
-          <path d="M132 50c18-18 42-22 60-12-13 12-24 22-42 24-8 1-15-3-18-12z" fill={item.finColor} opacity="0.9" />
-          <path d="M191 71c22 2 35 14 45 29-14 9-29 12-44 8z" fill={item.finColor} />
-          <ellipse cx="167" cy="80" fill="#17324f" rx="9.5" ry="10.5" />
-          <circle cx="170" cy="77" fill="#ffffff" r="3.2" />
-          <circle cx="171.5" cy="75.5" fill="#ffffff" opacity="0.55" r="1.3" />
-          <circle cx="154" cy="97" fill="#ff9fb2" opacity="0.55" r="6" />
-          <path d="M177 103c-7 5-15 6-23 2" fill="none" opacity="0.65" stroke="#17324f" strokeLinecap="round" strokeWidth="3.8" />
-          <path d="M99 67c10 3 16 11 18 17-8 2-15 5-21 10-5-10-3-19 3-27z" fill="#ffffff" opacity="0.3" />
-          <path d="M108 90c14 0 22 6 29 14-12 3-22 5-30 1-4-2-6-8 1-15z" fill="#ffffff" opacity="0.2" />
-        </svg>
+        <div
+          className="fish-swim shop-card-fish"
+          style={{
+            '--accent': item.accentColor,
+            '--eye': '#1f2c46',
+            '--eye-x': 0,
+            '--eye-y': 0,
+            '--fin': item.finColor,
+            '--fish-facing': index % 2 === 0 ? 1 : -1,
+            '--fish-scale': 0.96,
+            '--fish-tilt': '0deg',
+            '--light': item.detailColor,
+            '--main': item.bodyColor,
+            '--mouth': '#8b3f25',
+            '--swim-x': '0px',
+            '--swim-y': '0px',
+          }}
+        >
+          <div className="fish-motion">
+            <div className="fish-bob">
+              <div className="fish-illustration">
+                <div className="fish-tail" />
+                <div className="fish-fin dorsal" />
+                <div className="fish-fin side" />
+                <div className="fish-fin belly" />
+                <div className="fish-body">
+                  <div className="fish-face" />
+                  <div className="fish-eye">
+                    <span className="fish-pupil">
+                      <span className="eye-spark" />
+                    </span>
+                  </div>
+                  <div className="fish-mouth" />
+                  <div className="fish-gill" />
+                  <div className="fish-highlight" />
+                  <div className="fish-stripe stripe-a" />
+                  <div className="fish-stripe stripe-b" />
+                  <div className="fish-stripe stripe-c" />
+                  <div className="fish-scale scale-a" />
+                  <div className="fish-scale scale-b" />
+                  <div className="fish-scale scale-c" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </motion.div>
     </div>
   )
