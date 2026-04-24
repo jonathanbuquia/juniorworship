@@ -34,7 +34,7 @@ function ShopFishPreview({ item, index }) {
             '--eye-y': 0,
             '--fin': item.finColor,
             '--fish-facing': index % 2 === 0 ? 1 : -1,
-            '--fish-scale': 0.96,
+            '--fish-scale': 1.08,
             '--fish-tilt': '0deg',
             '--light': item.detailColor,
             '--main': item.bodyColor,
