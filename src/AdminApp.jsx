@@ -1044,24 +1044,32 @@ function ActivePlayerHud({ collapsed, onToggleCollapsed, player }) {
 
       <AnimatePresence initial={false}>
         {!collapsed ? (
-          <MotionDiv
-            animate={{ opacity: 1, x: 0 }}
-            className="active-player-hud-copy"
-            exit={{ opacity: 0, x: 8 }}
-            initial={{ opacity: 0, x: 8 }}
-            key="active-player-copy"
-            transition={POPOVER_TRANSITION}
-          >
-            <div className="eyebrow">Active Player</div>
-            <strong>{player.display_name}</strong>
-          </MotionDiv>
+          <>
+            <MotionDiv
+              animate={{ opacity: 1, x: 0 }}
+              className="active-player-hud-copy"
+              exit={{ opacity: 0, x: 8 }}
+              initial={{ opacity: 0, x: 8 }}
+              key="active-player-copy"
+              transition={POPOVER_TRANSITION}
+            >
+              <div className="eyebrow">Active Player</div>
+              <strong>{player.display_name}</strong>
+            </MotionDiv>
+            <MotionDiv
+              animate={{ opacity: 1, x: 0 }}
+              className="active-player-hud-gold"
+              exit={{ opacity: 0, x: 8 }}
+              initial={{ opacity: 0, x: 8 }}
+              key="active-player-gold"
+              transition={POPOVER_TRANSITION}
+            >
+              <span>Gold</span>
+              <strong>{player.gold ?? 0}</strong>
+            </MotionDiv>
+          </>
         ) : null}
       </AnimatePresence>
-
-      <div className="active-player-hud-gold">
-        <span>Gold</span>
-        <strong>{player.gold ?? 0}</strong>
-      </div>
     </MotionDiv>
   )
 }
