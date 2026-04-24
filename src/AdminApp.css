@@ -1872,6 +1872,11 @@
   transform: scaleX(var(--fish-facing)) rotate(var(--fish-tilt));
 }
 
+.shop-card-preview .fish-illustration {
+  transform: scale(0.76);
+  transform-origin: center center;
+}
+
 .shop-card-preview .fish-bob {
   animation-duration: 2.8s;
 }
@@ -1989,6 +1994,10 @@
     --shop-card-fish-zoom: 1.14;
     min-height: 230px;
   }
+
+  .shop-card-preview .fish-illustration {
+    transform: scale(0.8);
+  }
 }
 
 @media (max-width: 520px) {
@@ -2000,11 +2009,15 @@
 
   .shop-card-preview {
     --shop-card-fish-zoom: 1.22;
-    min-height: 230px;
+    min-height: 250px;
   }
 
   .shop-fish-swim {
     width: min(100%, 290px);
     min-width: min(240px, 100%);
+  }
+
+  .shop-card-preview .fish-illustration {
+    transform: scale(0.88);
   }
 }
