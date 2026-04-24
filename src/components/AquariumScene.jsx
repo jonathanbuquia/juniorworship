@@ -1235,112 +1235,114 @@ export default function AquariumScene({ ownedFish = [], playerId = '', movable =
         <div className="tank-wrap">
           <div className="tank-shadow" aria-hidden="true" />
           <div className="tank" ref={tankRef}>
-            <div className="pixel-grid" aria-hidden="true" />
-            <div className="water-shine" aria-hidden="true" />
-            <div className="water-ripple" aria-hidden="true" />
-            <div className="pixel-bubbles" aria-hidden="true">
-              <span className="bubble bubble-a" />
-              <span className="bubble bubble-b" />
-              <span className="bubble bubble-c" />
-              <span className="bubble bubble-d" />
-            </div>
+            <div className="tank-content">
+              <div className="pixel-grid" aria-hidden="true" />
+              <div className="water-shine" aria-hidden="true" />
+              <div className="water-ripple" aria-hidden="true" />
+              <div className="pixel-bubbles" aria-hidden="true">
+                <span className="bubble bubble-a" />
+                <span className="bubble bubble-b" />
+                <span className="bubble bubble-c" />
+                <span className="bubble bubble-d" />
+              </div>
 
-            <div className="pixel-plant plant-a" aria-hidden="true" />
-            <div className="pixel-plant plant-b" aria-hidden="true" />
-            <div className="pixel-plant plant-c" aria-hidden="true" />
-            <div className="pixel-plant plant-d" aria-hidden="true" />
-            {hasSelectedPlayer &&
-              hasSavedCorals &&
-              coralDecorations.map((coral) => {
-                const position = coralPositions[coral.id]
+              <div className="pixel-plant plant-a" aria-hidden="true" />
+              <div className="pixel-plant plant-b" aria-hidden="true" />
+              <div className="pixel-plant plant-c" aria-hidden="true" />
+              <div className="pixel-plant plant-d" aria-hidden="true" />
+              {hasSelectedPlayer &&
+                hasSavedCorals &&
+                coralDecorations.map((coral) => {
+                  const position = coralPositions[coral.id]
 
-                if (!position || position.x == null || position.y == null) {
-                  return null
-                }
+                  if (!position || position.x == null || position.y == null) {
+                    return null
+                  }
 
-                return (
-                  <MovableCoral
-                    key={coral.id}
-                    coral={coral}
-                    movable={movable}
-                    position={position}
-                    dragging={dragState?.coralId === coral.id}
-                    onPointerDown={handleCoralPointerDown}
-                  />
-                )
-              })}
+                  return (
+                    <MovableCoral
+                      key={coral.id}
+                      coral={coral}
+                      movable={movable}
+                      position={position}
+                      dragging={dragState?.coralId === coral.id}
+                      onPointerDown={handleCoralPointerDown}
+                    />
+                  )
+                })}
 
-            <div className="sand" aria-hidden="true" />
-            <div className="rock rock-a" aria-hidden="true" />
-            <div className="rock rock-b" aria-hidden="true" />
-            {hasSelectedPlayer && hasSavedCreatures && tankSize.width > 0 && (
-              <CuteTurtle
-                movable={movable}
-                onPersistPosition={(position) => handlePersistCreaturePosition('turtle', position)}
-                persistedStart={creatureStarts.turtle ?? null}
-                tankRef={tankRef}
-                tankSize={tankSize}
-              />
-            )}
-            {hasSelectedPlayer && hasSavedCreatures && tankSize.width > 0 && (
-              <CuteStingray
-                movable={movable}
-                onPersistPosition={(position) => handlePersistCreaturePosition('stingray', position)}
-                persistedStart={creatureStarts.stingray ?? null}
-                tankRef={tankRef}
-                tankSize={tankSize}
-              />
-            )}
-            {hasSelectedPlayer && hasSavedCreatures && tankSize.width > 0 && (
-              <CutePufferfish
-                movable={movable}
-                onPersistPosition={(position) => handlePersistCreaturePosition('pufferfish', position)}
-                persistedStart={creatureStarts.pufferfish ?? null}
-                tankRef={tankRef}
-                tankSize={tankSize}
-              />
-            )}
-            {hasSelectedPlayer && hasSavedCreatures && tankSize.width > 0 && (
-              <CuteCrab
-                movable={movable}
-                onPersistPosition={(position) => handlePersistCreaturePosition('crab', position)}
-                persistedStart={creatureStarts.crab ?? null}
-                tankRef={tankRef}
-                tankSize={tankSize}
-              />
-            )}
-            {hasSelectedPlayer && hasSavedCreatures && tankSize.width > 0 && (
-              <CuteJellyfish
-                movable={movable}
-                onPersistPosition={(position) => handlePersistCreaturePosition('jellyfish', position)}
-                persistedStart={creatureStarts.jellyfish ?? null}
-                tankRef={tankRef}
-                tankSize={tankSize}
-              />
-            )}
-            {hasSelectedPlayer && hasSavedCreatures && tankSize.width > 0 && (
-              <CuteOctopus
-                movable={movable}
-                onPersistPosition={(position) => handlePersistCreaturePosition('octopus', position)}
-                persistedStart={creatureStarts.octopus ?? null}
-                tankRef={tankRef}
-                tankSize={tankSize}
-              />
-            )}
-
-            {hasSelectedPlayer &&
-              tankSize.width > 0 &&
-              purchasedFish.map((fish) => (
-                <NaturalFish
-                  key={fish.id}
-                  fish={fish}
+              <div className="sand" aria-hidden="true" />
+              <div className="rock rock-a" aria-hidden="true" />
+              <div className="rock rock-b" aria-hidden="true" />
+              {hasSelectedPlayer && hasSavedCreatures && tankSize.width > 0 && (
+                <CuteTurtle
                   movable={movable}
-                  onPersistPosition={(position) => handlePersistCreaturePosition(`owned-fish:${fish.id}`, position)}
-                  persistedStart={creatureStarts[`owned-fish:${fish.id}`] ?? null}
+                  onPersistPosition={(position) => handlePersistCreaturePosition('turtle', position)}
+                  persistedStart={creatureStarts.turtle ?? null}
                   tankRef={tankRef}
                   tankSize={tankSize}
                 />
-              ))}
+              )}
+              {hasSelectedPlayer && hasSavedCreatures && tankSize.width > 0 && (
+                <CuteStingray
+                  movable={movable}
+                  onPersistPosition={(position) => handlePersistCreaturePosition('stingray', position)}
+                  persistedStart={creatureStarts.stingray ?? null}
+                  tankRef={tankRef}
+                  tankSize={tankSize}
+                />
+              )}
+              {hasSelectedPlayer && hasSavedCreatures && tankSize.width > 0 && (
+                <CutePufferfish
+                  movable={movable}
+                  onPersistPosition={(position) => handlePersistCreaturePosition('pufferfish', position)}
+                  persistedStart={creatureStarts.pufferfish ?? null}
+                  tankRef={tankRef}
+                  tankSize={tankSize}
+                />
+              )}
+              {hasSelectedPlayer && hasSavedCreatures && tankSize.width > 0 && (
+                <CuteCrab
+                  movable={movable}
+                  onPersistPosition={(position) => handlePersistCreaturePosition('crab', position)}
+                  persistedStart={creatureStarts.crab ?? null}
+                  tankRef={tankRef}
+                  tankSize={tankSize}
+                />
+              )}
+              {hasSelectedPlayer && hasSavedCreatures && tankSize.width > 0 && (
+                <CuteJellyfish
+                  movable={movable}
+                  onPersistPosition={(position) => handlePersistCreaturePosition('jellyfish', position)}
+                  persistedStart={creatureStarts.jellyfish ?? null}
+                  tankRef={tankRef}
+                  tankSize={tankSize}
+                />
+              )}
+              {hasSelectedPlayer && hasSavedCreatures && tankSize.width > 0 && (
+                <CuteOctopus
+                  movable={movable}
+                  onPersistPosition={(position) => handlePersistCreaturePosition('octopus', position)}
+                  persistedStart={creatureStarts.octopus ?? null}
+                  tankRef={tankRef}
+                  tankSize={tankSize}
+                />
+              )}
+
+              {hasSelectedPlayer &&
+                tankSize.width > 0 &&
+                purchasedFish.map((fish) => (
+                  <NaturalFish
+                    key={fish.id}
+                    fish={fish}
+                    movable={movable}
+                    onPersistPosition={(position) => handlePersistCreaturePosition(`owned-fish:${fish.id}`, position)}
+                    persistedStart={creatureStarts[`owned-fish:${fish.id}`] ?? null}
+                    tankRef={tankRef}
+                    tankSize={tankSize}
+                  />
+                ))}
+            </div>
           </div>
         </div>
       </section>

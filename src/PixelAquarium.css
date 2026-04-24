@@ -74,6 +74,7 @@
 
 .tank {
   position: relative;
+  --tank-content-scale: 1;
   width: min(76vw, 820px);
   aspect-ratio: 4 / 3;
   overflow: hidden;
@@ -84,6 +85,13 @@
     0 0 0 18px #7b92ab,
     0 22px 0 rgba(94, 114, 104, 0.22);
   image-rendering: pixelated;
+}
+
+.tank-content {
+  position: absolute;
+  inset: 0;
+  transform: scale(var(--tank-content-scale));
+  transform-origin: center center;
 }
 
 .pixel-grid,
@@ -2164,6 +2172,7 @@
 
 @media (max-width: 900px) {
   .tank {
+    --tank-content-scale: 0.96;
     width: min(92vw, 640px);
   }
 
@@ -2215,6 +2224,7 @@
 
 @media (max-width: 700px) {
   .tank {
+    --tank-content-scale: 0.9;
     width: min(88vw, 500px);
   }
 
@@ -2269,6 +2279,7 @@
 
 @media (max-width: 520px) {
   .tank {
+    --tank-content-scale: 0.82;
     width: min(86vw, 360px);
   }
 
