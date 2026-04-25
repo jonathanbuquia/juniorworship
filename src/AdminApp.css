@@ -716,6 +716,7 @@
   max-height: calc(100vh - 142px);
   min-height: calc(100vh - 142px);
   grid-template-columns: 1fr;
+  grid-template-rows: auto minmax(0, 1fr);
   position: relative;
   overflow: hidden;
 }
@@ -728,10 +729,6 @@
 
 .fullscreen-active .memory-helper-card-large {
   min-height: calc(100vh - 72px);
-}
-
-.fullscreen-active .memory-control-tab {
-  left: 18px;
 }
 
 .memory-verse-main,
@@ -753,39 +750,6 @@
   gap: 10px;
   min-height: 0;
   overflow: auto;
-}
-
-.memory-control-tab {
-  position: fixed;
-  left: 14px;
-  top: 50%;
-  z-index: 26;
-  width: 36px;
-  height: 54px;
-  border: 0;
-  border-radius: 999px;
-  font: inherit;
-  font-weight: 900;
-  line-height: 1;
-  color: white;
-  background: linear-gradient(135deg, #0f9eb7, #0f75a7);
-  box-shadow: 0 10px 22px rgba(15, 117, 167, 0.22);
-  cursor: pointer;
-  transform: translateY(-50%);
-}
-
-.memory-controls-drawer {
-  position: fixed;
-  left: 58px;
-  top: 50%;
-  z-index: 25;
-  width: min(86vw, 300px);
-  max-height: min(82vh, 680px);
-  padding: 16px;
-  display: grid;
-  gap: 14px;
-  overflow: auto;
-  transform: translateY(-50%);
 }
 
 .quiz-controls-drawer {
@@ -861,6 +825,58 @@
   grid-template-columns: 1fr;
 }
 
+.memory-top-controls {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 6px 8px;
+  border-radius: 16px;
+  background: rgba(245, 252, 255, 0.86);
+  box-shadow: inset 0 0 0 1px rgba(52, 109, 139, 0.12);
+  backdrop-filter: blur(8px);
+}
+
+.memory-top-status,
+.memory-top-group,
+.memory-helper-controls.memory-top-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.memory-top-status {
+  margin-right: auto;
+}
+
+.memory-top-status span {
+  min-width: 54px;
+  padding: 7px 9px;
+  border-radius: 999px;
+  color: #123a52;
+  font-size: 0.84rem;
+  font-weight: 800;
+  text-align: center;
+  background: rgba(214, 242, 255, 0.9);
+}
+
+.memory-top-controls .compact-button {
+  min-height: 30px;
+  padding: 7px 10px;
+  font-size: 0.78rem;
+  line-height: 1;
+  border-radius: 999px;
+}
+
+.memory-top-controls .primary-button.compact-button {
+  box-shadow: none;
+}
+
 .memory-verse-display {
   min-height: 0;
   flex: 1;
@@ -878,10 +894,14 @@
 }
 
 .memory-helper-card-large {
-  min-height: calc(100vh - 180px);
+  min-height: calc(100vh - 266px);
   display: flex;
   flex-direction: column;
   align-content: start;
+}
+
+.fullscreen-active .memory-helper-card-large {
+  min-height: calc(100vh - 138px);
 }
 
 .memory-verse-title {

@@ -49,72 +49,61 @@ export default function MemoryVersePage({
   return (
     <section className="panel memory-verse-shell memory-page-shell">
       {hasVerse ? (
-        <button
-          aria-label={memoryControlsOpen ? 'Hide memory controls' : 'Show memory controls'}
-          className="memory-control-tab"
-          onClick={onToggleMemoryControls}
-          type="button"
-        >
-          {memoryControlsOpen ? '<' : '>'}
-        </button>
-      ) : null}
-
-      {hasVerse && memoryControlsOpen ? (
-        <aside className="panel memory-controls-drawer">
-          <div className="memory-drawer-heading">
-            <div>
-              <div className="eyebrow">Memory Controls</div>
-              <strong>{coveredCount}/{totalWords || 0} covered</strong>
-            </div>
+        <div className={`memory-top-controls ${memoryControlsOpen ? 'open' : 'collapsed'}`}>
+          <div className="memory-top-status">
+            <span>{coveredCount}/{totalWords || 0}</span>
             <button className="ghost-button compact-button" onClick={onToggleMemoryControls} type="button">
-              Hide
+              {memoryControlsOpen ? 'Hide' : 'Show'}
             </button>
           </div>
 
-          <div className="memory-helper-controls">
-            <button className="ghost-button compact-button" onClick={onCoverNext} type="button">
-              Cover next
-            </button>
-            <button className="ghost-button compact-button" onClick={onUndoCover} type="button">
-              &lt; Undo
-            </button>
-            <button className="ghost-button compact-button" onClick={onRedoCover} type="button">
-              Redo &gt;
-            </button>
-            <button className="ghost-button compact-button" onClick={onResetCover} type="button">
-              Reset
-            </button>
-            <button className="ghost-button compact-button" onClick={onCoverAll} type="button">
-              Cover all
-            </button>
-          </div>
-
-          <div className="memory-text-controls">
-            <span className="memory-text-size-label">Text size</span>
-            <button className="ghost-button compact-button" onClick={onDecreaseMemoryFont} type="button">
-              A-
-            </button>
-            <button className="ghost-button compact-button" onClick={onIncreaseMemoryFont} type="button">
-              A+
-            </button>
-          </div>
-
-          {isAdmin ? (
-            <div className="memory-drawer-actions">
-              {!memoryVerseEditorOpen ? (
-                <button className="ghost-button compact-button" onClick={onShowMemoryVerseEditor} type="button">
-                  Edit verse
+          {memoryControlsOpen ? (
+            <>
+              <div className="memory-helper-controls memory-top-group">
+                <button className="ghost-button compact-button" onClick={onCoverNext} type="button">
+                  Cover
                 </button>
+                <button className="ghost-button compact-button" onClick={onUndoCover} type="button">
+                  Undo
+                </button>
+                <button className="ghost-button compact-button" onClick={onRedoCover} type="button">
+                  Redo
+                </button>
+                <button className="ghost-button compact-button" onClick={onResetCover} type="button">
+                  Reset
+                </button>
+                <button className="ghost-button compact-button" onClick={onCoverAll} type="button">
+                  All
+                </button>
+              </div>
+
+              <div className="memory-text-controls memory-top-group">
+                <button className="ghost-button compact-button" onClick={onDecreaseMemoryFont} type="button">
+                  A-
+                </button>
+                <button className="ghost-button compact-button" onClick={onIncreaseMemoryFont} type="button">
+                  A+
+                </button>
+              </div>
+
+              {isAdmin ? (
+                <div className="memory-drawer-actions memory-top-group">
+                  {!memoryVerseEditorOpen ? (
+                    <button className="ghost-button compact-button" onClick={onShowMemoryVerseEditor} type="button">
+                      Edit
+                    </button>
+                  ) : null}
+                  <button className="ghost-button compact-button" onClick={onToggleMemoryFullscreen} type="button">
+                    {isMemoryFullscreen ? 'Exit' : 'Full'}
+                  </button>
+                  <button className="primary-button compact-button" onClick={onOpenMemoryRewards} type="button">
+                    Rewards
+                  </button>
+                </div>
               ) : null}
-              <button className="ghost-button compact-button" onClick={onToggleMemoryFullscreen} type="button">
-                {isMemoryFullscreen ? 'Exit full screen' : 'Full screen'}
-              </button>
-              <button className="primary-button compact-button" onClick={onOpenMemoryRewards} type="button">
-                Add rewards
-              </button>
-            </div>
+            </>
           ) : null}
-        </aside>
+        </div>
       ) : null}
 
       <div className="memory-verse-main">
