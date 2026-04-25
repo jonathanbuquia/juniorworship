@@ -35,6 +35,18 @@ export default function RailIcon({ type }) {
     )
   }
 
+  if (type === 'attendance') {
+    return (
+      <svg aria-hidden="true" viewBox="0 0 24 24">
+        <path d="M6 4.5h12a1.5 1.5 0 0 1 1.5 1.5v12A1.5 1.5 0 0 1 18 19.5H6A1.5 1.5 0 0 1 4.5 18V6A1.5 1.5 0 0 1 6 4.5Z" />
+        <path d="M8 3v3" />
+        <path d="M16 3v3" />
+        <path d="M4.5 9h15" />
+        <path d="m8 14 2 2 5-5" />
+      </svg>
+    )
+  }
+
   if (type === 'quiz') {
     return (
       <svg aria-hidden="true" viewBox="0 0 24 24">

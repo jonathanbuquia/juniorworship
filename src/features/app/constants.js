@@ -1,4 +1,5 @@
 export const ADMIN_PATH = '/admin'
+export const ATTENDANCE_PATH = '/attendance'
 export const MEMORY_PATH = '/memory-verse'
 export const QUIZ_PATH = '/quiz'
 export const SHOP_PATH = '/shop'
@@ -15,6 +16,8 @@ export const GOLD_PER_QUIZ_POINT = 20
 export const MEMORY_VERSE_QUIZ_POINTS = 5
 export const MEMORY_VERSE_STORAGE_KEY = 'memory-verse-helper'
 export const QUIZ_STORAGE_KEY = 'quiz-helper'
+export const ATTENDANCE_STORAGE_KEY = 'attendance-records:v1'
+export const ATTENDANCE_WEEK_COUNT = 16
 export const SHOP_NOTICE_DURATION = 3200
 
 export const RAIL_TRANSITION = {

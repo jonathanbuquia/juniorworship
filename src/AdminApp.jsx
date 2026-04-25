@@ -3,10 +3,12 @@ import { AnimatePresence, motion } from 'framer-motion'
 import './AdminApp.css'
 import AquariumScene from './components/AquariumScene'
 import AdminPanel from './features/admin/components/AdminPanel.jsx'
+import AttendancePage from './features/attendance/components/AttendancePage.jsx'
 import { useAuthState } from './features/auth/hooks/useAuthState.js'
 import {
   ADMIN_PATH,
   ADMIN_SECTIONS,
+  ATTENDANCE_PATH,
   GOLD_PER_QUIZ_POINT,
   MEMORY_PATH,
   POPOVER_TRANSITION,
@@ -171,14 +173,22 @@ export default function AdminApp() {
 
   const isAdmin = useMemo(() => isAdminProfile(profile), [profile])
   const viewingAdmin = pathname === ADMIN_PATH
+  const viewingAttendance = pathname === ATTENDANCE_PATH
   const viewingMemory = pathname === MEMORY_PATH
   const viewingQuiz = pathname === QUIZ_PATH
   const viewingShop = pathname === SHOP_PATH
   const readyForProtectedView = !authLoading && !profileLoading && session && profile
-  const showGameScene = !viewingMemory && !viewingQuiz && !viewingAdmin && !viewingShop && Boolean(viewedPlayer)
+  const showGameScene =
+    !viewingAttendance && !viewingMemory && !viewingQuiz && !viewingAdmin && !viewingShop && Boolean(viewedPlayer)
   const isTeachingFullscreen = isMemoryFullscreen || isQuizFullscreen
   const showActivePlayerHud =
-    Boolean(viewedPlayer) && !viewingAdmin && !viewingMemory && !viewingQuiz && !viewingShop && !isTeachingFullscreen
+    Boolean(viewedPlayer) &&
+    !viewingAdmin &&
+    !viewingAttendance &&
+    !viewingMemory &&
+    !viewingQuiz &&
+    !viewingShop &&
+    !isTeachingFullscreen
 
   useEffect(() => {
     if (adminStatusError) {
@@ -213,12 +223,12 @@ export default function AdminApp() {
   }, [setIsMemoryFullscreen, setIsQuizFullscreen])
 
   useEffect(() => {
-    if ((!viewingAdmin && !viewingMemory && !viewingQuiz) || !isAdmin || !accessToken) {
+    if ((!viewingAdmin && !viewingAttendance && !viewingMemory && !viewingQuiz) || !isAdmin || !accessToken) {
       return
     }
 
     loadPlayers()
-  }, [accessToken, isAdmin, loadPlayers, viewingAdmin, viewingMemory, viewingQuiz])
+  }, [accessToken, isAdmin, loadPlayers, viewingAdmin, viewingAttendance, viewingMemory, viewingQuiz])
 
   useEffect(() => {
     if (!shopNotice.text) {
@@ -857,6 +867,13 @@ export default function AdminApp() {
     navigate(MEMORY_PATH)
   }
 
+  const handleOpenAttendance = () => {
+    setAuthMenuOpen(false)
+    setProfileMenuOpen(false)
+    closeCompactNav()
+    navigate(ATTENDANCE_PATH)
+  }
+
   const handleShowMemoryVerseEditor = () => {
     setMemoryVerseEditorOpen(true)
     setMemoryControlsOpen(true)
@@ -1049,6 +1066,7 @@ export default function AdminApp() {
             onLogin={handleLogin}
             onLoginChange={handleLoginChange}
             onOpenAdmin={handleToggleAdmin}
+            onOpenAttendance={handleOpenAttendance}
             onOpenMemoryVerse={handleOpenMemoryVerse}
             onOpenProfileMenu={handleOpenProfileMenu}
             onOpenQuiz={handleOpenQuiz}
@@ -1064,6 +1082,7 @@ export default function AdminApp() {
             setupMessage={setupMessage}
             viewedPlayer={viewedPlayer}
             viewingAdmin={viewingAdmin}
+            viewingAttendance={viewingAttendance}
             viewingMemory={viewingMemory}
             viewingQuiz={viewingQuiz}
             viewingShop={viewingShop}
@@ -1104,6 +1123,12 @@ export default function AdminApp() {
                 values before using admin and account features.
               </p>
             </section>
+          ) : null}
+
+          {viewingAttendance && isAdmin ? (
+            <div className="attendance-stage">
+              <AttendancePage players={players.length ? players : publicPlayers} />
+            </div>
           ) : null}
 
           {viewingMemory && isAdmin ? (
@@ -1197,7 +1222,7 @@ export default function AdminApp() {
             </div>
           ) : null}
 
-          {(viewingMemory || viewingQuiz) && !isAdmin ? (
+          {(viewingAttendance || viewingMemory || viewingQuiz) && !isAdmin ? (
             <section className="panel memory-locked-panel">
               <div className="eyebrow">Admin Only</div>
               <h2>This page is only for the admin.</h2>

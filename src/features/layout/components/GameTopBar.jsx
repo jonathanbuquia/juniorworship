@@ -25,6 +25,7 @@ export default function GameTopBar({
   onLogin,
   onLoginChange,
   onOpenAdmin,
+  onOpenAttendance,
   onOpenMemoryVerse,
   onOpenProfileMenu,
   onOpenQuiz,
@@ -40,6 +41,7 @@ export default function GameTopBar({
   setupMessage,
   viewedPlayer,
   viewingAdmin,
+  viewingAttendance,
   viewingMemory,
   viewingQuiz,
   viewingShop,
@@ -165,6 +167,34 @@ export default function GameTopBar({
       <div className="rail-bottom">
         {isAdmin ? (
           <MotionDiv className="rail-admin-tools" layout>
+            <MotionButton
+              aria-label="Attendance"
+              className={`rail-button rail-button-secondary ${viewingAttendance ? 'active' : ''}`}
+              layout
+              onClick={onOpenAttendance}
+              type="button"
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <span aria-hidden="true" className="rail-button-icon">
+                <RailIcon type="attendance" />
+              </span>
+              <AnimatePresence initial={false}>
+                {!effectiveCollapsed ? (
+                  <MotionSpan
+                    animate={{ opacity: 1, x: 0 }}
+                    className="rail-button-label"
+                    exit={{ opacity: 0, x: -8 }}
+                    initial={{ opacity: 0, x: -8 }}
+                    key="attendance-label"
+                    transition={POPOVER_TRANSITION}
+                  >
+                    ATTENDANCE
+                  </MotionSpan>
+                ) : null}
+              </AnimatePresence>
+            </MotionButton>
+
             <MotionButton
               aria-label="Memory"
               className={`rail-button rail-button-secondary ${viewingMemory ? 'active' : ''}`}
