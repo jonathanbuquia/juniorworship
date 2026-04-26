@@ -631,7 +631,7 @@
     inset 8px 8px 0 rgba(255, 255, 255, 0.16);
 }
 
-.jellyfish-bubble {
+.creature-bubble {
   position: absolute;
   left: 50%;
   top: -56px;
@@ -647,9 +647,10 @@
   transform: translateX(-50%);
   box-shadow: 0 8px 16px rgba(42, 76, 96, 0.18);
   pointer-events: none;
+  z-index: 4;
 }
 
-.jellyfish-bubble::after {
+.creature-bubble::after {
   content: '';
   position: absolute;
   left: 50%;

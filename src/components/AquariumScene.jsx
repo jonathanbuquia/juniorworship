@@ -18,13 +18,16 @@ const BASE_TURTLE_WIDTH = 176
 const BASE_TURTLE_HEIGHT = 138
 const CORAL_WIDTH = 118
 const CORAL_HEIGHT = 136
-const jellyfishMessages = [
+const creatureMessages = [
   'UMATTEND KA NG JUNIOR WORSHIP',
   'nagpray ka ba?',
   'ang ganda mo',
   'ano tara?',
   'ang OA mo',
   'Happy Yarn?',
+  'hi friend!',
+  'God bless you!',
+  'swim swim!',
 ]
 const coralDecorations = [
   { id: 'pink-coral', color: 'pink', startX: 0.14 },
@@ -64,6 +67,54 @@ function randomBetween(min, max) {
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max)
+}
+
+function useTalkingBubble(messages = creatureMessages) {
+  const [isTalking, setIsTalking] = useState(false)
+  const [message, setMessage] = useState(messages[0])
+  const hideTimerRef = useRef(null)
+
+  useEffect(() => {
+    return () => {
+      if (hideTimerRef.current) {
+        window.clearTimeout(hideTimerRef.current)
+      }
+    }
+  }, [])
+
+  const showMessage = () => {
+    if (hideTimerRef.current) {
+      window.clearTimeout(hideTimerRef.current)
+    }
+
+    setMessage(messages[Math.floor(Math.random() * messages.length)])
+    setIsTalking(true)
+    hideTimerRef.current = window.setTimeout(() => {
+      setIsTalking(false)
+    }, 2600)
+  }
+
+  const handleKeyDown = (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      showMessage()
+    }
+  }
+
+  return {
+    handleKeyDown,
+    isTalking,
+    message,
+    showMessage,
+  }
+}
+
+function CreatureSpeechBubble({ message }) {
+  return (
+    <div className="creature-bubble" aria-hidden="true">
+      {message}
+    </div>
+  )
 }
 
 function buildOwnedFishConfigs(ownedFish) {
@@ -479,6 +530,7 @@ function NaturalFish({ fish, movable = false, persistedStart, tankRef, tankSize,
     startOverride: draggable.startOverride,
   })
   const displayPosition = draggable.dragPosition ?? pose
+  const talking = useTalkingBubble()
 
   return (
     <div
@@ -498,9 +550,14 @@ function NaturalFish({ fish, movable = false, persistedStart, tankRef, tankSize,
         '--eye-x': pose.eyeX,
         '--eye-y': pose.eyeY,
       }}
+      onClick={talking.showMessage}
+      onKeyDown={talking.handleKeyDown}
       onPointerDown={movable ? (event) => draggable.startDragging(event, displayPosition) : undefined}
+      role="button"
+      tabIndex={0}
       aria-label="Cute fish"
     >
+      {talking.isTalking ? <CreatureSpeechBubble message={talking.message} /> : null}
       <div className="fish-motion">
         <div className="fish-bob">
           <div className="fish-illustration">
@@ -568,6 +625,7 @@ function CuteOctopus({ movable = false, persistedStart, tankRef, tankSize, onPer
     startOverride: draggable.startOverride,
   })
   const displayPosition = draggable.dragPosition ?? pose
+  const talking = useTalkingBubble()
 
   return (
     <div
@@ -578,9 +636,14 @@ function CuteOctopus({ movable = false, persistedStart, tankRef, tankSize, onPer
         '--octopus-facing': pose.facing,
         '--octopus-tilt': `${pose.tilt * 0.6}deg`,
       }}
+      onClick={talking.showMessage}
+      onKeyDown={talking.handleKeyDown}
       onPointerDown={movable ? (event) => draggable.startDragging(event, displayPosition) : undefined}
+      role="button"
+      tabIndex={0}
       aria-label="Cute octopus"
     >
+      {talking.isTalking ? <CreatureSpeechBubble message={talking.message} /> : null}
       <div className="octopus-bob">
         <div className="octopus-motion">
           <div className="octopus">
@@ -612,9 +675,6 @@ function CuteOctopus({ movable = false, persistedStart, tankRef, tankSize, onPer
 }
 
 function CuteJellyfish({ movable = false, persistedStart, tankRef, tankSize, onPersistPosition }) {
-  const [isTalking, setIsTalking] = useState(false)
-  const [message, setMessage] = useState(jellyfishMessages[0])
-  const hideTimerRef = useRef(null)
   const draggable = useDraggableSwimmer({
     tankRef,
     width: BASE_JELLYFISH_WIDTH,
@@ -650,33 +710,7 @@ function CuteJellyfish({ movable = false, persistedStart, tankRef, tankSize, onP
     startOverride: draggable.startOverride,
   })
   const displayPosition = draggable.dragPosition ?? pose
-
-  useEffect(() => {
-    return () => {
-      if (hideTimerRef.current) {
-        window.clearTimeout(hideTimerRef.current)
-      }
-    }
-  }, [])
-
-  const showMessage = () => {
-    if (hideTimerRef.current) {
-      window.clearTimeout(hideTimerRef.current)
-    }
-
-    setMessage(jellyfishMessages[Math.floor(Math.random() * jellyfishMessages.length)])
-    setIsTalking(true)
-    hideTimerRef.current = window.setTimeout(() => {
-      setIsTalking(false)
-    }, 2600)
-  }
-
-  const handleKeyDown = (event) => {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault()
-      showMessage()
-    }
-  }
+  const talking = useTalkingBubble()
 
   return (
     <div
@@ -688,17 +722,13 @@ function CuteJellyfish({ movable = false, persistedStart, tankRef, tankSize, onP
         '--jellyfish-tilt': `${pose.tilt * 0.45}deg`,
       }}
       onPointerDown={movable ? (event) => draggable.startDragging(event, displayPosition) : undefined}
-      onClick={showMessage}
-      onKeyDown={handleKeyDown}
+      onClick={talking.showMessage}
+      onKeyDown={talking.handleKeyDown}
       role="button"
       tabIndex={0}
       aria-label="Cute jellyfish"
     >
-      {isTalking && (
-        <div className="jellyfish-bubble" aria-hidden="true">
-          {message}
-        </div>
-      )}
+      {talking.isTalking ? <CreatureSpeechBubble message={talking.message} /> : null}
       <div className="jellyfish-bob">
         <div className="jellyfish-motion">
           <div className="jellyfish">
@@ -767,6 +797,7 @@ function CuteCrab({ movable = false, persistedStart, tankRef, tankSize, onPersis
     startOverride: draggable.startOverride,
   })
   const displayPosition = draggable.dragPosition ?? pose
+  const talking = useTalkingBubble()
 
   return (
     <div
@@ -778,8 +809,13 @@ function CuteCrab({ movable = false, persistedStart, tankRef, tankSize, onPersis
         '--crab-tilt': `${pose.tilt * 0.22}deg`,
       }}
       onPointerDown={movable ? (event) => draggable.startDragging(event, displayPosition, crabFloorY) : undefined}
+      onClick={talking.showMessage}
+      onKeyDown={talking.handleKeyDown}
+      role="button"
+      tabIndex={0}
       aria-label="Cute crab"
     >
+      {talking.isTalking ? <CreatureSpeechBubble message={talking.message} /> : null}
       <div className="crab-bob">
         <div className="crab-motion">
           <div className="crab">
@@ -851,6 +887,7 @@ function CutePufferfish({ movable = false, persistedStart, tankRef, tankSize, on
     startOverride: draggable.startOverride,
   })
   const displayPosition = draggable.dragPosition ?? pose
+  const talking = useTalkingBubble()
 
   return (
     <div
@@ -862,8 +899,13 @@ function CutePufferfish({ movable = false, persistedStart, tankRef, tankSize, on
         '--puffer-tilt': `${pose.tilt * 0.45}deg`,
       }}
       onPointerDown={movable ? (event) => draggable.startDragging(event, displayPosition) : undefined}
+      onClick={talking.showMessage}
+      onKeyDown={talking.handleKeyDown}
+      role="button"
+      tabIndex={0}
       aria-label="Cute pufferfish"
     >
+      {talking.isTalking ? <CreatureSpeechBubble message={talking.message} /> : null}
       <div className="puffer-bob">
         <div className="puffer-motion">
           <div className="pufferfish">
@@ -936,6 +978,7 @@ function CuteStingray({ movable = false, persistedStart, tankRef, tankSize, onPe
     startOverride: draggable.startOverride,
   })
   const displayPosition = draggable.dragPosition ?? pose
+  const talking = useTalkingBubble()
 
   return (
     <div
@@ -947,8 +990,13 @@ function CuteStingray({ movable = false, persistedStart, tankRef, tankSize, onPe
         '--stingray-tilt': `${pose.tilt * 0.35}deg`,
       }}
       onPointerDown={movable ? (event) => draggable.startDragging(event, displayPosition) : undefined}
+      onClick={talking.showMessage}
+      onKeyDown={talking.handleKeyDown}
+      role="button"
+      tabIndex={0}
       aria-label="Cute stingray"
     >
+      {talking.isTalking ? <CreatureSpeechBubble message={talking.message} /> : null}
       <div className="stingray-bob">
         <div className="stingray-motion">
           <div className="stingray">
@@ -1015,6 +1063,7 @@ function CuteTurtle({ movable = false, persistedStart, tankRef, tankSize, onPers
     startOverride: draggable.startOverride,
   })
   const displayPosition = draggable.dragPosition ?? pose
+  const talking = useTalkingBubble()
 
   return (
     <div
@@ -1026,8 +1075,13 @@ function CuteTurtle({ movable = false, persistedStart, tankRef, tankSize, onPers
         '--turtle-tilt': `${pose.tilt * 0.35}deg`,
       }}
       onPointerDown={movable ? (event) => draggable.startDragging(event, displayPosition) : undefined}
+      onClick={talking.showMessage}
+      onKeyDown={talking.handleKeyDown}
+      role="button"
+      tabIndex={0}
       aria-label="Cute turtle"
     >
+      {talking.isTalking ? <CreatureSpeechBubble message={talking.message} /> : null}
       <div className="turtle-bob">
         <div className="turtle-motion">
           <div className="turtle">
