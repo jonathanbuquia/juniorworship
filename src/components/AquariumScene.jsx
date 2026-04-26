@@ -19,15 +19,16 @@ const BASE_TURTLE_HEIGHT = 138
 const CORAL_WIDTH = 118
 const CORAL_HEIGHT = 136
 const creatureMessages = [
-  'UMATTEND KA NG JUNIOR WORSHIP',
-  'nagpray ka ba?',
-  'ang ganda mo',
-  'ano tara?',
-  'ang OA mo',
-  'Happy Yarn?',
-  'hi friend!',
   'God bless you!',
-  'swim swim!',
+  'You are loved!',
+  'Keep shining!',
+  'Jesus loves you!',
+  'You are brave!',
+  'Great job today!',
+  'Keep learning!',
+  'You are kind!',
+  'You are special!',
+  'Have a joyful day!',
 ]
 const coralDecorations = [
   { id: 'pink-coral', color: 'pink', startX: 0.14 },
