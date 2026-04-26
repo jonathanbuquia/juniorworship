@@ -9,6 +9,7 @@ import {
   ADMIN_PATH,
   ADMIN_SECTIONS,
   ATTENDANCE_PATH,
+  ATTENDANCE_GOLD_REWARD,
   GOLD_PER_QUIZ_POINT,
   MEMORY_PATH,
   POPOVER_TRANSITION,
@@ -729,6 +730,19 @@ export default function AdminApp() {
     }
   }
 
+  const handleAttendanceChange = async ({ player, present }) => {
+    if (!accessToken || !isAdmin) {
+      throw new Error('Sign in as admin to update attendance.')
+    }
+
+    const data = await adjustPlayerGold(accessToken, {
+      amount: present ? ATTENDANCE_GOLD_REWARD : -ATTENDANCE_GOLD_REWARD,
+      playerId: player.id,
+    })
+
+    applyPlayerUpdate(data.player)
+  }
+
   const handleAwardQuizGold = async () => {
     setQuizAwardResult(createEmptyMessage())
     setQuizAwardPendingPlayerId('all')
@@ -1127,7 +1141,7 @@ export default function AdminApp() {
 
           {viewingAttendance && isAdmin ? (
             <div className="attendance-stage">
-              <AttendancePage players={players.length ? players : publicPlayers} />
+              <AttendancePage onAttendanceChange={handleAttendanceChange} players={players.length ? players : publicPlayers} />
             </div>
           ) : null}
 

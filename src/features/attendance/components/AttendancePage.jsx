@@ -1,10 +1,46 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
+import { ATTENDANCE_GOLD_REWARD } from '../../app/constants.js'
 import { createAttendanceKey, createSundayColumns } from '../attendanceUtils.js'
 import { useAttendance } from '../hooks/useAttendance.js'
 
-export default function AttendancePage({ players }) {
-  const { attendance, toggleAttendance } = useAttendance()
+export default function AttendancePage({ onAttendanceChange, players }) {
+  const { attendance, setAttendanceValue } = useAttendance()
+  const [pendingKey, setPendingKey] = useState('')
+  const [message, setMessage] = useState({ type: '', text: '' })
   const sundayColumns = useMemo(() => createSundayColumns(), [])
+
+  const handleAttendanceChange = async (player, date, nextPresent) => {
+    const attendanceKey = createAttendanceKey(player.id, date.id)
+
+    if (pendingKey) {
+      return
+    }
+
+    setPendingKey(attendanceKey)
+    setMessage({ type: '', text: '' })
+
+    try {
+      await onAttendanceChange?.({
+        date,
+        player,
+        present: nextPresent,
+      })
+      setAttendanceValue(attendanceKey, nextPresent)
+      setMessage({
+        type: 'success',
+        text: nextPresent
+          ? `${player.display_name} marked present. +${ATTENDANCE_GOLD_REWARD} gold added.`
+          : `${player.display_name} marked absent. ${ATTENDANCE_GOLD_REWARD} gold removed.`,
+      })
+    } catch (error) {
+      setMessage({
+        type: 'error',
+        text: error.message,
+      })
+    } finally {
+      setPendingKey('')
+    }
+  }
 
   return (
     <section className="panel attendance-page-shell">
@@ -15,6 +51,13 @@ export default function AttendancePage({ players }) {
         </div>
         <strong>{players.length} players</strong>
       </div>
+
+      <div className="attendance-reward-note">
+        <span>Present</span>
+        <strong>+{ATTENDANCE_GOLD_REWARD} gold</strong>
+      </div>
+
+      {message.text ? <p className={`status-line ${message.type}`}>{message.text}</p> : null}
 
       <div className="attendance-table-frame">
         <table className="attendance-table">
@@ -38,13 +81,16 @@ export default function AttendancePage({ players }) {
                   </th>
                   {sundayColumns.map((date) => {
                     const attendanceKey = createAttendanceKey(player.id, date.id)
+                    const checked = Boolean(attendance[attendanceKey])
+                    const pending = pendingKey === attendanceKey
 
                     return (
                       <td className="attendance-check-cell" key={attendanceKey}>
-                        <label className="attendance-check">
+                        <label className={`attendance-check ${pending ? 'pending' : ''}`}>
                           <input
-                            checked={Boolean(attendance[attendanceKey])}
-                            onChange={() => toggleAttendance(attendanceKey)}
+                            checked={checked}
+                            disabled={Boolean(pendingKey)}
+                            onChange={() => handleAttendanceChange(player, date, !checked)}
                             type="checkbox"
                           />
                           <span aria-hidden="true" />

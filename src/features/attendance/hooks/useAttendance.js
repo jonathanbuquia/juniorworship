@@ -23,15 +23,15 @@ export function useAttendance() {
     window.localStorage.setItem(ATTENDANCE_STORAGE_KEY, JSON.stringify(attendance))
   }, [attendance])
 
-  const toggleAttendance = (key) => {
+  const setAttendanceValue = (key, value) => {
     setAttendance((current) => ({
       ...current,
-      [key]: !current[key],
+      [key]: value,
     }))
   }
 
   return {
     attendance,
-    toggleAttendance,
+    setAttendanceValue,
   }
 }
