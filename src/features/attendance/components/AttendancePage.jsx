@@ -7,7 +7,7 @@ export default function AttendancePage({ onAttendanceChange, players }) {
   const { attendance, setAttendanceValue } = useAttendance()
   const [pendingKey, setPendingKey] = useState('')
   const [message, setMessage] = useState({ type: '', text: '' })
-  const sundayColumns = useMemo(() => createSundayColumns(), [])
+  const sundayColumns = useMemo(() => createSundayColumns(undefined, undefined, attendance), [attendance])
 
   const handleAttendanceChange = async (player, date, nextPresent) => {
     const attendanceKey = createAttendanceKey(player.id, date.id)
