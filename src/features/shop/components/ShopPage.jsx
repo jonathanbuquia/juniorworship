@@ -101,27 +101,16 @@ export default function ShopPage({
 
           <div className="shop-player-panel">
             {isAdmin ? (
-              <>
-                <label className="field shop-player-field">
-                  <span>Player</span>
-                  <select onChange={onPlayerChange} value={selectedPlayerId}>
-                    <option value="">Choose a player</option>
-                    {players.map((player) => (
-                      <option key={player.id} value={player.id}>
-                        {player.display_name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-
-                <div className={`shop-player-gold ${selectedPlayer ? 'ready' : ''}`}>
-                  <span>{selectedPlayer ? selectedPlayer.display_name : 'Player'}</span>
-                  <strong>
-                    <i aria-hidden="true">G</i>
-                    {selectedPlayer ? `${selectedPlayer.gold} gold` : 'Pick a player'}
-                  </strong>
-                </div>
-              </>
+              <label className="field shop-player-field">
+                <select aria-label="Choose shop player" onChange={onPlayerChange} value={selectedPlayerId}>
+                  <option value="">Choose player</option>
+                  {players.map((player) => (
+                    <option key={player.id} value={player.id}>
+                      {player.display_name} - {player.gold} gold
+                    </option>
+                  ))}
+                </select>
+              </label>
             ) : (
               <div className="shop-player-view-note">
                 <strong>Admin only</strong>
