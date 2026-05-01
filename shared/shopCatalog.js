@@ -55,7 +55,7 @@ export const SHOP_ITEMS = [
   {
     slug: 'coral-clownfish',
     category: 'fish',
-    rarity: 'rare',
+    rarity: 'common',
     name: 'Coral Clownfish',
     description: 'A striped reef favorite that adds a bold orange pop.',
     price: 100,
@@ -67,7 +67,7 @@ export const SHOP_ITEMS = [
   {
     slug: 'mint-angel-fish',
     category: 'fish',
-    rarity: 'special',
+    rarity: 'common',
     name: 'Mint Angel Fish',
     description: 'A graceful little swimmer with a cool mint shimmer.',
     price: 100,
