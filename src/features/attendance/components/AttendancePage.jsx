@@ -39,9 +39,9 @@ export default function AttendancePage({ onAttendanceChange, players }) {
       const willMonthComplete = isPlayerMonthComplete(player.id, dateIdsInMonth, nextAttendance)
       const attendanceDelta = nextPresent ? ATTENDANCE_GOLD_REWARD : -ATTENDANCE_GOLD_REWARD
       const monthlyBonusDelta =
-        !wasMonthComplete && willMonthComplete
+        date.monthlyBonusEligible && !wasMonthComplete && willMonthComplete
           ? ATTENDANCE_MONTHLY_BONUS
-          : wasMonthComplete && !willMonthComplete
+          : date.monthlyBonusEligible && wasMonthComplete && !willMonthComplete
             ? -ATTENDANCE_MONTHLY_BONUS
             : 0
 
@@ -104,7 +104,7 @@ export default function AttendancePage({ onAttendanceChange, players }) {
                   className={`attendance-date-cell ${date.monthColorClass} ${date.isLastSundayOfMonth ? 'month-bonus' : ''}`}
                   key={date.id}
                 >
-                  {date.isLastSundayOfMonth ? (
+                  {date.isLastSundayOfMonth && date.monthlyBonusEligible ? (
                     <strong className="attendance-month-bonus">+{ATTENDANCE_MONTHLY_BONUS}</strong>
                   ) : null}
                   <span>{date.label}</span>

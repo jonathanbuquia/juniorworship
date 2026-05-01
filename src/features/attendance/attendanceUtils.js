@@ -1,4 +1,4 @@
-import { ATTENDANCE_WEEK_COUNT } from '../app/constants.js'
+import { ATTENDANCE_MONTHLY_BONUS_START_MONTH, ATTENDANCE_WEEK_COUNT } from '../app/constants.js'
 
 const SUNDAY = 0
 const DATE_FORMATTER = new Intl.DateTimeFormat('en-US', {
@@ -23,13 +23,15 @@ function createColumnFromDate(date) {
   const month = date.getMonth()
   const nextSunday = new Date(date)
   nextSunday.setDate(date.getDate() + 7)
+  const monthKey = `${date.getFullYear()}-${String(month + 1).padStart(2, '0')}`
 
   return {
     id: toDateKey(date),
     isLastSundayOfMonth: nextSunday.getMonth() !== month,
     label: DATE_FORMATTER.format(date),
     monthColorClass: `attendance-month-${month % MONTH_COLOR_COUNT}`,
-    monthKey: `${date.getFullYear()}-${String(month + 1).padStart(2, '0')}`,
+    monthKey,
+    monthlyBonusEligible: monthKey >= ATTENDANCE_MONTHLY_BONUS_START_MONTH,
     year: date.getFullYear(),
   }
 }

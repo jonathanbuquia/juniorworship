@@ -20,6 +20,7 @@ export const ATTENDANCE_STORAGE_KEY = 'attendance-records:v1'
 export const ATTENDANCE_WEEK_COUNT = 16
 export const ATTENDANCE_GOLD_REWARD = 50
 export const ATTENDANCE_MONTHLY_BONUS = 150
+export const ATTENDANCE_MONTHLY_BONUS_START_MONTH = '2026-05'
 export const SHOP_NOTICE_DURATION = 3200
 
 export const RAIL_TRANSITION = {
