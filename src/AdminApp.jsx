@@ -9,7 +9,6 @@ import {
   ADMIN_PATH,
   ADMIN_SECTIONS,
   ATTENDANCE_PATH,
-  ATTENDANCE_GOLD_REWARD,
   GOLD_PER_QUIZ_POINT,
   MEMORY_PATH,
   POPOVER_TRANSITION,
@@ -730,13 +729,13 @@ export default function AdminApp() {
     }
   }
 
-  const handleAttendanceChange = async ({ player, present }) => {
+  const handleAttendanceChange = async ({ goldDelta, player }) => {
     if (!accessToken || !isAdmin) {
       throw new Error('Sign in as admin to update attendance.')
     }
 
     const data = await adjustPlayerGold(accessToken, {
-      amount: present ? ATTENDANCE_GOLD_REWARD : -ATTENDANCE_GOLD_REWARD,
+      amount: goldDelta,
       playerId: player.id,
     })
 

@@ -5,6 +5,7 @@ const DATE_FORMATTER = new Intl.DateTimeFormat('en-US', {
   month: 'short',
   day: 'numeric',
 })
+const MONTH_COLOR_COUNT = 6
 
 function createLocalDate(value) {
   return new Date(value.getFullYear(), value.getMonth(), value.getDate())
@@ -19,9 +20,16 @@ function toDateKey(value) {
 }
 
 function createColumnFromDate(date) {
+  const month = date.getMonth()
+  const nextSunday = new Date(date)
+  nextSunday.setDate(date.getDate() + 7)
+
   return {
     id: toDateKey(date),
+    isLastSundayOfMonth: nextSunday.getMonth() !== month,
     label: DATE_FORMATTER.format(date),
+    monthColorClass: `attendance-month-${month % MONTH_COLOR_COUNT}`,
+    monthKey: `${date.getFullYear()}-${String(month + 1).padStart(2, '0')}`,
     year: date.getFullYear(),
   }
 }
@@ -70,4 +78,8 @@ export function createSundayColumns(count = ATTENDANCE_WEEK_COUNT, startDate = n
 
 export function createAttendanceKey(playerId, dateId) {
   return `${playerId}:${dateId}`
+}
+
+export function isPlayerMonthComplete(playerId, dateIds, attendance) {
+  return dateIds.length > 0 && dateIds.every((dateId) => Boolean(attendance[createAttendanceKey(playerId, dateId)]))
 }

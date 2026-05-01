@@ -1514,9 +1514,10 @@
 }
 
 .attendance-reward-note {
-  width: max-content;
+  width: fit-content;
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
   padding: 8px 10px;
   border-radius: 999px;
@@ -1593,6 +1594,53 @@
   width: 108px;
   min-width: 108px;
   text-align: center;
+}
+
+.attendance-table thead .attendance-date-cell.attendance-month-0,
+.attendance-table .attendance-check-cell.attendance-month-0 {
+  background: rgba(255, 241, 194, 0.86);
+}
+
+.attendance-table thead .attendance-date-cell.attendance-month-1,
+.attendance-table .attendance-check-cell.attendance-month-1 {
+  background: rgba(213, 246, 220, 0.86);
+}
+
+.attendance-table thead .attendance-date-cell.attendance-month-2,
+.attendance-table .attendance-check-cell.attendance-month-2 {
+  background: rgba(214, 238, 255, 0.86);
+}
+
+.attendance-table thead .attendance-date-cell.attendance-month-3,
+.attendance-table .attendance-check-cell.attendance-month-3 {
+  background: rgba(255, 222, 232, 0.86);
+}
+
+.attendance-table thead .attendance-date-cell.attendance-month-4,
+.attendance-table .attendance-check-cell.attendance-month-4 {
+  background: rgba(230, 222, 255, 0.86);
+}
+
+.attendance-table thead .attendance-date-cell.attendance-month-5,
+.attendance-table .attendance-check-cell.attendance-month-5 {
+  background: rgba(211, 249, 244, 0.86);
+}
+
+.attendance-date-cell.month-bonus {
+  box-shadow: inset 0 -4px 0 rgba(234, 143, 30, 0.42);
+}
+
+.attendance-month-bonus {
+  width: max-content;
+  display: block;
+  margin: 0 auto 5px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  color: #8a4a00;
+  font-size: 0.68rem;
+  line-height: 1;
+  background: rgba(255, 185, 73, 0.35);
+  box-shadow: inset 0 0 0 1px rgba(180, 104, 8, 0.16);
 }
 
 .attendance-date-cell span,
