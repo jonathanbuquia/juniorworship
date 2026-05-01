@@ -94,9 +94,10 @@ export default function ShopPage({
 }) {
   const activeCategory = SHOP_CATEGORIES.find((category) => category.id === selectedCategory) ?? SHOP_CATEGORIES[0]
   const [rarityFilter, setRarityFilter] = useState('all')
+  const showRarityFilters = activeCategory.id !== 'events'
   const visibleItems = useMemo(
-    () => getShopItemsByCategoryAndRarity(activeCategory.id, rarityFilter),
-    [activeCategory.id, rarityFilter],
+    () => getShopItemsByCategoryAndRarity(activeCategory.id, showRarityFilters ? rarityFilter : 'all'),
+    [activeCategory.id, rarityFilter, showRarityFilters],
   )
 
   return (
@@ -147,18 +148,20 @@ export default function ShopPage({
           <strong>{activeCategory.label}</strong>
         </div>
 
-        <div className="shop-rarity-row" aria-label="Shop rarity filter">
-          {SHOP_RARITY_FILTERS.map((rarity) => (
-            <button
-              className={`shop-rarity-chip ${rarity.id} ${rarityFilter === rarity.id ? 'active' : ''}`}
-              key={rarity.id}
-              onClick={() => setRarityFilter(rarity.id)}
-              type="button"
-            >
-              {rarity.label}
-            </button>
-          ))}
-        </div>
+        {showRarityFilters ? (
+          <div className="shop-rarity-row" aria-label="Shop rarity filter">
+            {SHOP_RARITY_FILTERS.map((rarity) => (
+              <button
+                className={`shop-rarity-chip ${rarity.id} ${rarityFilter === rarity.id ? 'active' : ''}`}
+                key={rarity.id}
+                onClick={() => setRarityFilter(rarity.id)}
+                type="button"
+              >
+                {rarity.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
 
         {visibleItems.length ? (
           <div className="shop-card-grid">

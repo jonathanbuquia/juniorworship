@@ -531,7 +531,6 @@ function NaturalFish({ fish, movable = false, persistedStart, tankRef, tankSize,
     startOverride: draggable.startOverride,
   })
   const displayPosition = draggable.dragPosition ?? pose
-  const talking = useTalkingBubble()
 
   return (
     <div
@@ -551,14 +550,9 @@ function NaturalFish({ fish, movable = false, persistedStart, tankRef, tankSize,
         '--eye-x': pose.eyeX,
         '--eye-y': pose.eyeY,
       }}
-      onClick={talking.showMessage}
-      onKeyDown={talking.handleKeyDown}
       onPointerDown={movable ? (event) => draggable.startDragging(event, displayPosition) : undefined}
-      role="button"
-      tabIndex={0}
       aria-label="Cute fish"
     >
-      {talking.isTalking ? <CreatureSpeechBubble message={talking.message} /> : null}
       <div className="fish-motion">
         <div className="fish-bob">
           <div className="fish-illustration">
