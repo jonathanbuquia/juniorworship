@@ -20,16 +20,30 @@ export const SHOP_CATEGORIES = [
     description: 'Plants and decorations are coming soon.',
   },
   {
+    id: 'events',
+    label: 'Events',
+    description: 'Monthly event special creatures will appear here.',
+    tone: 'event',
+  },
+  {
     id: 'others',
     label: 'Others',
     description: 'More surprises are coming soon.',
   },
 ]
 
+export const SHOP_RARITY_FILTERS = [
+  { id: 'all', label: 'All' },
+  { id: 'common', label: 'Common' },
+  { id: 'rare', label: 'Rare' },
+  { id: 'special', label: 'Special' },
+]
+
 export const SHOP_ITEMS = [
   {
     slug: 'sunbeam-guppy',
     category: 'fish',
+    rarity: 'common',
     name: 'Sunbeam Guppy',
     description: 'A bright starter fish with a cheerful golden tail.',
     price: 100,
@@ -41,6 +55,7 @@ export const SHOP_ITEMS = [
   {
     slug: 'coral-clownfish',
     category: 'fish',
+    rarity: 'rare',
     name: 'Coral Clownfish',
     description: 'A striped reef favorite that adds a bold orange pop.',
     price: 100,
@@ -52,6 +67,7 @@ export const SHOP_ITEMS = [
   {
     slug: 'mint-angel-fish',
     category: 'fish',
+    rarity: 'special',
     name: 'Mint Angel Fish',
     description: 'A graceful little swimmer with a cool mint shimmer.',
     price: 100,
@@ -68,4 +84,8 @@ export function findShopItemBySlug(slug) {
 
 export function getShopItemsByCategory(categoryId) {
   return SHOP_ITEMS.filter((item) => item.category === categoryId)
+}
+
+export function getShopItemsByCategoryAndRarity(categoryId, rarityId = 'all') {
+  return getShopItemsByCategory(categoryId).filter((item) => rarityId === 'all' || item.rarity === rarityId)
 }

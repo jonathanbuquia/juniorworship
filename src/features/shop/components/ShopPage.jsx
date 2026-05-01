@@ -1,5 +1,10 @@
+import { useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
-import { SHOP_CATEGORIES, getShopItemsByCategory } from '../../../../shared/shopCatalog.js'
+import {
+  SHOP_CATEGORIES,
+  SHOP_RARITY_FILTERS,
+  getShopItemsByCategoryAndRarity,
+} from '../../../../shared/shopCatalog.js'
 
 const MotionDiv = motion.div
 
@@ -88,7 +93,12 @@ export default function ShopPage({
   selectedPlayerId,
 }) {
   const activeCategory = SHOP_CATEGORIES.find((category) => category.id === selectedCategory) ?? SHOP_CATEGORIES[0]
-  const visibleItems = getShopItemsByCategory(activeCategory.id)
+  const [rarityFilter, setRarityFilter] = useState('all')
+  const showRarityFilters = activeCategory.id === 'fish'
+  const visibleItems = useMemo(
+    () => getShopItemsByCategoryAndRarity(activeCategory.id, showRarityFilters ? rarityFilter : 'all'),
+    [activeCategory.id, rarityFilter, showRarityFilters],
+  )
 
   return (
     <section className="panel shop-page-shell">
@@ -122,7 +132,9 @@ export default function ShopPage({
         <div className="shop-category-row">
           {SHOP_CATEGORIES.map((category) => (
             <button
-              className={`shop-category-chip ${selectedCategory === category.id ? 'active' : ''}`}
+              className={`shop-category-chip ${category.tone === 'event' ? 'event-category' : ''} ${
+                selectedCategory === category.id ? 'active' : ''
+              }`}
               key={category.id}
               onClick={() => onCategoryChange(category.id)}
               type="button"
@@ -136,10 +148,26 @@ export default function ShopPage({
           <strong>{activeCategory.label}</strong>
         </div>
 
+        {showRarityFilters ? (
+          <div className="shop-rarity-row" aria-label="Fish rarity filter">
+            {SHOP_RARITY_FILTERS.map((rarity) => (
+              <button
+                className={`shop-rarity-chip ${rarity.id} ${rarityFilter === rarity.id ? 'active' : ''}`}
+                key={rarity.id}
+                onClick={() => setRarityFilter(rarity.id)}
+                type="button"
+              >
+                {rarity.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
+
         {visibleItems.length ? (
           <div className="shop-card-grid">
             {visibleItems.map((item, index) => {
               const needsMoreGold = selectedPlayer ? selectedPlayer.gold < item.price : false
+              const rarityLabel = item.rarity ? item.rarity.toUpperCase() : ''
 
               return (
                 <MotionDiv
@@ -155,6 +183,7 @@ export default function ShopPage({
                   <div className="shop-item-copy">
                     <div className="shop-item-heading">
                       <strong>{item.name}</strong>
+                      {rarityLabel ? <span className={`shop-rarity-badge ${item.rarity}`}>{rarityLabel}</span> : null}
                     </div>
 
                     <div className="shop-item-footer">

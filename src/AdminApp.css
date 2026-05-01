@@ -1987,6 +1987,18 @@
   box-shadow: 0 12px 24px rgba(17, 113, 164, 0.2);
 }
 
+.shop-category-chip.event-category {
+  color: #0d5b32;
+  border-color: rgba(26, 157, 85, 0.24);
+  background: rgba(215, 248, 225, 0.86);
+}
+
+.shop-category-chip.event-category.active {
+  color: white;
+  background: linear-gradient(135deg, #16a05c, #087a48);
+  box-shadow: 0 12px 24px rgba(22, 128, 73, 0.22);
+}
+
 .shop-category-copy {
   color: #406a82;
 }
@@ -1994,6 +2006,56 @@
 .shop-category-copy strong {
   font-size: 1.02rem;
   color: #143a50;
+}
+
+.shop-rarity-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.shop-rarity-chip,
+.shop-rarity-badge {
+  border-radius: 999px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.shop-rarity-chip {
+  padding: 8px 12px;
+  border: 1px solid rgba(35, 105, 139, 0.12);
+  color: #315d73;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.shop-rarity-chip.common.active,
+.shop-rarity-badge.common {
+  color: #115e40;
+  background: rgba(198, 244, 216, 0.95);
+}
+
+.shop-rarity-chip.rare.active,
+.shop-rarity-badge.rare {
+  color: #145aa1;
+  background: rgba(205, 231, 255, 0.95);
+}
+
+.shop-rarity-chip.special.active,
+.shop-rarity-badge.special {
+  color: #8b4d04;
+  background: rgba(255, 225, 164, 0.95);
+}
+
+.shop-rarity-chip.all.active {
+  color: white;
+  background: linear-gradient(135deg, #0ea0bc, #1c78ae);
+}
+
+.shop-rarity-badge {
+  width: max-content;
+  padding: 5px 8px;
+  font-size: 0.66rem;
 }
 
 .shop-card-grid,
