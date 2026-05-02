@@ -14,6 +14,7 @@ export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardP
   const [secondsLeft, setSecondsLeft] = useState(BOOKS_GAME_SECONDS)
   const [timerDone, setTimerDone] = useState(false)
   const [awardedRoundId, setAwardedRoundId] = useState('')
+  const [usedPlayerIds, setUsedPlayerIds] = useState([])
 
   const selectedTestament = TESTAMENTS.find((testament) => testament.id === selectedTestamentId) ?? TESTAMENTS[0]
   const attendanceDate = useMemo(() => getBooksGameAttendanceDate(attendance), [attendance])
@@ -21,7 +22,17 @@ export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardP
     () => getPresentPlayersForDate(players, attendance, attendanceDate?.id),
     [attendance, attendanceDate?.id, players],
   )
+  const presentPlayerIds = useMemo(() => new Set(presentPlayers.map((player) => player.id)), [presentPlayers])
+  const effectiveUsedPlayerIds = useMemo(
+    () => usedPlayerIds.filter((playerId) => presentPlayerIds.has(playerId)),
+    [presentPlayerIds, usedPlayerIds],
+  )
+  const availablePlayers = useMemo(
+    () => presentPlayers.filter((player) => !effectiveUsedPlayerIds.includes(player.id)),
+    [effectiveUsedPlayerIds, presentPlayers],
+  )
   const canAwardRound = round && timerDone && awardedRoundId !== round.id
+  const turnsLeft = round ? availablePlayers.length : availablePlayers.length || presentPlayers.length
 
   useEffect(() => {
     if (!round || timerDone) {
@@ -49,15 +60,20 @@ export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardP
     setSecondsLeft(BOOKS_GAME_SECONDS)
     setTimerDone(false)
     setAwardedRoundId('')
+    setUsedPlayerIds([])
   }
 
   const handleStartRound = () => {
-    const nextRound = createBooksRound(selectedTestament.books, presentPlayers)
+    const roundPlayers = availablePlayers.length ? availablePlayers : presentPlayers
+    const nextRound = createBooksRound(selectedTestament.books, roundPlayers)
 
     if (!nextRound) {
       return
     }
 
+    setUsedPlayerIds(
+      availablePlayers.length ? [...effectiveUsedPlayerIds, nextRound.player.id] : [nextRound.player.id],
+    )
     setRound(nextRound)
     setSecondsLeft(BOOKS_GAME_SECONDS)
     setTimerDone(false)
@@ -123,7 +139,9 @@ export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardP
           <div className="books-player-card">
             <span>Answering</span>
             <strong>{round?.player.display_name ?? 'Press Start'}</strong>
-            <small>{presentPlayers.length} present today</small>
+            <small>
+              {turnsLeft} turn{turnsLeft === 1 ? '' : 's'} left
+            </small>
           </div>
 
           <MotionDiv
