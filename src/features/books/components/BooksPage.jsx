@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from 'react'
+import { Fragment, useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { BOOKS_GAME_GOLD_REWARD, BOOKS_GAME_SECONDS } from '../../app/constants.js'
 import { useAttendance } from '../../attendance/hooks/useAttendance.js'
-import { TESTAMENTS } from '../bibleBooks.js'
+import { OLD_TESTAMENT_CATEGORIES, TESTAMENTS, getOldTestamentCategoryId } from '../bibleBooks.js'
 import { createBooksRound, getBooksGameAttendanceDate, getPresentPlayersForDate } from '../booksGameUtils.js'
 
 const MotionDiv = motion.div
@@ -10,6 +10,7 @@ const MotionDiv = motion.div
 export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardPlayer, players }) {
   const { attendance } = useAttendance()
   const [selectedTestamentId, setSelectedTestamentId] = useState(TESTAMENTS[0].id)
+  const [oldTestamentView, setOldTestamentView] = useState('list')
   const [round, setRound] = useState(null)
   const [secondsLeft, setSecondsLeft] = useState(BOOKS_GAME_SECONDS)
   const [timerDone, setTimerDone] = useState(false)
@@ -17,6 +18,8 @@ export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardP
   const [usedPlayerIds, setUsedPlayerIds] = useState([])
 
   const selectedTestament = TESTAMENTS.find((testament) => testament.id === selectedTestamentId) ?? TESTAMENTS[0]
+  const isOldTestament = selectedTestament.id === 'old'
+  const showOldTestamentFilters = isOldTestament && !round
   const attendanceDate = useMemo(() => getBooksGameAttendanceDate(attendance), [attendance])
   const presentPlayers = useMemo(
     () => getPresentPlayersForDate(players, attendance, attendanceDate?.id),
@@ -80,6 +83,17 @@ export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardP
     setAwardedRoundId('')
   }
 
+  const handleStopRound = () => {
+    if (round) {
+      setUsedPlayerIds((current) => current.filter((playerId) => playerId !== round.player.id))
+    }
+
+    setRound(null)
+    setSecondsLeft(BOOKS_GAME_SECONDS)
+    setTimerDone(false)
+    setAwardedRoundId('')
+  }
+
   const handleAwardGold = async () => {
     if (!canAwardRound) {
       return
@@ -102,14 +116,20 @@ export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardP
 
         <div className="books-testament-toggle" aria-label="Choose testament">
           {TESTAMENTS.map((testament) => (
-            <button
-              className={selectedTestament.id === testament.id ? 'active' : ''}
-              key={testament.id}
-              onClick={() => handleTestamentChange(testament.id)}
-              type="button"
-            >
-              {testament.label}
-            </button>
+            <Fragment key={testament.id}>
+              <button
+                className={selectedTestament.id === testament.id ? 'active' : ''}
+                onClick={() => handleTestamentChange(testament.id)}
+                type="button"
+              >
+                {testament.label}
+              </button>
+              {round && testament.id === 'old' ? (
+                <button className="books-stop-button" onClick={handleStopRound} type="button">
+                  Stop
+                </button>
+              ) : null}
+            </Fragment>
           ))}
         </div>
       </div>
@@ -121,18 +141,36 @@ export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardP
             <span>{selectedTestament.books.length} books</span>
           </div>
 
-          <ol className="books-list">
-            {selectedTestament.books.map((book, index) => {
-              const isBlank = round?.blankIndex === index
+          {isOldTestament && oldTestamentView === 'category' && !round ? (
+            <div className="books-category-list">
+              {OLD_TESTAMENT_CATEGORIES.map((category) => (
+                <section className={`books-category-card ${category.id}`} key={category.id}>
+                  <strong>{category.label}</strong>
+                  <ol>
+                    {category.books.map((book) => (
+                      <li className={`category-${category.id}`} key={book}>
+                        {book}
+                      </li>
+                    ))}
+                  </ol>
+                </section>
+              ))}
+            </div>
+          ) : (
+            <ol className="books-list">
+              {selectedTestament.books.map((book, index) => {
+                const categoryId = getOldTestamentCategoryId(book)
+                const isBlank = round?.blankIndex === index
 
-              return (
-                <li className={isBlank ? 'blank' : ''} key={book}>
-                  <span>{index + 1}</span>
-                  <strong>{isBlank ? '____________' : book}</strong>
-                </li>
-              )
-            })}
-          </ol>
+                return (
+                  <li className={`${isBlank ? 'blank' : ''} ${categoryId ? `category-${categoryId}` : ''}`} key={book}>
+                    <span>{index + 1}</span>
+                    <strong>{isBlank ? '____________' : book}</strong>
+                  </li>
+                )
+              })}
+            </ol>
+          )}
         </div>
 
         <aside className="books-side-panel">
@@ -163,6 +201,26 @@ export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardP
               >
                 Start
               </button>
+            ) : null}
+
+            {showOldTestamentFilters ? (
+              <div className="books-view-filter" aria-label="Old Testament view filter">
+                <span>View</span>
+                <button
+                  className={oldTestamentView === 'list' ? 'active' : ''}
+                  onClick={() => setOldTestamentView('list')}
+                  type="button"
+                >
+                  By List
+                </button>
+                <button
+                  className={oldTestamentView === 'category' ? 'active' : ''}
+                  onClick={() => setOldTestamentView('category')}
+                  type="button"
+                >
+                  By Category
+                </button>
+              </div>
             ) : null}
 
             {round && !timerDone ? <p className="books-answer-hint">Identify the missing book.</p> : null}

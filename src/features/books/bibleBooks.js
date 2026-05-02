@@ -70,6 +70,38 @@ export const NEW_TESTAMENT_BOOKS = [
   'Revelation',
 ]
 
+export const OLD_TESTAMENT_CATEGORIES = [
+  {
+    id: 'law',
+    label: 'Law',
+    books: OLD_TESTAMENT_BOOKS.slice(0, 5),
+  },
+  {
+    id: 'history',
+    label: 'History',
+    books: OLD_TESTAMENT_BOOKS.slice(5, 17),
+  },
+  {
+    id: 'poetry',
+    label: 'Poetry',
+    books: OLD_TESTAMENT_BOOKS.slice(17, 22),
+  },
+  {
+    id: 'major-prophets',
+    label: 'Major Prophets',
+    books: OLD_TESTAMENT_BOOKS.slice(22, 27),
+  },
+  {
+    id: 'minor-prophets',
+    label: 'Minor Prophets',
+    books: OLD_TESTAMENT_BOOKS.slice(27),
+  },
+]
+
+export function getOldTestamentCategoryId(book) {
+  return OLD_TESTAMENT_CATEGORIES.find((category) => category.books.includes(book))?.id ?? ''
+}
+
 export const TESTAMENTS = [
   {
     id: 'old',
