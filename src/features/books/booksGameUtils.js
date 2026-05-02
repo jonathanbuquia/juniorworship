@@ -1,18 +1,20 @@
 import { createAttendanceKey, createSundayColumns } from '../attendance/attendanceUtils.js'
 
 export function createBooksRound(books, presentPlayers) {
-  if (!books.length || !presentPlayers.length) {
+  if (books.length < 3 || !presentPlayers.length) {
     return null
   }
 
-  const blankIndex = Math.floor(Math.random() * books.length)
+  const blankIndex = Math.floor(Math.random() * (books.length - 2)) + 1
   const playerIndex = Math.floor(Math.random() * presentPlayers.length)
 
   return {
     answer: books[blankIndex],
     blankIndex,
     id: `${Date.now()}-${blankIndex}-${presentPlayers[playerIndex].id}`,
+    nextBook: books[blankIndex + 1],
     player: presentPlayers[playerIndex],
+    previousBook: books[blankIndex - 1],
   }
 }
 

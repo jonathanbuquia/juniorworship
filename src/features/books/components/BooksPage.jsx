@@ -20,6 +20,7 @@ export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardP
   const selectedTestament = TESTAMENTS.find((testament) => testament.id === selectedTestamentId) ?? TESTAMENTS[0]
   const isOldTestament = selectedTestament.id === 'old'
   const showOldTestamentFilters = isOldTestament && !round
+  const roundCategoryId = round ? getOldTestamentCategoryId(round.answer) : ''
   const attendanceDate = useMemo(() => getBooksGameAttendanceDate(attendance), [attendance])
   const presentPlayers = useMemo(
     () => getPresentPlayersForDate(players, attendance, attendanceDate?.id),
@@ -141,7 +142,22 @@ export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardP
             <span>{selectedTestament.books.length} books</span>
           </div>
 
-          {isOldTestament && oldTestamentView === 'category' && !round ? (
+          {round ? (
+            <div className="books-round-focus">
+              <div className="books-round-card clue">
+                <span>{round.blankIndex}</span>
+                <strong>{round.previousBook}</strong>
+              </div>
+              <div className={`books-round-card missing ${roundCategoryId ? `category-${roundCategoryId}` : ''}`}>
+                <span>{round.blankIndex + 1}</span>
+                <strong>____________</strong>
+              </div>
+              <div className="books-round-card clue">
+                <span>{round.blankIndex + 2}</span>
+                <strong>{round.nextBook}</strong>
+              </div>
+            </div>
+          ) : isOldTestament && oldTestamentView === 'category' ? (
             <div className="books-category-list">
               {OLD_TESTAMENT_CATEGORIES.map((category) => (
                 <section className={`books-category-card ${category.id}`} key={category.id}>
