@@ -1797,7 +1797,7 @@
 .books-game-board {
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) clamp(290px, 26vw, 380px);
+  grid-template-columns: minmax(0, 1fr) clamp(330px, 30vw, 420px);
   gap: clamp(10px, 1.6vw, 18px);
 }
 
@@ -1841,7 +1841,7 @@
   margin: 0;
   padding: 0;
   display: block;
-  column-count: 4;
+  column-count: 3;
   column-gap: clamp(8px, 1vw, 14px);
   list-style: none;
 }
@@ -2185,7 +2185,7 @@
   }
 
   .books-list {
-    column-count: 3;
+    column-count: 2;
   }
 
   .books-category-list {
