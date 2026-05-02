@@ -33,7 +33,7 @@ function ShopFishPreview({ item, index }) {
         }}
       >
         <div
-          className="fish-swim shop-card-fish"
+          className={`fish-swim shop-card-fish ${item.slug ? `fish-${item.slug}` : ''}`}
           style={{
             '--accent': item.accentColor,
             '--eye': '#1f2c46',

@@ -533,9 +533,9 @@ function NaturalFish({ fish, movable = false, persistedStart, tankRef, tankSize,
 
   return (
     <div
-      className={`fish-swim ${fish.canTalk ? 'talking-fish' : ''} ${speech.bursting ? 'bursting' : ''} ${
-        pose.paused ? 'paused' : ''
-      } ${draggable.dragging ? 'dragging' : ''}`}
+      className={`fish-swim ${fish.variant ? `fish-${fish.variant}` : ''} ${fish.canTalk ? 'talking-fish' : ''} ${
+        speech.bursting ? 'bursting' : ''
+      } ${pose.paused ? 'paused' : ''} ${draggable.dragging ? 'dragging' : ''}`}
       style={{
         '--fish-burst-x': `${burstX}px`,
         '--fish-scale': fish.scale,
