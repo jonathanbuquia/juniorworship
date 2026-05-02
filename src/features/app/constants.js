@@ -1,5 +1,6 @@
 export const ADMIN_PATH = '/admin'
 export const ATTENDANCE_PATH = '/attendance'
+export const BOOKS_PATH = '/books'
 export const MEMORY_PATH = '/memory-verse'
 export const QUIZ_PATH = '/quiz'
 export const SHOP_PATH = '/shop'
@@ -21,6 +22,8 @@ export const ATTENDANCE_WEEK_COUNT = 16
 export const ATTENDANCE_GOLD_REWARD = 50
 export const ATTENDANCE_MONTHLY_BONUS = 150
 export const ATTENDANCE_MONTHLY_BONUS_START_MONTH = '2026-05'
+export const BOOKS_GAME_GOLD_REWARD = 100
+export const BOOKS_GAME_SECONDS = 10
 export const SHOP_NOTICE_DURATION = 3200
 
 export const RAIL_TRANSITION = {

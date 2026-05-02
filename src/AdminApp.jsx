@@ -9,6 +9,8 @@ import {
   ADMIN_PATH,
   ADMIN_SECTIONS,
   ATTENDANCE_PATH,
+  BOOKS_GAME_GOLD_REWARD,
+  BOOKS_PATH,
   GOLD_PER_QUIZ_POINT,
   MEMORY_VERSE_QUIZ_POINTS,
   MEMORY_PATH,
@@ -32,6 +34,7 @@ import {
   getRandomUncoveredWordIndex,
   shuffleWordIndexes,
 } from './features/memory/memoryUtils.js'
+import BooksPage from './features/books/components/BooksPage.jsx'
 import { usePlayerDirectory } from './features/players/hooks/usePlayerDirectory.js'
 import ActivePlayerHud from './features/players/components/ActivePlayerHud.jsx'
 import QuizPage from './features/quiz/components/QuizPage.jsx'
@@ -192,9 +195,11 @@ export default function AdminApp() {
   const [goldResult, setGoldResult] = useState(createEmptyMessage)
   const [deleteResult, setDeleteResult] = useState(createEmptyMessage)
   const [verseAwardResult, setVerseAwardResult] = useState(createEmptyMessage)
+  const [booksAwardResult, setBooksAwardResult] = useState(createEmptyMessage)
   const [quizAwardResult, setQuizAwardResult] = useState(createEmptyMessage)
   const [quizDraftResult, setQuizDraftResult] = useState(createEmptyMessage)
   const [awardPendingPlayerId, setAwardPendingPlayerId] = useState('')
+  const [booksAwardPendingPlayerId, setBooksAwardPendingPlayerId] = useState('')
   const [quizAwardPendingPlayerId, setQuizAwardPendingPlayerId] = useState('')
   const [loginForm, setLoginForm] = useState({
     loginName: '',
@@ -217,19 +222,27 @@ export default function AdminApp() {
   const isAdmin = useMemo(() => isAdminProfile(profile), [profile])
   const viewingAdmin = pathname === ADMIN_PATH
   const viewingAttendance = pathname === ATTENDANCE_PATH
+  const viewingBooks = pathname === BOOKS_PATH
   const viewingMemory = pathname === MEMORY_PATH
   const viewingQuiz = pathname === QUIZ_PATH
   const viewingShop = pathname === SHOP_PATH
   const viewingHome = pathname === DEFAULT_PATH
   const readyForProtectedView = !authLoading && !profileLoading && session && profile
   const showGameScene =
-    !viewingAttendance && !viewingMemory && !viewingQuiz && !viewingAdmin && !viewingShop && Boolean(viewedPlayer)
+    !viewingAttendance &&
+    !viewingBooks &&
+    !viewingMemory &&
+    !viewingQuiz &&
+    !viewingAdmin &&
+    !viewingShop &&
+    Boolean(viewedPlayer)
   const showMaySpecialAnnouncement = viewingHome && !viewedPlayer
   const isTeachingFullscreen = isMemoryFullscreen || isQuizFullscreen
   const showActivePlayerHud =
     Boolean(viewedPlayer) &&
     !viewingAdmin &&
     !viewingAttendance &&
+    !viewingBooks &&
     !viewingMemory &&
     !viewingQuiz &&
     !viewingShop &&
@@ -774,6 +787,37 @@ export default function AdminApp() {
     }
   }
 
+  const handleAwardBooksGold = async (playerId) => {
+    setBooksAwardResult(createEmptyMessage())
+    setBooksAwardPendingPlayerId(playerId)
+
+    try {
+      if (!accessToken || !isAdmin) {
+        throw new Error('Sign in as admin to reward players.')
+      }
+
+      const data = await adjustPlayerGold(accessToken, {
+        amount: BOOKS_GAME_GOLD_REWARD,
+        playerId,
+      })
+
+      setBooksAwardResult({
+        type: 'success',
+        text: `+${BOOKS_GAME_GOLD_REWARD} gold added to ${data.player.display_name}.`,
+      })
+      applyPlayerUpdate(data.player)
+      return true
+    } catch (error) {
+      setBooksAwardResult({
+        type: 'error',
+        text: error.message,
+      })
+      return false
+    } finally {
+      setBooksAwardPendingPlayerId('')
+    }
+  }
+
   const handleAttendanceChange = async ({ goldDelta, player }) => {
     if (!accessToken || !isAdmin) {
       throw new Error('Sign in as admin to update attendance.')
@@ -962,6 +1006,13 @@ export default function AdminApp() {
     setProfileMenuOpen(false)
     closeCompactNav()
     navigate(ATTENDANCE_PATH)
+  }
+
+  const handleOpenBooks = () => {
+    setAuthMenuOpen(false)
+    setProfileMenuOpen(false)
+    closeCompactNav()
+    navigate(BOOKS_PATH)
   }
 
   const handleShowMemoryVerseEditor = () => {
@@ -1157,6 +1208,7 @@ export default function AdminApp() {
             onLoginChange={handleLoginChange}
             onOpenAdmin={handleToggleAdmin}
             onOpenAttendance={handleOpenAttendance}
+            onOpenBooks={handleOpenBooks}
             onOpenMemoryVerse={handleOpenMemoryVerse}
             onOpenProfileMenu={handleOpenProfileMenu}
             onOpenQuiz={handleOpenQuiz}
@@ -1173,6 +1225,7 @@ export default function AdminApp() {
             viewedPlayer={viewedPlayer}
             viewingAdmin={viewingAdmin}
             viewingAttendance={viewingAttendance}
+            viewingBooks={viewingBooks}
             viewingMemory={viewingMemory}
             viewingQuiz={viewingQuiz}
             viewingShop={viewingShop}
@@ -1220,6 +1273,17 @@ export default function AdminApp() {
           {viewingAttendance && isAdmin ? (
             <div className="attendance-stage">
               <AttendancePage onAttendanceChange={handleAttendanceChange} players={players.length ? players : publicPlayers} />
+            </div>
+          ) : null}
+
+          {viewingBooks && isAdmin ? (
+            <div className="books-stage">
+              <BooksPage
+                awardMessage={booksAwardResult}
+                awardPendingPlayerId={booksAwardPendingPlayerId}
+                onAwardPlayer={handleAwardBooksGold}
+                players={players.length ? players : publicPlayers}
+              />
             </div>
           ) : null}
 
@@ -1314,7 +1378,7 @@ export default function AdminApp() {
             </div>
           ) : null}
 
-          {(viewingAttendance || viewingMemory || viewingQuiz) && !isAdmin ? (
+          {(viewingAttendance || viewingBooks || viewingMemory || viewingQuiz) && !isAdmin ? (
             <section className="panel memory-locked-panel">
               <div className="eyebrow">Admin Only</div>
               <h2>This page is only for the admin.</h2>

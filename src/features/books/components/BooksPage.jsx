@@ -1,0 +1,188 @@
+import { useEffect, useMemo, useState } from 'react'
+import { motion } from 'framer-motion'
+import { BOOKS_GAME_GOLD_REWARD, BOOKS_GAME_SECONDS } from '../../app/constants.js'
+import { useAttendance } from '../../attendance/hooks/useAttendance.js'
+import { TESTAMENTS } from '../bibleBooks.js'
+import { createBooksRound, getBooksGameAttendanceDate, getPresentPlayersForDate } from '../booksGameUtils.js'
+
+const MotionDiv = motion.div
+
+export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardPlayer, players }) {
+  const { attendance } = useAttendance()
+  const [selectedTestamentId, setSelectedTestamentId] = useState(TESTAMENTS[0].id)
+  const [round, setRound] = useState(null)
+  const [secondsLeft, setSecondsLeft] = useState(BOOKS_GAME_SECONDS)
+  const [timerDone, setTimerDone] = useState(false)
+  const [awardedRoundId, setAwardedRoundId] = useState('')
+
+  const selectedTestament = TESTAMENTS.find((testament) => testament.id === selectedTestamentId) ?? TESTAMENTS[0]
+  const attendanceDate = useMemo(() => getBooksGameAttendanceDate(attendance), [attendance])
+  const presentPlayers = useMemo(
+    () => getPresentPlayersForDate(players, attendance, attendanceDate?.id),
+    [attendance, attendanceDate?.id, players],
+  )
+  const canAwardRound = round && timerDone && awardedRoundId !== round.id
+
+  useEffect(() => {
+    if (!round || timerDone) {
+      return undefined
+    }
+
+    const timerId = window.setInterval(() => {
+      setSecondsLeft((current) => {
+        if (current <= 1) {
+          window.clearInterval(timerId)
+          setTimerDone(true)
+          return 0
+        }
+
+        return current - 1
+      })
+    }, 1000)
+
+    return () => window.clearInterval(timerId)
+  }, [round, timerDone])
+
+  const handleTestamentChange = (testamentId) => {
+    setSelectedTestamentId(testamentId)
+    setRound(null)
+    setSecondsLeft(BOOKS_GAME_SECONDS)
+    setTimerDone(false)
+    setAwardedRoundId('')
+  }
+
+  const handleStartRound = () => {
+    const nextRound = createBooksRound(selectedTestament.books, presentPlayers)
+
+    if (!nextRound) {
+      return
+    }
+
+    setRound(nextRound)
+    setSecondsLeft(BOOKS_GAME_SECONDS)
+    setTimerDone(false)
+    setAwardedRoundId('')
+  }
+
+  const handleAwardGold = async () => {
+    if (!canAwardRound) {
+      return
+    }
+
+    const awarded = await onAwardPlayer(round.player.id)
+
+    if (awarded) {
+      setAwardedRoundId(round.id)
+    }
+  }
+
+  return (
+    <section className="panel books-page-shell">
+      <div className="books-topbar">
+        <div>
+          <div className="eyebrow">Books</div>
+          <h2>Books of the Bible</h2>
+        </div>
+
+        <div className="books-testament-toggle" aria-label="Choose testament">
+          {TESTAMENTS.map((testament) => (
+            <button
+              className={selectedTestament.id === testament.id ? 'active' : ''}
+              key={testament.id}
+              onClick={() => handleTestamentChange(testament.id)}
+              type="button"
+            >
+              {testament.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="books-game-board">
+        <div className="books-list-panel">
+          <div className="books-list-heading">
+            <strong>{selectedTestament.label}</strong>
+            <span>{selectedTestament.books.length} books</span>
+          </div>
+
+          <ol className="books-list">
+            {selectedTestament.books.map((book, index) => {
+              const isBlank = round?.blankIndex === index
+
+              return (
+                <li className={isBlank ? 'blank' : ''} key={book}>
+                  <span>{index + 1}</span>
+                  <strong>{isBlank ? '____________' : book}</strong>
+                </li>
+              )
+            })}
+          </ol>
+        </div>
+
+        <aside className="books-side-panel">
+          <div className="books-player-card">
+            <span>Answering</span>
+            <strong>{round?.player.display_name ?? 'Press Start'}</strong>
+            <small>{presentPlayers.length} present today</small>
+          </div>
+
+          <MotionDiv
+            animate={{ scale: timerDone ? 1.04 : 1 }}
+            className={`books-timer ${timerDone ? 'done' : ''}`}
+            transition={{ type: 'spring', stiffness: 240, damping: 16 }}
+          >
+            <span>Timer</span>
+            <strong>{secondsLeft}</strong>
+          </MotionDiv>
+
+          <div className="books-actions">
+            {!round ? (
+              <button
+                className="primary-button books-start-button"
+                disabled={!presentPlayers.length}
+                onClick={handleStartRound}
+                type="button"
+              >
+                Start
+              </button>
+            ) : null}
+
+            {round && !timerDone ? <p className="books-answer-hint">Identify the missing book.</p> : null}
+
+            {timerDone ? (
+              <>
+                <div className="books-answer-card">
+                  <span>Answer</span>
+                  <strong>{round.answer}</strong>
+                </div>
+                <button
+                  className="primary-button books-award-button"
+                  disabled={!canAwardRound || awardPendingPlayerId === round.player.id}
+                  onClick={handleAwardGold}
+                  type="button"
+                >
+                  {awardedRoundId === round.id ? 'Awarded' : `+${BOOKS_GAME_GOLD_REWARD}`}
+                </button>
+                <button
+                  className="ghost-button books-next-button"
+                  disabled={!presentPlayers.length}
+                  onClick={handleStartRound}
+                  type="button"
+                >
+                  Next
+                  <span aria-hidden="true">&gt;</span>
+                </button>
+              </>
+            ) : null}
+
+            {!presentPlayers.length ? (
+              <p className="books-empty-note">Mark students present in Attendance first.</p>
+            ) : null}
+
+            {awardMessage.text ? <p className={`status-line ${awardMessage.type}`}>{awardMessage.text}</p> : null}
+          </div>
+        </aside>
+      </div>
+    </section>
+  )
+}

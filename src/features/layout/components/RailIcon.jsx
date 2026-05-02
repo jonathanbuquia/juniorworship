@@ -47,6 +47,19 @@ export default function RailIcon({ type }) {
     )
   }
 
+  if (type === 'books') {
+    return (
+      <svg aria-hidden="true" viewBox="0 0 24 24">
+        <path d="M5.5 5.5h6a3 3 0 0 1 3 3v10a3 3 0 0 0-3-3h-6v-10Z" />
+        <path d="M18.5 5.5h-4a3 3 0 0 0-3 3v10a3 3 0 0 1 3-3h4v-10Z" />
+        <path d="M8 9h2.5" />
+        <path d="M8 12h2.5" />
+        <path d="M15 9h1.5" />
+        <path d="M15 12h1.5" />
+      </svg>
+    )
+  }
+
   if (type === 'quiz') {
     return (
       <svg aria-hidden="true" viewBox="0 0 24 24">

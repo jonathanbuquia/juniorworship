@@ -26,6 +26,7 @@ export default function GameTopBar({
   onLoginChange,
   onOpenAdmin,
   onOpenAttendance,
+  onOpenBooks,
   onOpenMemoryVerse,
   onOpenProfileMenu,
   onOpenQuiz,
@@ -42,6 +43,7 @@ export default function GameTopBar({
   viewedPlayer,
   viewingAdmin,
   viewingAttendance,
+  viewingBooks,
   viewingMemory,
   viewingQuiz,
   viewingShop,
@@ -190,6 +192,34 @@ export default function GameTopBar({
                     transition={POPOVER_TRANSITION}
                   >
                     ATTENDANCE
+                  </MotionSpan>
+                ) : null}
+              </AnimatePresence>
+            </MotionButton>
+
+            <MotionButton
+              aria-label="Books"
+              className={`rail-button rail-button-secondary ${viewingBooks ? 'active' : ''}`}
+              layout
+              onClick={onOpenBooks}
+              type="button"
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <span aria-hidden="true" className="rail-button-icon">
+                <RailIcon type="books" />
+              </span>
+              <AnimatePresence initial={false}>
+                {!effectiveCollapsed ? (
+                  <MotionSpan
+                    animate={{ opacity: 1, x: 0 }}
+                    className="rail-button-label"
+                    exit={{ opacity: 0, x: -8 }}
+                    initial={{ opacity: 0, x: -8 }}
+                    key="books-label"
+                    transition={POPOVER_TRANSITION}
+                  >
+                    BOOKS
                   </MotionSpan>
                 ) : null}
               </AnimatePresence>
