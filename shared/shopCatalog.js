@@ -39,6 +39,8 @@ export const SHOP_RARITY_FILTERS = [
   { id: 'special', label: 'Special' },
 ]
 
+export const MAY_EVENT_BETTA_SLUG = 'may-blue-betta'
+
 export const SHOP_ITEMS = [
   {
     slug: 'sunbeam-guppy',
@@ -75,6 +77,30 @@ export const SHOP_ITEMS = [
     bodyColor: '#89f0d0',
     finColor: '#2a9d8f',
     detailColor: '#ddfff7',
+  },
+  {
+    slug: MAY_EVENT_BETTA_SLUG,
+    category: 'events',
+    rarity: 'special',
+    name: 'Blue Betta Fish',
+    subtitle: 'MAY SPECIAL',
+    description: 'An elegant May event swimmer with royal blue fins and a cheerful sparkle.',
+    price: 250,
+    accentColor: '#2563eb',
+    bodyColor: '#5ee7ff',
+    finColor: '#1d4ed8',
+    detailColor: '#dbeafe',
+    aquariumScale: 1.16,
+    speedMultiplier: 1.35,
+    shopFishScale: 1.18,
+    canTalk: true,
+    burstDistance: 66,
+    talkMessages: [
+      'May blessings!',
+      'Perfect score sparkle!',
+      'Keep swimming strong!',
+      'You are amazing!',
+    ],
   },
 ]
 

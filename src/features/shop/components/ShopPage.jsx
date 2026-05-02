@@ -9,6 +9,8 @@ import {
 const MotionDiv = motion.div
 
 function ShopFishPreview({ item, index }) {
+  const fishScale = item.shopFishScale ?? 1.08
+
   return (
     <div className="shop-card-preview">
       <span className="shop-card-glow" style={{ '--shop-glow': item.accentColor }} />
@@ -39,7 +41,7 @@ function ShopFishPreview({ item, index }) {
             '--eye-y': 0,
             '--fin': item.finColor,
             '--fish-facing': index % 2 === 0 ? 1 : -1,
-            '--fish-scale': 1.08,
+            '--fish-scale': fishScale,
             '--fish-tilt': '0deg',
             '--light': item.detailColor,
             '--main': item.bodyColor,
@@ -182,7 +184,10 @@ export default function ShopPage({
 
                   <div className="shop-item-copy">
                     <div className="shop-item-heading">
-                      <strong>{item.name}</strong>
+                      <div>
+                        <strong>{item.name}</strong>
+                        {item.subtitle ? <small>{item.subtitle}</small> : null}
+                      </div>
                       {rarityLabel ? <span className={`shop-rarity-badge ${item.rarity}`}>{rarityLabel}</span> : null}
                     </div>
 

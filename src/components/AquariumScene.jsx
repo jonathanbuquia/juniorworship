@@ -58,6 +58,59 @@ function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max)
 }
 
+function useFishSpeech(fish) {
+  const [speech, setSpeech] = useState('')
+  const [bursting, setBursting] = useState(false)
+  const speechTimerRef = useRef(null)
+  const burstTimerRef = useRef(null)
+
+  useEffect(() => {
+    return () => {
+      if (speechTimerRef.current) {
+        window.clearTimeout(speechTimerRef.current)
+      }
+
+      if (burstTimerRef.current) {
+        window.clearTimeout(burstTimerRef.current)
+      }
+    }
+  }, [])
+
+  const talk = () => {
+    if (!fish.canTalk) {
+      return
+    }
+
+    if (speechTimerRef.current) {
+      window.clearTimeout(speechTimerRef.current)
+    }
+
+    if (burstTimerRef.current) {
+      window.clearTimeout(burstTimerRef.current)
+    }
+
+    const messages = fish.talkMessages?.length ? fish.talkMessages : ['Hello!']
+    setSpeech(messages[Math.floor(Math.random() * messages.length)])
+    setBursting(true)
+    speechTimerRef.current = window.setTimeout(() => setSpeech(''), 2400)
+    burstTimerRef.current = window.setTimeout(() => setBursting(false), 520)
+  }
+
+  const handleKeyDown = (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      talk()
+    }
+  }
+
+  return {
+    bursting,
+    handleKeyDown,
+    speech,
+    talk,
+  }
+}
+
 function buildOwnedFishConfigs(ownedFish) {
   return ownedFish.flatMap((entry, entryIndex) => {
     const item = findShopItemBySlug(entry.slug)
@@ -72,6 +125,8 @@ function buildOwnedFishConfigs(ownedFish) {
       return {
         directionX: defaults.directionX,
         directionY: defaults.directionY,
+        burstDistance: item.burstDistance ?? 0,
+        canTalk: Boolean(item.canTalk),
         id: `${entry.slug}-${index + 1}`,
         palette: {
           accent: item.accentColor,
@@ -81,10 +136,12 @@ function buildOwnedFishConfigs(ownedFish) {
           main: item.bodyColor,
           mouth: '#8b3f25',
         },
-        scale: defaults.scale + ((entryIndex + index) % 3) * 0.04,
-        speed: defaults.speed + ((entryIndex + index) % 2) * 4,
+        scale: (defaults.scale + ((entryIndex + index) % 3) * 0.04) * (item.aquariumScale ?? 1),
+        speed: (defaults.speed + ((entryIndex + index) % 2) * 4) * (item.speedMultiplier ?? 1),
         startX: clamp(defaults.startX + index * 0.06, 0.12, 0.82),
         startY: clamp(defaults.startY + (index % 2 === 0 ? 0.04 : -0.03), 0.16, 0.68),
+        talkMessages: item.talkMessages ?? [],
+        variant: item.slug,
       }
     })
   })
@@ -450,6 +507,7 @@ function useDraggableSwimmer({
 }
 
 function NaturalFish({ fish, movable = false, persistedStart, tankRef, tankSize, onPersistPosition }) {
+  const speech = useFishSpeech(fish)
   const draggable = useDraggableSwimmer({
     tankRef,
     width: BASE_FISH_WIDTH * fish.scale,
@@ -471,11 +529,15 @@ function NaturalFish({ fish, movable = false, persistedStart, tankRef, tankSize,
     startOverride: draggable.startOverride,
   })
   const displayPosition = draggable.dragPosition ?? pose
+  const burstX = speech.bursting ? fish.burstDistance * pose.facing : 0
 
   return (
     <div
-      className={`fish-swim ${pose.paused ? 'paused' : ''} ${draggable.dragging ? 'dragging' : ''}`}
+      className={`fish-swim ${fish.canTalk ? 'talking-fish' : ''} ${speech.bursting ? 'bursting' : ''} ${
+        pose.paused ? 'paused' : ''
+      } ${draggable.dragging ? 'dragging' : ''}`}
       style={{
+        '--fish-burst-x': `${burstX}px`,
         '--fish-scale': fish.scale,
         '--main': fish.palette.main,
         '--light': fish.palette.light,
@@ -490,9 +552,14 @@ function NaturalFish({ fish, movable = false, persistedStart, tankRef, tankSize,
         '--eye-x': pose.eyeX,
         '--eye-y': pose.eyeY,
       }}
+      onClick={fish.canTalk ? speech.talk : undefined}
+      onKeyDown={fish.canTalk ? speech.handleKeyDown : undefined}
       onPointerDown={movable ? (event) => draggable.startDragging(event, displayPosition) : undefined}
+      role={fish.canTalk ? 'button' : undefined}
+      tabIndex={fish.canTalk ? 0 : undefined}
       aria-label="Cute fish"
     >
+      {speech.speech ? <div className="fish-talk-bubble" aria-hidden="true">{speech.speech}</div> : null}
       <div className="fish-motion">
         <div className="fish-bob">
           <div className="fish-illustration">

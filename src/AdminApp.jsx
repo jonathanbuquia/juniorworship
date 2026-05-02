@@ -10,6 +10,7 @@ import {
   ADMIN_SECTIONS,
   ATTENDANCE_PATH,
   GOLD_PER_QUIZ_POINT,
+  MEMORY_VERSE_QUIZ_POINTS,
   MEMORY_PATH,
   POPOVER_TRANSITION,
   QUIZ_PATH,
@@ -35,16 +36,57 @@ import { usePlayerDirectory } from './features/players/hooks/usePlayerDirectory.
 import ActivePlayerHud from './features/players/components/ActivePlayerHud.jsx'
 import QuizPage from './features/quiz/components/QuizPage.jsx'
 import { useQuizState } from './features/quiz/hooks/useQuizState.js'
-import { SHOP_CATEGORIES } from '../shared/shopCatalog.js'
-import { parseQuizDraftText } from './features/quiz/quizUtils.js'
+import { MAY_EVENT_BETTA_SLUG, SHOP_CATEGORIES } from '../shared/shopCatalog.js'
+import { getQuizQuestionPoints, parseQuizDraftText } from './features/quiz/quizUtils.js'
 import ShopPage from './features/shop/components/ShopPage.jsx'
 import { bootstrapAdminAccount, loginAdmin } from './services/api/authService.js'
-import { adjustPlayerGold, createPlayer, deletePlayer } from './services/api/playerService.js'
+import { adjustPlayerGold, createPlayer, deletePlayer, fetchPlayerAquarium } from './services/api/playerService.js'
 import { buyItemForPlayer } from './services/api/shopService.js'
 
 const MotionDiv = motion.div
 const MotionMain = motion.main
 const DEFAULT_PATH = '/'
+const BETTA_PERFECT_QUIZ_BONUS = 50
+const BETTA_QUIZ_BONUS_STORAGE_KEY = 'may-betta-perfect-quiz-bonus:v1'
+
+function createLocalDateKey(value = new Date()) {
+  const year = value.getFullYear()
+  const month = String(value.getMonth() + 1).padStart(2, '0')
+  const day = String(value.getDate()).padStart(2, '0')
+
+  return `${year}-${month}-${day}`
+}
+
+function readBettaQuizBonusClaims() {
+  try {
+    const savedValue = window.localStorage.getItem(BETTA_QUIZ_BONUS_STORAGE_KEY)
+
+    if (!savedValue) {
+      return {}
+    }
+
+    const parsed = JSON.parse(savedValue)
+    return parsed && typeof parsed === 'object' ? parsed : {}
+  } catch {
+    return {}
+  }
+}
+
+function hasBettaQuizBonusClaim(playerId, dateKey = createLocalDateKey()) {
+  return Boolean(readBettaQuizBonusClaims()[`${playerId}:${dateKey}:${MAY_EVENT_BETTA_SLUG}`])
+}
+
+function saveBettaQuizBonusClaim(playerId, dateKey = createLocalDateKey()) {
+  const claims = readBettaQuizBonusClaims()
+
+  window.localStorage.setItem(
+    BETTA_QUIZ_BONUS_STORAGE_KEY,
+    JSON.stringify({
+      ...claims,
+      [`${playerId}:${dateKey}:${MAY_EVENT_BETTA_SLUG}`]: true,
+    }),
+  )
+}
 
 export default function AdminApp() {
   const { navigate, pathname } = usePathname()
@@ -751,6 +793,11 @@ export default function AdminApp() {
         throw new Error('Sign in as admin to reward players.')
       }
 
+      const perfectQuizScore = quizQuestions.reduce(
+        (total, question) => total + getQuizQuestionPoints(question),
+        MEMORY_VERSE_QUIZ_POINTS,
+      )
+      const todayKey = createLocalDateKey()
       const awards = players
         .map((player) => ({
           player,
@@ -767,6 +814,7 @@ export default function AdminApp() {
           return {
             amount: score * GOLD_PER_QUIZ_POINT,
             player,
+            score,
           }
         })
 
@@ -774,20 +822,46 @@ export default function AdminApp() {
         throw new Error('Type at least one player score first.')
       }
 
-      const updatedPlayers = await Promise.all(
-        awards.map(async ({ amount, player }) => {
+      const awardResults = await Promise.all(
+        awards.map(async ({ amount, player, score }) => {
+          let bonusAwarded = false
+          let bonusAmount = 0
+
+          if (score === perfectQuizScore && !hasBettaQuizBonusClaim(player.id, todayKey)) {
+            const aquarium = await fetchPlayerAquarium(player.id)
+            const ownsMayBetta = (aquarium.fish ?? []).some(
+              (item) => item.slug === MAY_EVENT_BETTA_SLUG && Number(item.quantity) > 0,
+            )
+
+            if (ownsMayBetta) {
+              bonusAmount = BETTA_PERFECT_QUIZ_BONUS
+              bonusAwarded = true
+            }
+          }
+
           const data = await adjustPlayerGold(accessToken, {
-            amount,
+            amount: amount + bonusAmount,
             playerId: player.id,
           })
 
-          return data.player
+          if (bonusAwarded) {
+            saveBettaQuizBonusClaim(player.id, todayKey)
+          }
+
+          return {
+            bonusAwarded,
+            player: data.player,
+          }
         }),
       )
+      const updatedPlayers = awardResults.map((result) => result.player)
+      const bettaBonusCount = awardResults.filter((result) => result.bonusAwarded).length
 
       setQuizAwardResult({
         type: 'success',
-        text: `Quiz gold added to ${updatedPlayers.length} player${updatedPlayers.length === 1 ? '' : 's'}.`,
+        text: `Quiz gold added to ${updatedPlayers.length} player${updatedPlayers.length === 1 ? '' : 's'}.${
+          bettaBonusCount ? ` Blue Betta perfect-score bonus added to ${bettaBonusCount} player${bettaBonusCount === 1 ? '' : 's'}.` : ''
+        }`,
       })
       applyPlayerUpdates(updatedPlayers)
     } catch (error) {

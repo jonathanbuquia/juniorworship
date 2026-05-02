@@ -1629,14 +1629,53 @@
 .fish-swim {
   width: calc(198px * var(--fish-scale));
   height: calc(126px * var(--fish-scale));
-  transform: translate3d(var(--swim-x), var(--swim-y), 0);
+  transform: translate3d(calc(var(--swim-x) + var(--fish-burst-x, 0px)), var(--swim-y), 0);
   cursor: grab;
   touch-action: none;
   will-change: transform;
 }
 
+.fish-swim.talking-fish {
+  cursor: pointer;
+}
+
+.fish-swim.talking-fish.bursting {
+  transition: transform 0.24s ease-out;
+}
+
 .fish-swim.dragging {
   cursor: grabbing;
+}
+
+.fish-talk-bubble {
+  position: absolute;
+  left: 50%;
+  top: -48px;
+  z-index: 4;
+  width: 150px;
+  padding: 9px 11px;
+  border-radius: 16px;
+  color: #16436c;
+  background: rgba(232, 247, 255, 0.94);
+  box-shadow: 0 8px 18px rgba(23, 91, 146, 0.2);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.2;
+  text-align: center;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.fish-talk-bubble::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -8px;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  background: inherit;
+  transform: translateX(-50%) rotate(45deg);
 }
 
 .fish-motion {

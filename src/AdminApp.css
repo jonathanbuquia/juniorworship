@@ -2201,8 +2201,19 @@
 }
 
 .shop-item-heading strong {
+  display: block;
   font-size: 1.18rem;
   color: #12364b;
+}
+
+.shop-item-heading small {
+  display: block;
+  margin-top: 3px;
+  color: #16764a;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 .shop-item-footer {
