@@ -190,7 +190,7 @@ export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardP
         </div>
 
         <aside className="books-side-panel">
-          <div className="books-player-card">
+          <div className={`books-player-card ${round ? 'active' : ''}`}>
             <span>Answering</span>
             <strong>{round?.player.display_name ?? 'Press Start'}</strong>
             <small>
