@@ -116,6 +116,11 @@ export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardP
         </div>
 
         <div className="books-testament-toggle" aria-label="Choose testament">
+          {round ? (
+            <button className="books-stop-button" onClick={handleStopRound} type="button">
+              Stop
+            </button>
+          ) : null}
           {TESTAMENTS.map((testament) => (
             <Fragment key={testament.id}>
               <button
@@ -125,11 +130,6 @@ export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardP
               >
                 {testament.label}
               </button>
-              {round && testament.id === 'old' ? (
-                <button className="books-stop-button" onClick={handleStopRound} type="button">
-                  Stop
-                </button>
-              ) : null}
             </Fragment>
           ))}
         </div>
