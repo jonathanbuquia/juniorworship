@@ -2483,6 +2483,11 @@
 
 @media (max-width: 820px) {
   .may-special-announcement {
+    max-height: calc(100dvh - 96px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
     padding: 28px;
     border-radius: 26px;
   }
@@ -2536,6 +2541,7 @@
 
 @media (max-width: 520px) {
   .may-special-announcement {
+    max-height: calc(100dvh - 76px);
     padding: 22px;
   }
 
