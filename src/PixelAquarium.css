@@ -1629,7 +1629,7 @@
 .fish-swim {
   width: calc(198px * var(--fish-scale));
   height: calc(126px * var(--fish-scale));
-  transform: translate3d(calc(var(--swim-x) + var(--fish-burst-x, 0px)), var(--swim-y), 0);
+  transform: translate3d(var(--swim-x), var(--swim-y), 0);
   cursor: grab;
   touch-action: none;
   will-change: transform;
@@ -1640,7 +1640,7 @@
 }
 
 .fish-swim.talking-fish.bursting {
-  transition: transform 0.24s ease-out;
+  transition: transform 0.72s cubic-bezier(0.18, 0.9, 0.26, 1);
 }
 
 .fish-swim.dragging {
@@ -1731,16 +1731,16 @@
 }
 
 .fish-may-blue-betta .fish-illustration .fish-body {
-  left: 54px;
-  top: 32px;
-  width: 128px;
-  height: 58px;
-  border-radius: 56% 44% 46% 54%;
+  left: 48px;
+  top: 24px;
+  width: 140px;
+  height: 76px;
+  border-radius: 58% 42% 48% 52%;
   background:
     radial-gradient(circle at 86% 42%, rgba(229, 199, 255, 0.5) 0 6%, transparent 6.5%),
     repeating-linear-gradient(160deg, rgba(255, 255, 255, 0.14) 0 3px, transparent 3px 10px),
     linear-gradient(100deg, #3d69da 0%, #348ddb 44%, #66d7f7 100%);
-  clip-path: polygon(0 50%, 14% 25%, 42% 12%, 76% 14%, 96% 34%, 100% 51%, 96% 68%, 76% 86%, 42% 90%, 14% 75%);
+  clip-path: polygon(0 50%, 13% 22%, 42% 8%, 76% 12%, 96% 32%, 100% 50%, 96% 70%, 76% 88%, 42% 94%, 13% 78%);
   box-shadow:
     inset -12px -8px 0 rgba(31, 76, 168, 0.18),
     inset 14px 8px 0 rgba(255, 255, 255, 0.18);
@@ -1749,9 +1749,9 @@
 .fish-may-blue-betta .fish-face {
   right: 0;
   left: auto;
-  top: 6px;
-  width: 48px;
-  height: 46px;
+  top: 10px;
+  width: 52px;
+  height: 56px;
   border-radius: 56% 42% 44% 54%;
   background:
     radial-gradient(circle at 72% 39%, rgba(232, 215, 255, 0.62) 0 10%, transparent 10.8%),
@@ -1760,10 +1760,10 @@
 }
 
 .fish-may-blue-betta .fish-illustration .fish-tail {
-  left: -4px;
-  top: 18px;
-  width: 80px;
-  height: 82px;
+  left: -10px;
+  top: 16px;
+  width: 88px;
+  height: 88px;
   background:
     repeating-radial-gradient(ellipse at 95% 50%, rgba(54, 119, 213, 0.44) 0 2px, transparent 2px 8px),
     linear-gradient(70deg, rgba(183, 148, 245, 0.62), rgba(85, 174, 235, 0.74) 54%, rgba(36, 99, 225, 0.94));
@@ -1790,32 +1790,32 @@
 }
 
 .fish-may-blue-betta .fish-fin.dorsal {
-  top: 4px;
-  left: 90px;
-  width: 66px;
-  height: 46px;
+  top: -2px;
+  left: 84px;
+  width: 78px;
+  height: 54px;
   clip-path: polygon(4% 100%, 18% 28%, 48% 0, 82% 13%, 100% 100%);
   transform: rotate(-5deg);
   opacity: 0.9;
 }
 
 .fish-may-blue-betta .fish-fin.side {
-  left: 110px;
-  bottom: 24px;
-  width: 36px;
-  height: 42px;
+  left: 112px;
+  bottom: 18px;
+  width: 44px;
+  height: 52px;
   clip-path: ellipse(43% 50% at 50% 48%);
   transform: rotate(18deg);
   background: linear-gradient(145deg, rgba(221, 237, 255, 0.84), rgba(72, 150, 228, 0.58));
 }
 
 .fish-may-blue-betta .fish-fin.belly {
-  left: 82px;
-  bottom: -28px;
-  width: 78px;
-  height: 58px;
-  clip-path: polygon(12% 0, 100% 8%, 80% 40%, 58% 100%, 18% 66%);
-  transform: rotate(10deg);
+  left: 78px;
+  bottom: 2px;
+  width: 86px;
+  height: 48px;
+  clip-path: polygon(8% 0, 100% 8%, 82% 48%, 34% 100%, 0 58%);
+  transform: rotate(8deg);
   background:
     repeating-linear-gradient(125deg, rgba(122, 39, 169, 0.22) 0 1px, transparent 1px 8px),
     linear-gradient(165deg, rgba(24, 111, 214, 0.68), rgba(236, 112, 204, 0.6), rgba(255, 235, 247, 0.3));
@@ -1823,8 +1823,8 @@
 
 .fish-may-blue-betta .fish-eye {
   left: auto;
-  right: 14px;
-  top: 18px;
+  right: 16px;
+  top: 24px;
   width: 22px;
   height: 22px;
   background: var(--eye);
@@ -1842,26 +1842,28 @@
 
 .fish-may-blue-betta .fish-mouth {
   left: auto;
-  right: 7px;
-  top: 41px;
-  width: 14px;
-  height: 9px;
+  right: 10px;
+  top: 50px;
+  width: 16px;
+  height: 10px;
   border-bottom-color: #75305f;
+  border-radius: 0 0 12px 12px;
+  transform: rotate(-6deg);
 }
 
 .fish-may-blue-betta .fish-gill {
   left: auto;
-  right: 42px;
-  top: 19px;
-  height: 21px;
+  right: 46px;
+  top: 26px;
+  height: 26px;
   border-left-color: rgba(56, 87, 173, 0.36);
 }
 
 .fish-may-blue-betta .fish-highlight {
-  left: 40px;
-  top: 13px;
-  width: 50px;
-  height: 13px;
+  left: 44px;
+  top: 17px;
+  width: 56px;
+  height: 15px;
   background: rgba(219, 244, 255, 0.34);
 }
 

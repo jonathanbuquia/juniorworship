@@ -93,7 +93,7 @@ function useFishSpeech(fish) {
     setSpeech(messages[Math.floor(Math.random() * messages.length)])
     setBursting(true)
     speechTimerRef.current = window.setTimeout(() => setSpeech(''), 2400)
-    burstTimerRef.current = window.setTimeout(() => setBursting(false), 520)
+    burstTimerRef.current = window.setTimeout(() => setBursting(false), 900)
   }
 
   const handleKeyDown = (event) => {
@@ -529,7 +529,26 @@ function NaturalFish({ fish, movable = false, persistedStart, tankRef, tankSize,
     startOverride: draggable.startOverride,
   })
   const displayPosition = draggable.dragPosition ?? pose
-  const burstX = speech.bursting ? fish.burstDistance * pose.facing : 0
+  const handleTalk = () => {
+    speech.talk()
+
+    if (!fish.canTalk || !tankSize.width || !tankSize.height) {
+      return
+    }
+
+    const width = BASE_FISH_WIDTH * fish.scale
+    const height = BASE_FISH_HEIGHT * fish.scale
+    const minX = 10
+    const maxX = Math.max(minX, tankSize.width - width - 10)
+    const minY = 14
+    const maxY = Math.max(minY, tankSize.height - tankSize.height * 0.24 - height)
+    const nextX = displayPosition.x < tankSize.width / 2 ? maxX : minX
+
+    onPersistPosition?.({
+      x: nextX,
+      y: clamp(displayPosition.y, minY, maxY),
+    })
+  }
 
   return (
     <div
@@ -537,7 +556,6 @@ function NaturalFish({ fish, movable = false, persistedStart, tankRef, tankSize,
         speech.bursting ? 'bursting' : ''
       } ${pose.paused ? 'paused' : ''} ${draggable.dragging ? 'dragging' : ''}`}
       style={{
-        '--fish-burst-x': `${burstX}px`,
         '--fish-scale': fish.scale,
         '--main': fish.palette.main,
         '--light': fish.palette.light,
@@ -552,7 +570,7 @@ function NaturalFish({ fish, movable = false, persistedStart, tankRef, tankSize,
         '--eye-x': pose.eyeX,
         '--eye-y': pose.eyeY,
       }}
-      onClick={fish.canTalk ? speech.talk : undefined}
+      onClick={fish.canTalk ? handleTalk : undefined}
       onKeyDown={fish.canTalk ? speech.handleKeyDown : undefined}
       onPointerDown={movable ? (event) => draggable.startDragging(event, displayPosition) : undefined}
       role={fish.canTalk ? 'button' : undefined}
