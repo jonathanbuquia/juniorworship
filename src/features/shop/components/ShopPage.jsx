@@ -5,83 +5,9 @@ import {
   SHOP_RARITY_FILTERS,
   getShopItemsByCategoryAndRarity,
 } from '../../../../shared/shopCatalog.js'
+import ShopFishPreview from './ShopFishPreview.jsx'
 
 const MotionDiv = motion.div
-
-function ShopFishPreview({ item, index }) {
-  const fishScale = item.shopFishScale ?? 1.08
-
-  return (
-    <div className="shop-card-preview">
-      <span className="shop-card-glow" style={{ '--shop-glow': item.accentColor }} />
-      <span className="shop-card-bubble bubble-a" />
-      <span className="shop-card-bubble bubble-b" />
-      <span className="shop-card-bubble bubble-c" />
-      <span className="shop-card-seaweed seaweed-a" />
-      <span className="shop-card-seaweed seaweed-b" />
-      <motion.div
-        animate={{
-          rotate: [-3, 2, -3],
-          x: ['-10%', '8%', '-10%'],
-          y: [0, -7, 0, 5, 0],
-        }}
-        className="shop-fish-swim"
-        transition={{
-          duration: 4.8 + index * 0.55,
-          ease: 'easeInOut',
-          repeat: Infinity,
-        }}
-      >
-        <div
-          className={`fish-swim shop-card-fish ${item.slug ? `fish-${item.slug}` : ''}`}
-          style={{
-            '--accent': item.accentColor,
-            '--eye': '#1f2c46',
-            '--eye-x': 0,
-            '--eye-y': 0,
-            '--fin': item.finColor,
-            '--fish-facing': index % 2 === 0 ? 1 : -1,
-            '--fish-scale': fishScale,
-            '--fish-tilt': '0deg',
-            '--light': item.detailColor,
-            '--main': item.bodyColor,
-            '--mouth': '#8b3f25',
-            '--swim-x': '0px',
-            '--swim-y': '0px',
-          }}
-        >
-          <div className="fish-motion">
-            <div className="fish-bob">
-              <div className="fish-illustration">
-                <div className="fish-tail" />
-                <div className="fish-fin dorsal" />
-                <div className="fish-fin side" />
-                <div className="fish-fin belly" />
-                <div className="fish-body">
-                  <div className="fish-face" />
-                  <div className="fish-eye">
-                    <span className="fish-pupil">
-                      <span className="eye-spark" />
-                    </span>
-                  </div>
-                  <div className="fish-mouth" />
-                  <div className="fish-gill" />
-                  <div className="fish-highlight" />
-                  <div className="fish-stripe stripe-a" />
-                  <div className="fish-stripe stripe-b" />
-                  <div className="fish-stripe stripe-c" />
-                  <div className="fish-scale scale-a" />
-                  <div className="fish-scale scale-b" />
-                  <div className="fish-scale scale-c" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-    </div>
-  )
-}
 
 export default function ShopPage({
   isAdmin,
@@ -170,6 +96,7 @@ export default function ShopPage({
             {visibleItems.map((item, index) => {
               const needsMoreGold = selectedPlayer ? selectedPlayer.gold < item.price : false
               const rarityLabel = item.rarity ? item.rarity.toUpperCase() : ''
+              const abilityLabels = item.abilities ?? []
 
               return (
                 <MotionDiv
@@ -191,10 +118,24 @@ export default function ShopPage({
                       {rarityLabel ? <span className={`shop-rarity-badge ${item.rarity}`}>{rarityLabel}</span> : null}
                     </div>
 
+                    {abilityLabels.length ? (
+                      <div className="shop-ability-list">
+                        {abilityLabels.map((ability) => (
+                          <span className="shop-ability-chip" key={ability}>
+                            {ability}
+                          </span>
+                        ))}
+                      </div>
+                    ) : null}
+
                     <div className="shop-item-footer">
                       <div className="shop-item-price">
                         <span>Price</span>
-                        <strong>{item.price} gold</strong>
+                        <div className="shop-price-row">
+                          {item.isOnSale ? <del>{item.originalPrice} gold</del> : null}
+                          <strong>{item.price} gold</strong>
+                          {item.isOnSale ? <em>Sale</em> : null}
+                        </div>
                       </div>
                       <button
                         className={`primary-button compact-button ${needsMoreGold ? 'warning' : ''}`}

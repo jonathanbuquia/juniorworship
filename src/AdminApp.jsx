@@ -38,6 +38,7 @@ import QuizPage from './features/quiz/components/QuizPage.jsx'
 import { useQuizState } from './features/quiz/hooks/useQuizState.js'
 import { MAY_EVENT_BETTA_SLUG, SHOP_CATEGORIES } from '../shared/shopCatalog.js'
 import { getQuizQuestionPoints, parseQuizDraftText } from './features/quiz/quizUtils.js'
+import MaySpecialAnnouncement from './features/shop/components/MaySpecialAnnouncement.jsx'
 import ShopPage from './features/shop/components/ShopPage.jsx'
 import { bootstrapAdminAccount, loginAdmin } from './services/api/authService.js'
 import { adjustPlayerGold, createPlayer, deletePlayer, fetchPlayerAquarium } from './services/api/playerService.js'
@@ -219,9 +220,11 @@ export default function AdminApp() {
   const viewingMemory = pathname === MEMORY_PATH
   const viewingQuiz = pathname === QUIZ_PATH
   const viewingShop = pathname === SHOP_PATH
+  const viewingHome = pathname === DEFAULT_PATH
   const readyForProtectedView = !authLoading && !profileLoading && session && profile
   const showGameScene =
     !viewingAttendance && !viewingMemory && !viewingQuiz && !viewingAdmin && !viewingShop && Boolean(viewedPlayer)
+  const showMaySpecialAnnouncement = viewingHome && !viewedPlayer
   const isTeachingFullscreen = isMemoryFullscreen || isQuizFullscreen
   const showActivePlayerHud =
     Boolean(viewedPlayer) &&
@@ -1211,6 +1214,8 @@ export default function AdminApp() {
               </p>
             </section>
           ) : null}
+
+          {showMaySpecialAnnouncement ? <MaySpecialAnnouncement onOpenShop={handleOpenShop} /> : null}
 
           {viewingAttendance && isAdmin ? (
             <div className="attendance-stage">

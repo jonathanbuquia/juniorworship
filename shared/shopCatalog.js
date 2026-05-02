@@ -40,6 +40,39 @@ export const SHOP_RARITY_FILTERS = [
 ]
 
 export const MAY_EVENT_BETTA_SLUG = 'may-blue-betta'
+export const MAY_EVENT_BETTA_SALE_END_DATE = '2026-05-31'
+
+function isDateOnOrBefore(dateKey, endDateKey) {
+  return String(dateKey || '') <= endDateKey
+}
+
+function createLocalDateKey(value = new Date()) {
+  const year = value.getFullYear()
+  const month = String(value.getMonth() + 1).padStart(2, '0')
+  const day = String(value.getDate()).padStart(2, '0')
+
+  return `${year}-${month}-${day}`
+}
+
+export function getShopItemPrice(item, value = new Date()) {
+  if (!item?.salePrice || !item?.saleEndsOn) {
+    return item?.price ?? 0
+  }
+
+  return isDateOnOrBefore(createLocalDateKey(value), item.saleEndsOn) ? item.salePrice : item.price
+}
+
+function withEffectivePrice(item) {
+  const currentPrice = getShopItemPrice(item)
+
+  return {
+    ...item,
+    currentPrice,
+    isOnSale: currentPrice < item.price,
+    originalPrice: item.price,
+    price: currentPrice,
+  }
+}
 
 export const SHOP_ITEMS = [
   {
@@ -85,7 +118,9 @@ export const SHOP_ITEMS = [
     name: 'Blue Betta Fish',
     subtitle: 'MAY SPECIAL',
     description: 'An elegant May event swimmer with royal blue fins and a cheerful sparkle.',
-    price: 250,
+    price: 2500,
+    salePrice: 1500,
+    saleEndsOn: MAY_EVENT_BETTA_SALE_END_DATE,
     accentColor: '#2563eb',
     bodyColor: '#5ee7ff',
     finColor: '#1d4ed8',
@@ -95,6 +130,11 @@ export const SHOP_ITEMS = [
     shopFishScale: 1.18,
     canTalk: true,
     burstDistance: 66,
+    abilities: [
+      'Fast click dash',
+      'Talks when clicked',
+      '+50 perfect quiz gold',
+    ],
     talkMessages: [
       'May blessings!',
       'Perfect score sparkle!',
@@ -105,11 +145,12 @@ export const SHOP_ITEMS = [
 ]
 
 export function findShopItemBySlug(slug) {
-  return SHOP_ITEMS.find((item) => item.slug === slug) ?? null
+  const item = SHOP_ITEMS.find((shopItem) => shopItem.slug === slug) ?? null
+  return item ? withEffectivePrice(item) : null
 }
 
 export function getShopItemsByCategory(categoryId) {
-  return SHOP_ITEMS.filter((item) => item.category === categoryId)
+  return SHOP_ITEMS.filter((item) => item.category === categoryId).map(withEffectivePrice)
 }
 
 export function getShopItemsByCategoryAndRarity(categoryId, rarityId = 'all') {
