@@ -132,10 +132,29 @@ export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardP
               </button>
             </Fragment>
           ))}
+          {showOldTestamentFilters ? (
+            <label className="books-view-select">
+              <span>View</span>
+              <select onChange={(event) => setOldTestamentView(event.target.value)} value={oldTestamentView}>
+                <option value="list">By List</option>
+                <option value="category">By Category</option>
+              </select>
+            </label>
+          ) : null}
+          {!round ? (
+            <button
+              className="primary-button books-top-start-button"
+              disabled={!presentPlayers.length}
+              onClick={handleStartRound}
+              type="button"
+            >
+              Start
+            </button>
+          ) : null}
         </div>
       </div>
 
-      <div className="books-game-board">
+      <div className={`books-game-board ${round ? '' : 'list-mode'}`}>
         <div className="books-list-panel">
           <div className="books-list-heading">
             <strong>{selectedTestament.label}</strong>
@@ -189,59 +208,29 @@ export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardP
           )}
         </div>
 
-        <aside className="books-side-panel">
-          <div className={`books-player-card ${round ? 'active' : ''}`}>
-            <span>Answering</span>
-            <strong>{round?.player.display_name ?? 'Press Start'}</strong>
-            <small>
-              {turnsLeft} turn{turnsLeft === 1 ? '' : 's'} left
-            </small>
-          </div>
+        {round ? (
+          <aside className="books-side-panel">
+            <div className="books-player-card active">
+              <span>Answering</span>
+              <strong>{round.player.display_name}</strong>
+              <small>
+                {turnsLeft} turn{turnsLeft === 1 ? '' : 's'} left
+              </small>
+            </div>
 
-          <MotionDiv
-            animate={{ scale: timerDone ? 1.04 : 1 }}
-            className={`books-timer ${timerDone ? 'done' : ''}`}
-            transition={{ type: 'spring', stiffness: 240, damping: 16 }}
-          >
-            <span>Timer</span>
-            <strong>{secondsLeft}</strong>
-          </MotionDiv>
+            <MotionDiv
+              animate={{ scale: timerDone ? 1.04 : 1 }}
+              className={`books-timer ${timerDone ? 'done' : ''}`}
+              transition={{ type: 'spring', stiffness: 240, damping: 16 }}
+            >
+              <span>Timer</span>
+              <strong>{secondsLeft}</strong>
+            </MotionDiv>
 
-          <div className="books-actions">
-            {!round ? (
-              <button
-                className="primary-button books-start-button"
-                disabled={!presentPlayers.length}
-                onClick={handleStartRound}
-                type="button"
-              >
-                Start
-              </button>
-            ) : null}
+            <div className="books-actions">
+              {!timerDone ? <p className="books-answer-hint">Identify the missing book.</p> : null}
 
-            {showOldTestamentFilters ? (
-              <div className="books-view-filter" aria-label="Old Testament view filter">
-                <span>View</span>
-                <button
-                  className={oldTestamentView === 'list' ? 'active' : ''}
-                  onClick={() => setOldTestamentView('list')}
-                  type="button"
-                >
-                  By List
-                </button>
-                <button
-                  className={oldTestamentView === 'category' ? 'active' : ''}
-                  onClick={() => setOldTestamentView('category')}
-                  type="button"
-                >
-                  By Category
-                </button>
-              </div>
-            ) : null}
-
-            {round && !timerDone ? <p className="books-answer-hint">Identify the missing book.</p> : null}
-
-            {timerDone ? (
+              {timerDone ? (
               <>
                 <div className="books-answer-card">
                   <span>Answer</span>
@@ -272,8 +261,9 @@ export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardP
             ) : null}
 
             {awardMessage.text ? <p className={`status-line ${awardMessage.type}`}>{awardMessage.text}</p> : null}
-          </div>
-        </aside>
+            </div>
+          </aside>
+        ) : null}
       </div>
     </section>
   )

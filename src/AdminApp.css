@@ -1768,6 +1768,7 @@
   flex-wrap: wrap;
   gap: 8px;
   justify-content: flex-end;
+  align-items: center;
 }
 
 .books-testament-toggle button {
@@ -1794,11 +1795,51 @@
   box-shadow: 0 12px 24px rgba(207, 63, 63, 0.2);
 }
 
+.books-view-select {
+  min-width: 148px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px 6px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: inset 0 0 0 1px rgba(21, 91, 124, 0.12);
+}
+
+.books-view-select span {
+  color: #63869a;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.books-view-select select {
+  width: 100%;
+  border: 0;
+  padding: 7px 10px;
+  border-radius: 999px;
+  color: #17425c;
+  background: rgba(224, 244, 252, 0.92);
+  font-weight: 900;
+}
+
+.books-top-start-button {
+  width: auto;
+  min-width: 116px;
+  justify-content: center;
+}
+
 .books-game-board {
   min-height: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr) clamp(330px, 30vw, 420px);
   gap: clamp(10px, 1.6vw, 18px);
+}
+
+.books-game-board.list-mode {
+  grid-template-columns: 1fr;
 }
 
 .books-list-panel,
@@ -2299,6 +2340,11 @@
     flex: 1 1 130px;
     padding: 8px 10px;
     font-size: 0.72rem;
+  }
+
+  .books-view-select,
+  .books-top-start-button {
+    flex: 1 1 150px;
   }
 
   .books-list-panel,
