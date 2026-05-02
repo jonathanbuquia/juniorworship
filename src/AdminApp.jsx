@@ -47,7 +47,7 @@ import { buyItemForPlayer } from './services/api/shopService.js'
 const MotionDiv = motion.div
 const MotionMain = motion.main
 const DEFAULT_PATH = '/'
-const BETTA_PERFECT_QUIZ_BONUS = 50
+const BETTA_PERFECT_QUIZ_BONUS = 100
 const BETTA_QUIZ_BONUS_STORAGE_KEY = 'may-betta-perfect-quiz-bonus:v1'
 
 function createLocalDateKey(value = new Date()) {

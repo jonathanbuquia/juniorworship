@@ -118,7 +118,7 @@ export const SHOP_ITEMS = [
     name: 'Blue Betta Fish',
     subtitle: 'MAY SPECIAL',
     description: 'An elegant May event swimmer with royal blue fins and a cheerful sparkle.',
-    price: 2500,
+    price: 3000,
     salePrice: 1500,
     saleEndsOn: MAY_EVENT_BETTA_SALE_END_DATE,
     accentColor: '#2563eb',
@@ -133,7 +133,7 @@ export const SHOP_ITEMS = [
     abilities: [
       'Fast click dash',
       'Talks when clicked',
-      '+50 perfect quiz gold',
+      '+100 perfect quiz gold',
     ],
     talkMessages: [
       'May blessings!',
