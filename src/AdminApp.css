@@ -2021,6 +2021,36 @@
   background: linear-gradient(135deg, rgba(255, 225, 236, 0.96), rgba(255, 191, 214, 0.88));
 }
 
+.books-list li.category-gospels,
+.books-category-card.gospels,
+.books-round-card.category-gospels {
+  background: linear-gradient(135deg, rgba(215, 248, 225, 0.96), rgba(146, 226, 178, 0.88));
+}
+
+.books-list li.category-nt-history,
+.books-category-card.nt-history,
+.books-round-card.category-nt-history {
+  background: linear-gradient(135deg, rgba(219, 241, 255, 0.96), rgba(159, 215, 252, 0.88));
+}
+
+.books-list li.category-pauls-epistles,
+.books-category-card.pauls-epistles,
+.books-round-card.category-pauls-epistles {
+  background: linear-gradient(135deg, rgba(255, 233, 204, 0.96), rgba(255, 198, 125, 0.88));
+}
+
+.books-list li.category-general-epistles,
+.books-category-card.general-epistles,
+.books-round-card.category-general-epistles {
+  background: linear-gradient(135deg, rgba(235, 224, 255, 0.96), rgba(203, 180, 255, 0.88));
+}
+
+.books-list li.category-prophecy,
+.books-category-card.prophecy,
+.books-round-card.category-prophecy {
+  background: linear-gradient(135deg, rgba(255, 222, 229, 0.96), rgba(255, 168, 190, 0.88));
+}
+
 .books-category-list {
   min-height: 0;
   display: grid;

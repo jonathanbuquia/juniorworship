@@ -98,8 +98,41 @@ export const OLD_TESTAMENT_CATEGORIES = [
   },
 ]
 
-export function getOldTestamentCategoryId(book) {
-  return OLD_TESTAMENT_CATEGORIES.find((category) => category.books.includes(book))?.id ?? ''
+export const NEW_TESTAMENT_CATEGORIES = [
+  {
+    id: 'gospels',
+    label: 'Gospels',
+    books: NEW_TESTAMENT_BOOKS.slice(0, 4),
+  },
+  {
+    id: 'nt-history',
+    label: 'History',
+    books: NEW_TESTAMENT_BOOKS.slice(4, 5),
+  },
+  {
+    id: 'pauls-epistles',
+    label: "Paul's Epistles",
+    books: NEW_TESTAMENT_BOOKS.slice(5, 18),
+  },
+  {
+    id: 'general-epistles',
+    label: 'General Epistles',
+    books: NEW_TESTAMENT_BOOKS.slice(18, 26),
+  },
+  {
+    id: 'prophecy',
+    label: 'Prophecy',
+    books: NEW_TESTAMENT_BOOKS.slice(26),
+  },
+]
+
+export const TESTAMENT_CATEGORIES_BY_ID = {
+  new: NEW_TESTAMENT_CATEGORIES,
+  old: OLD_TESTAMENT_CATEGORIES,
+}
+
+export function getBookCategoryId(book, testamentId) {
+  return TESTAMENT_CATEGORIES_BY_ID[testamentId]?.find((category) => category.books.includes(book))?.id ?? ''
 }
 
 export const TESTAMENTS = [

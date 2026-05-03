@@ -2,7 +2,7 @@ import { Fragment, useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { BOOKS_GAME_GOLD_REWARD, BOOKS_GAME_SECONDS } from '../../app/constants.js'
 import { useAttendance } from '../../attendance/hooks/useAttendance.js'
-import { OLD_TESTAMENT_CATEGORIES, TESTAMENTS, getOldTestamentCategoryId } from '../bibleBooks.js'
+import { TESTAMENTS, TESTAMENT_CATEGORIES_BY_ID, getBookCategoryId } from '../bibleBooks.js'
 import { createBooksRound, getBooksGameAttendanceDate, getPresentPlayersForDate } from '../booksGameUtils.js'
 
 const MotionDiv = motion.div
@@ -10,7 +10,7 @@ const MotionDiv = motion.div
 export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardPlayer, players }) {
   const { attendance } = useAttendance()
   const [selectedTestamentId, setSelectedTestamentId] = useState(TESTAMENTS[0].id)
-  const [oldTestamentView, setOldTestamentView] = useState('list')
+  const [bookView, setBookView] = useState('list')
   const [round, setRound] = useState(null)
   const [secondsLeft, setSecondsLeft] = useState(BOOKS_GAME_SECONDS)
   const [timerDone, setTimerDone] = useState(false)
@@ -18,9 +18,9 @@ export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardP
   const [usedPlayerIds, setUsedPlayerIds] = useState([])
 
   const selectedTestament = TESTAMENTS.find((testament) => testament.id === selectedTestamentId) ?? TESTAMENTS[0]
-  const isOldTestament = selectedTestament.id === 'old'
-  const showOldTestamentFilters = isOldTestament && !round
-  const roundCategoryId = round ? getOldTestamentCategoryId(round.answer) : ''
+  const selectedCategories = TESTAMENT_CATEGORIES_BY_ID[selectedTestament.id] ?? []
+  const showBookFilters = selectedCategories.length > 0 && !round
+  const roundCategoryId = round ? getBookCategoryId(round.answer, selectedTestament.id) : ''
   const attendanceDate = useMemo(() => getBooksGameAttendanceDate(attendance), [attendance])
   const presentPlayers = useMemo(
     () => getPresentPlayersForDate(players, attendance, attendanceDate?.id),
@@ -132,10 +132,10 @@ export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardP
               </button>
             </Fragment>
           ))}
-          {showOldTestamentFilters ? (
+          {showBookFilters ? (
             <label className="books-view-select">
               <span>View</span>
-              <select onChange={(event) => setOldTestamentView(event.target.value)} value={oldTestamentView}>
+              <select onChange={(event) => setBookView(event.target.value)} value={bookView}>
                 <option value="list">By List</option>
                 <option value="category">By Category</option>
               </select>
@@ -176,9 +176,9 @@ export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardP
                 <strong>{round.nextBook}</strong>
               </div>
             </div>
-          ) : isOldTestament && oldTestamentView === 'category' ? (
+          ) : selectedCategories.length && bookView === 'category' ? (
             <div className="books-category-list">
-              {OLD_TESTAMENT_CATEGORIES.map((category) => (
+              {selectedCategories.map((category) => (
                 <section className={`books-category-card ${category.id}`} key={category.id}>
                   <strong>{category.label}</strong>
                   <ol>
@@ -194,7 +194,7 @@ export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardP
           ) : (
             <ol className="books-list">
               {selectedTestament.books.map((book, index) => {
-                const categoryId = getOldTestamentCategoryId(book)
+                const categoryId = getBookCategoryId(book, selectedTestament.id)
                 const isBlank = round?.blankIndex === index
 
                 return (
