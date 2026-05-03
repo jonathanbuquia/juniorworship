@@ -14,6 +14,7 @@ export const ADMIN_SECTIONS = {
 export const QUICK_GOLD_ACTIONS = [25, 50, 100, -25, -50, -100]
 export const QUIZ_QUESTION_COUNT = 5
 export const GOLD_PER_QUIZ_POINT = 20
+export const MEMORY_VERSE_GOLD_REWARD = 100
 export const MEMORY_VERSE_QUIZ_POINTS = 5
 export const MEMORY_VERSE_STORAGE_KEY = 'memory-verse-helper'
 export const QUIZ_STORAGE_KEY = 'quiz-helper'

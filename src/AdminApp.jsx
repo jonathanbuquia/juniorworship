@@ -12,6 +12,7 @@ import {
   BOOKS_GAME_GOLD_REWARD,
   BOOKS_PATH,
   GOLD_PER_QUIZ_POINT,
+  MEMORY_VERSE_GOLD_REWARD,
   MEMORY_VERSE_QUIZ_POINTS,
   MEMORY_PATH,
   POPOVER_TRANSITION,
@@ -768,13 +769,13 @@ export default function AdminApp() {
       }
 
       const data = await adjustPlayerGold(accessToken, {
-        amount: 50,
+        amount: MEMORY_VERSE_GOLD_REWARD,
         playerId,
       })
 
       setVerseAwardResult({
         type: 'success',
-        text: `+50 gold added to ${data.player.display_name}.`,
+        text: `+${MEMORY_VERSE_GOLD_REWARD} gold added to ${data.player.display_name}.`,
       })
       applyPlayerUpdate(data.player)
     } catch (error) {

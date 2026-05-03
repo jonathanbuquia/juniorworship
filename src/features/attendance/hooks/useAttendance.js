@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { ATTENDANCE_STORAGE_KEY } from '../../app/constants.js'
 
-function readSavedAttendance() {
+export function readSavedAttendance() {
   try {
     const savedValue = window.localStorage.getItem(ATTENDANCE_STORAGE_KEY)
 

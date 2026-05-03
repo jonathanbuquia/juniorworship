@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { BOOKS_GAME_GOLD_REWARD, BOOKS_GAME_SECONDS } from '../../app/constants.js'
-import { useAttendance } from '../../attendance/hooks/useAttendance.js'
+import { readSavedAttendance, useAttendance } from '../../attendance/hooks/useAttendance.js'
 import { TESTAMENTS, TESTAMENT_CATEGORIES_BY_ID, getBookCategoryId } from '../bibleBooks.js'
 import { createBooksRound, getBooksGameAttendanceDate, getPresentPlayersForDate } from '../booksGameUtils.js'
 
@@ -68,7 +68,13 @@ export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardP
   }
 
   const handleStartRound = () => {
-    const roundPlayers = availablePlayers.length ? availablePlayers : presentPlayers
+    const latestAttendance = readSavedAttendance()
+    const latestAttendanceDate = getBooksGameAttendanceDate(latestAttendance)
+    const latestPresentPlayers = getPresentPlayersForDate(players, latestAttendance, latestAttendanceDate?.id)
+    const latestPresentPlayerIds = new Set(latestPresentPlayers.map((player) => player.id))
+    const latestUsedPlayerIds = effectiveUsedPlayerIds.filter((playerId) => latestPresentPlayerIds.has(playerId))
+    const latestAvailablePlayers = latestPresentPlayers.filter((player) => !latestUsedPlayerIds.includes(player.id))
+    const roundPlayers = latestAvailablePlayers.length ? latestAvailablePlayers : latestPresentPlayers
     const nextRound = createBooksRound(selectedTestament.books, roundPlayers)
 
     if (!nextRound) {
@@ -76,7 +82,7 @@ export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardP
     }
 
     setUsedPlayerIds(
-      availablePlayers.length ? [...effectiveUsedPlayerIds, nextRound.player.id] : [nextRound.player.id],
+      latestAvailablePlayers.length ? [...latestUsedPlayerIds, nextRound.player.id] : [nextRound.player.id],
     )
     setRound(nextRound)
     setSecondsLeft(BOOKS_GAME_SECONDS)
@@ -144,7 +150,7 @@ export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardP
           {!round ? (
             <button
               className="primary-button books-top-start-button"
-              disabled={!presentPlayers.length}
+              disabled={!players.length}
               onClick={handleStartRound}
               type="button"
             >
@@ -246,7 +252,7 @@ export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardP
                 </button>
                 <button
                   className="ghost-button books-next-button"
-                  disabled={!presentPlayers.length}
+                  disabled={!players.length}
                   onClick={handleStartRound}
                   type="button"
                 >

@@ -4,6 +4,7 @@ import {
   getCoveredWordIndexes,
   getMemoryVerseWordCount,
 } from '../memoryUtils.js'
+import { MEMORY_VERSE_GOLD_REWARD } from '../../app/constants.js'
 
 export default function MemoryVersePage({
   activeMemoryVerse,
@@ -182,7 +183,7 @@ export default function MemoryVersePage({
             <div className="memory-dialog-header">
               <div>
                 <div className="eyebrow">Verse Rewards</div>
-                <h3>Give 50 gold</h3>
+                <h3>Give {MEMORY_VERSE_GOLD_REWARD} gold</h3>
               </div>
               <button className="ghost-button compact-button" onClick={onCloseMemoryRewards} type="button">
                 Close
@@ -192,7 +193,7 @@ export default function MemoryVersePage({
             <p className="panel-copy">When a player recites the verse, tap their button to reward them.</p>
 
             {!isAdmin ? (
-              <p className="panel-note">Sign in as admin to give the 50 gold reward.</p>
+              <p className="panel-note">Sign in as admin to give the {MEMORY_VERSE_GOLD_REWARD} gold reward.</p>
             ) : playersLoading ? (
               <p className="panel-note">Loading players...</p>
             ) : players.length ? (
@@ -209,7 +210,7 @@ export default function MemoryVersePage({
                       onClick={() => onAwardPlayer(player.id)}
                       type="button"
                     >
-                      {awardPendingPlayerId === player.id ? 'Adding...' : '+50 gold'}
+                      {awardPendingPlayerId === player.id ? 'Adding...' : `+${MEMORY_VERSE_GOLD_REWARD} gold`}
                     </button>
                   </div>
                 ))}
