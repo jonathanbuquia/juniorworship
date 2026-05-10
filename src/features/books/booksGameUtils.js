@@ -1,4 +1,18 @@
-import { createAttendanceKey, createSundayColumns } from '../attendance/attendanceUtils.js'
+import { createAttendanceKey } from '../attendance/attendanceUtils.js'
+
+const SUNDAY = 0
+
+function createLocalDate(value = new Date()) {
+  return new Date(value.getFullYear(), value.getMonth(), value.getDate())
+}
+
+function toDateKey(value) {
+  const year = value.getFullYear()
+  const month = String(value.getMonth() + 1).padStart(2, '0')
+  const day = String(value.getDate()).padStart(2, '0')
+
+  return `${year}-${month}-${day}`
+}
 
 export function createBooksRound(books, presentPlayers) {
   if (books.length < 3 || !presentPlayers.length) {
@@ -18,8 +32,14 @@ export function createBooksRound(books, presentPlayers) {
   }
 }
 
-export function getBooksGameAttendanceDate(attendance) {
-  return createSundayColumns(1, undefined, attendance)[0]
+export function getBooksGameAttendanceDate(value = new Date()) {
+  const date = createLocalDate(value)
+  const daysUntilSunday = (7 + SUNDAY - date.getDay()) % 7
+  date.setDate(date.getDate() + daysUntilSunday)
+
+  return {
+    id: toDateKey(date),
+  }
 }
 
 export function getPresentPlayersForDate(players, attendance, dateId) {

@@ -21,7 +21,7 @@ export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardP
   const selectedCategories = TESTAMENT_CATEGORIES_BY_ID[selectedTestament.id] ?? []
   const showBookFilters = selectedCategories.length > 0 && !round
   const roundCategoryId = round ? getBookCategoryId(round.answer, selectedTestament.id) : ''
-  const attendanceDate = useMemo(() => getBooksGameAttendanceDate(attendance), [attendance])
+  const attendanceDate = useMemo(() => getBooksGameAttendanceDate(), [])
   const presentPlayers = useMemo(
     () => getPresentPlayersForDate(players, attendance, attendanceDate?.id),
     [attendance, attendanceDate?.id, players],
@@ -69,7 +69,7 @@ export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardP
 
   const handleStartRound = () => {
     const latestAttendance = readSavedAttendance()
-    const latestAttendanceDate = getBooksGameAttendanceDate(latestAttendance)
+    const latestAttendanceDate = getBooksGameAttendanceDate()
     const latestPresentPlayers = getPresentPlayersForDate(players, latestAttendance, latestAttendanceDate?.id)
     const latestPresentPlayerIds = new Set(latestPresentPlayers.map((player) => player.id))
     const latestUsedPlayerIds = effectiveUsedPlayerIds.filter((playerId) => latestPresentPlayerIds.has(playerId))
