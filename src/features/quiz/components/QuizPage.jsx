@@ -21,6 +21,7 @@ export default function QuizPage({
   onDecreaseQuizFont,
   onIncreaseQuizFont,
   onNextQuizQuestion,
+  onOpenQuizAnswers,
   onOpenQuizPreview,
   onOpenQuizRewards,
   onOrganizeQuizDraft,
@@ -33,6 +34,7 @@ export default function QuizPage({
   players,
   playersLoading,
   playersMessage,
+  quizAnswersOpen,
   quizAwardPendingPlayerId,
   quizAwardResult,
   quizAwardScores,
@@ -80,11 +82,15 @@ export default function QuizPage({
     quizCurrentIndex >= 0 && quizCurrentIndex < quizItems.length ? quizItems[quizCurrentIndex] : null
   const quizStarted = quizCurrentIndex >= 0
   const isLastQuestion = quizStarted && quizCurrentIndex === quizItems.length - 1
+  const hasAwardScores = useMemo(
+    () => players.some((player) => String(quizAwardScores[player.id] || '').trim()),
+    [players, quizAwardScores],
+  )
 
   return (
     <section className="panel memory-verse-shell memory-page-shell quiz-page-shell">
       <div className="memory-verse-main">
-        {!quizStarted && !quizRewardsOpen ? (
+        {!quizStarted && !quizAnswersOpen && !quizRewardsOpen ? (
           <div className="workspace-card quiz-setup-panel">
             <div className="card-heading">
               <h3>Quiz setup</h3>
@@ -190,7 +196,7 @@ export default function QuizPage({
           </div>
         ) : null}
 
-        {quizStarted && !quizRewardsOpen ? (
+        {quizStarted && !quizAnswersOpen && !quizRewardsOpen ? (
           <div className="memory-verse-grid presentation-mode">
             <div className="workspace-card memory-helper-card memory-helper-card-large">
               <div className="memory-verse-display quiz-display-card">
@@ -228,8 +234,8 @@ export default function QuizPage({
                   Back
                 </button>
                 {isLastQuestion ? (
-                  <button className="primary-button compact-button" onClick={onOpenQuizRewards} type="button">
-                    Proceed to rewards
+                  <button className="primary-button compact-button" onClick={onOpenQuizAnswers} type="button">
+                    Show answers
                   </button>
                 ) : (
                   <button className="primary-button compact-button" onClick={onNextQuizQuestion} type="button">
@@ -250,22 +256,24 @@ export default function QuizPage({
           </div>
         ) : null}
 
-        {quizRewardsOpen ? (
-          <div className="workspace-card quiz-rewards-panel">
+        {quizAnswersOpen && !quizRewardsOpen ? (
+          <div className="workspace-card quiz-answers-panel">
             <div className="card-heading">
-              <h3>Quiz rewards</h3>
+              <div>
+                <div className="eyebrow">Answer Reveal</div>
+                <h3>All correct answers</h3>
+              </div>
               <div className="quiz-heading-actions">
                 <button className="ghost-button compact-button" onClick={onBackToQuizEditor} type="button">
                   Back to quiz editor
                 </button>
-                <button className="ghost-button compact-button" onClick={onCloseQuizRewards} type="button">
-                  Back to quiz
+                <button className="primary-button compact-button" onClick={onOpenQuizRewards} type="button">
+                  Proceed to awards
                 </button>
               </div>
             </div>
 
-            <div className="quiz-answer-key">
-              <div className="eyebrow">Correct Answers</div>
+            <div className="quiz-answer-key quiz-answer-key-large">
               {answerKey.length ? (
                 <div className="quiz-answer-grid">
                   {answerKey.map((item) => (
@@ -280,6 +288,24 @@ export default function QuizPage({
               ) : (
                 <p className="panel-note">The answer key will appear after you set the quiz answers.</p>
               )}
+            </div>
+
+            {quizAwardResult.text ? <p className={`status-line ${quizAwardResult.type}`}>{quizAwardResult.text}</p> : null}
+          </div>
+        ) : null}
+
+        {quizRewardsOpen ? (
+          <div className="workspace-card quiz-rewards-panel">
+            <div className="card-heading">
+              <h3>Give quiz rewards</h3>
+              <div className="quiz-heading-actions">
+                <button className="ghost-button compact-button" onClick={onBackToQuizEditor} type="button">
+                  Back to quiz editor
+                </button>
+                <button className="ghost-button compact-button" onClick={onCloseQuizRewards} type="button">
+                  Back to answers
+                </button>
+              </div>
             </div>
 
             {!isAdmin ? (
@@ -315,7 +341,7 @@ export default function QuizPage({
                 })}
                 <button
                   className="primary-button quiz-award-all-button"
-                  disabled={Boolean(quizAwardPendingPlayerId)}
+                  disabled={Boolean(quizAwardPendingPlayerId) || !hasAwardScores}
                   onClick={onAwardPlayer}
                   type="button"
                 >

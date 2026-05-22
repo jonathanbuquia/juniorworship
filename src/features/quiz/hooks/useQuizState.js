@@ -35,6 +35,7 @@ export function useQuizState() {
   const [quizQuestions, setQuizQuestions] = useState(initialState.quizQuestions)
   const [quizCurrentIndex, setQuizCurrentIndex] = useState(initialState.quizCurrentIndex)
   const [quizAwardScores, setQuizAwardScores] = useState(initialState.quizAwardScores)
+  const [quizAnswersOpen, setQuizAnswersOpen] = useState(false)
   const [quizRewardsOpen, setQuizRewardsOpen] = useState(false)
   const [quizDraftText, setQuizDraftText] = useState('')
   const [quizPreviewOpen, setQuizPreviewOpen] = useState(false)
@@ -54,6 +55,7 @@ export function useQuizState() {
 
   return {
     isQuizFullscreen,
+    quizAnswersOpen,
     quizAwardScores,
     quizCurrentIndex,
     quizDraftText,
@@ -61,6 +63,7 @@ export function useQuizState() {
     quizPreviewOpen,
     quizQuestions,
     quizRewardsOpen,
+    setQuizAnswersOpen,
     setIsQuizFullscreen,
     setQuizAwardScores,
     setQuizCurrentIndex,

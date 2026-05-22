@@ -41,7 +41,7 @@ import ActivePlayerHud from './features/players/components/ActivePlayerHud.jsx'
 import QuizPage from './features/quiz/components/QuizPage.jsx'
 import { useQuizState } from './features/quiz/hooks/useQuizState.js'
 import { MAY_EVENT_BETTA_SLUG, SHOP_CATEGORIES } from '../shared/shopCatalog.js'
-import { getQuizQuestionPoints, parseQuizDraftText } from './features/quiz/quizUtils.js'
+import { createEmptyQuizAwardScores, getQuizQuestionPoints, parseQuizDraftText } from './features/quiz/quizUtils.js'
 import MaySpecialAnnouncement from './features/shop/components/MaySpecialAnnouncement.jsx'
 import ShopPage from './features/shop/components/ShopPage.jsx'
 import { bootstrapAdminAccount, loginAdmin } from './services/api/authService.js'
@@ -135,12 +135,14 @@ export default function AdminApp() {
   const {
     isQuizFullscreen,
     quizAwardScores,
+    quizAnswersOpen,
     quizCurrentIndex,
     quizDraftText,
     quizFontScale,
     quizPreviewOpen,
     quizQuestions,
     quizRewardsOpen,
+    setQuizAnswersOpen,
     setIsQuizFullscreen,
     setQuizAwardScores,
     setQuizCurrentIndex,
@@ -701,6 +703,7 @@ export default function AdminApp() {
         : 'I could not find questions yet. Try using lines like "1. Question", "A. Option", and "Answer: B".',
     })
     setQuizCurrentIndex(-1)
+    setQuizAnswersOpen(false)
     setQuizRewardsOpen(false)
   }
 
@@ -715,6 +718,7 @@ export default function AdminApp() {
 
     setQuizCurrentIndex(0)
     setQuizAwardResult(createEmptyMessage())
+    setQuizAnswersOpen(false)
     setQuizRewardsOpen(false)
   }
 
@@ -734,13 +738,26 @@ export default function AdminApp() {
     })
   }
 
-  const handleOpenQuizRewards = () => {
+  const handleOpenQuizAnswers = () => {
     const quizItemCount = quizQuestions.length + 1
 
     if (!quizItemCount || quizCurrentIndex < quizItemCount - 1) {
       setQuizAwardResult({
         type: 'error',
-        text: 'Finish the quiz first before giving quiz rewards.',
+        text: 'Finish the quiz first before showing the answers.',
+      })
+      return
+    }
+
+    setQuizAnswersOpen(true)
+    setQuizRewardsOpen(false)
+  }
+
+  const handleOpenQuizRewards = () => {
+    if (!quizAnswersOpen) {
+      setQuizAwardResult({
+        type: 'error',
+        text: 'Show all answers first before giving quiz rewards.',
       })
       return
     }
@@ -750,10 +767,11 @@ export default function AdminApp() {
 
   const handleCloseQuizRewards = () => {
     setQuizRewardsOpen(false)
-    setQuizCurrentIndex(Math.max(0, quizQuestions.length))
+    setQuizAnswersOpen(true)
   }
 
   const handleBackToQuizEditor = () => {
+    setQuizAnswersOpen(false)
     setQuizRewardsOpen(false)
     setQuizCurrentIndex(-1)
     setQuizAwardResult(createEmptyMessage())
@@ -911,6 +929,7 @@ export default function AdminApp() {
           bettaBonusCount ? ` Blue Betta perfect-score bonus added to ${bettaBonusCount} player${bettaBonusCount === 1 ? '' : 's'}.` : ''
         }`,
       })
+      setQuizAwardScores(createEmptyQuizAwardScores())
       applyPlayerUpdates(updatedPlayers)
     } catch (error) {
       setQuizAwardResult({
@@ -983,6 +1002,7 @@ export default function AdminApp() {
     setVerseAwardResult(createEmptyMessage())
     setQuizAwardResult(createEmptyMessage())
     setMemoryRewardsOpen(false)
+    setQuizAnswersOpen(false)
     setQuizRewardsOpen(false)
     closeCompactNav()
     navigate(DEFAULT_PATH)
@@ -1072,6 +1092,8 @@ export default function AdminApp() {
   const handleOpenQuiz = () => {
     setAuthMenuOpen(false)
     setProfileMenuOpen(false)
+    setQuizAnswersOpen(false)
+    setQuizRewardsOpen(false)
     closeCompactNav()
     navigate(QUIZ_PATH)
   }
@@ -1337,6 +1359,7 @@ export default function AdminApp() {
                 onDecreaseQuizFont={handleDecreaseQuizFont}
                 onIncreaseQuizFont={handleIncreaseQuizFont}
                 onNextQuizQuestion={handleNextQuizQuestion}
+                onOpenQuizAnswers={handleOpenQuizAnswers}
                 onOpenQuizPreview={() => setQuizPreviewOpen(true)}
                 onOpenQuizRewards={handleOpenQuizRewards}
                 onOrganizeQuizDraft={handleOrganizeQuizDraft}
@@ -1349,6 +1372,7 @@ export default function AdminApp() {
                 players={players}
                 playersLoading={playersLoading}
                 playersMessage={playersMessage}
+                quizAnswersOpen={quizAnswersOpen}
                 quizAwardPendingPlayerId={quizAwardPendingPlayerId}
                 quizAwardResult={quizAwardResult}
                 quizAwardScores={quizAwardScores}
