@@ -22,6 +22,7 @@ const coralDecorations = [
   { id: 'pink-coral', color: 'pink', startX: 0.14 },
   { id: 'green-coral', color: 'green', startX: 0.72 },
 ]
+const DECORATIVE_CREATURE_IDS = ['turtle', 'stingray', 'pufferfish', 'crab', 'jellyfish', 'octopus']
 const EMPTY_AQUARIUM_STATE = {
   coralPositions: {},
   creatures: {},
@@ -1133,8 +1134,12 @@ export default function AquariumScene({ ownedFish = [], playerId = '', movable =
   const purchasedFish = buildOwnedFishConfigs(ownedFish)
   const coralPositions = sceneState.coralPositions ?? {}
   const creatureStarts = sceneState.creatures ?? {}
-  const hasSavedCreatures = Object.keys(creatureStarts).length > 0
   const hasSavedCorals = Object.keys(coralPositions).length > 0
+  const hasDecorativeCreature = (creatureId) =>
+    DECORATIVE_CREATURE_IDS.includes(creatureId) &&
+    creatureStarts[creatureId] != null &&
+    creatureStarts[creatureId].x != null &&
+    creatureStarts[creatureId].y != null
 
   useEffect(() => {
     const storageKey = createAquariumStorageKey(playerId)
@@ -1341,7 +1346,7 @@ export default function AquariumScene({ ownedFish = [], playerId = '', movable =
             </div>
 
             <div className="tank-content tank-animated">
-              {hasSelectedPlayer && hasSavedCreatures && tankSize.width > 0 && (
+              {hasSelectedPlayer && hasDecorativeCreature('turtle') && tankSize.width > 0 && (
                 <CuteTurtle
                   movable={movable}
                   onPersistPosition={(position) => handlePersistCreaturePosition('turtle', position)}
@@ -1350,7 +1355,7 @@ export default function AquariumScene({ ownedFish = [], playerId = '', movable =
                   tankSize={tankSize}
                 />
               )}
-              {hasSelectedPlayer && hasSavedCreatures && tankSize.width > 0 && (
+              {hasSelectedPlayer && hasDecorativeCreature('stingray') && tankSize.width > 0 && (
                 <CuteStingray
                   movable={movable}
                   onPersistPosition={(position) => handlePersistCreaturePosition('stingray', position)}
@@ -1359,7 +1364,7 @@ export default function AquariumScene({ ownedFish = [], playerId = '', movable =
                   tankSize={tankSize}
                 />
               )}
-              {hasSelectedPlayer && hasSavedCreatures && tankSize.width > 0 && (
+              {hasSelectedPlayer && hasDecorativeCreature('pufferfish') && tankSize.width > 0 && (
                 <CutePufferfish
                   movable={movable}
                   onPersistPosition={(position) => handlePersistCreaturePosition('pufferfish', position)}
@@ -1368,7 +1373,7 @@ export default function AquariumScene({ ownedFish = [], playerId = '', movable =
                   tankSize={tankSize}
                 />
               )}
-              {hasSelectedPlayer && hasSavedCreatures && tankSize.width > 0 && (
+              {hasSelectedPlayer && hasDecorativeCreature('crab') && tankSize.width > 0 && (
                 <CuteCrab
                   movable={movable}
                   onPersistPosition={(position) => handlePersistCreaturePosition('crab', position)}
@@ -1377,7 +1382,7 @@ export default function AquariumScene({ ownedFish = [], playerId = '', movable =
                   tankSize={tankSize}
                 />
               )}
-              {hasSelectedPlayer && hasSavedCreatures && tankSize.width > 0 && (
+              {hasSelectedPlayer && hasDecorativeCreature('jellyfish') && tankSize.width > 0 && (
                 <CuteJellyfish
                   movable={movable}
                   onPersistPosition={(position) => handlePersistCreaturePosition('jellyfish', position)}
@@ -1386,7 +1391,7 @@ export default function AquariumScene({ ownedFish = [], playerId = '', movable =
                   tankSize={tankSize}
                 />
               )}
-              {hasSelectedPlayer && hasSavedCreatures && tankSize.width > 0 && (
+              {hasSelectedPlayer && hasDecorativeCreature('octopus') && tankSize.width > 0 && (
                 <CuteOctopus
                   movable={movable}
                   onPersistPosition={(position) => handlePersistCreaturePosition('octopus', position)}
