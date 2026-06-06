@@ -70,6 +70,17 @@ export default function MaySpecialAnnouncement() {
       </div>
 
       <div className="may-special-visual" aria-hidden="true">
+        <div className="announcement-ocean-decor">
+          <span className="announcement-bubble bubble-one" />
+          <span className="announcement-bubble bubble-two" />
+          <span className="announcement-bubble bubble-three" />
+          <span className="announcement-coral coral-left" />
+          <span className="announcement-coral coral-right" />
+          <span className="announcement-seaweed seaweed-left" />
+          <span className="announcement-seaweed seaweed-right" />
+          <span className="announcement-rock rock-left" />
+          <span className="announcement-rock rock-right" />
+        </div>
         <ShopFishPreview className="announcement-fish-preview" item={item} />
       </div>
     </section>
