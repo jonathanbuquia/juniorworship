@@ -1,4 +1,4 @@
-import ShopFishPreview from './ShopFishPreview.jsx'
+import AnnouncementAxolotlPreview from './AnnouncementAxolotlPreview.jsx'
 
 const MONTH_NAMES = [
   'January',
@@ -15,19 +15,13 @@ const MONTH_NAMES = [
   'December',
 ]
 
-const GOLDEN_ANGELFISH_FEATURE = {
-  slug: 'golden-angelfish',
-  name: 'Golden Angelfish',
+const AXOLOTL_FEATURE = {
+  name: 'Axolotl',
   subtitle: 'Monthly Special',
-  bodyColor: '#fff1a8',
-  accentColor: '#f5a800',
-  detailColor: '#fff9db',
-  finColor: '#b6df75',
   price: 1500,
   originalPrice: 3000,
   isOnSale: true,
-  shopFishScale: 1.82,
-  abilities: ['Golden event preview', '1500 sale gold', 'Homepage only'],
+  abilities: ['Cute event preview', '1500 sale gold', 'Homepage only'],
 }
 
 function getLastSundayOfMonth(value = new Date()) {
@@ -38,7 +32,7 @@ function getLastSundayOfMonth(value = new Date()) {
 }
 
 export default function MaySpecialAnnouncement() {
-  const item = GOLDEN_ANGELFISH_FEATURE
+  const item = AXOLOTL_FEATURE
   const saleEndDate = getLastSundayOfMonth()
   const saleEndLabel = `${MONTH_NAMES[saleEndDate.getMonth()]} ${saleEndDate.getDate()}`
   const monthSpecialLabel = `${MONTH_NAMES[new Date().getMonth()]} Special`
@@ -81,7 +75,7 @@ export default function MaySpecialAnnouncement() {
           <span className="announcement-rock rock-left" />
           <span className="announcement-rock rock-right" />
         </div>
-        <ShopFishPreview className="announcement-fish-preview" item={item} />
+        <AnnouncementAxolotlPreview />
       </div>
     </section>
   )
