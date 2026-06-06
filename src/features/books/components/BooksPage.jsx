@@ -3,7 +3,12 @@ import { motion } from 'framer-motion'
 import { BOOKS_GAME_GOLD_REWARD, BOOKS_GAME_SECONDS } from '../../app/constants.js'
 import { readSavedAttendance, useAttendance } from '../../attendance/hooks/useAttendance.js'
 import { TESTAMENTS, TESTAMENT_CATEGORIES_BY_ID, getBookCategoryId } from '../bibleBooks.js'
-import { createBooksRound, getBooksGameAttendanceDate, getPresentPlayersForDate } from '../booksGameUtils.js'
+import {
+  createBooksRound,
+  getBooksGameAttendanceDate,
+  getBooksQuestionIds,
+  getPresentPlayersForDate,
+} from '../booksGameUtils.js'
 
 const MotionDiv = motion.div
 
@@ -16,11 +21,14 @@ export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardP
   const [timerDone, setTimerDone] = useState(false)
   const [awardedRoundId, setAwardedRoundId] = useState('')
   const [usedPlayerIds, setUsedPlayerIds] = useState([])
+  const [usedQuestionIds, setUsedQuestionIds] = useState([])
+  const [gameMessage, setGameMessage] = useState('')
 
   const selectedTestament = TESTAMENTS.find((testament) => testament.id === selectedTestamentId) ?? TESTAMENTS[0]
   const selectedCategories = TESTAMENT_CATEGORIES_BY_ID[selectedTestament.id] ?? []
-  const showBookFilters = selectedCategories.length > 0 && !round
+  const showBookFilters = selectedTestament.id !== 'mixed' && selectedCategories.length > 0 && !round
   const roundCategoryId = round ? getBookCategoryId(round.answer, selectedTestament.id) : ''
+  const questionCount = Math.max(0, selectedTestament.books.length - 2)
   const attendanceDate = useMemo(() => getBooksGameAttendanceDate(), [])
   const presentPlayers = useMemo(
     () => getPresentPlayersForDate(players, attendance, attendanceDate?.id),
@@ -65,9 +73,12 @@ export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardP
     setTimerDone(false)
     setAwardedRoundId('')
     setUsedPlayerIds([])
+    setUsedQuestionIds([])
+    setGameMessage('')
   }
 
   const handleStartRound = () => {
+    setGameMessage('')
     const latestAttendance = readSavedAttendance()
     const latestAttendanceDate = getBooksGameAttendanceDate()
     const latestPresentPlayers = getPresentPlayersForDate(players, latestAttendance, latestAttendanceDate?.id)
@@ -75,9 +86,18 @@ export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardP
     const latestUsedPlayerIds = effectiveUsedPlayerIds.filter((playerId) => latestPresentPlayerIds.has(playerId))
     const latestAvailablePlayers = latestPresentPlayers.filter((player) => !latestUsedPlayerIds.includes(player.id))
     const roundPlayers = latestAvailablePlayers.length ? latestAvailablePlayers : latestPresentPlayers
-    const nextRound = createBooksRound(selectedTestament.books, roundPlayers)
+    const availableQuestionCount = getBooksQuestionIds(selectedTestament.books).filter(
+      (questionId) => !usedQuestionIds.includes(questionId),
+    ).length
+    const effectiveUsedQuestionIds = availableQuestionCount ? usedQuestionIds : []
+    const nextRound = createBooksRound(selectedTestament.books, roundPlayers, effectiveUsedQuestionIds)
 
     if (!nextRound) {
+      setGameMessage(
+        latestPresentPlayers.length
+          ? 'All missing-book questions were used. Press Start again to begin a fresh question set.'
+          : 'Mark students present in Attendance first.',
+      )
       return
     }
 
@@ -88,6 +108,10 @@ export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardP
     setSecondsLeft(BOOKS_GAME_SECONDS)
     setTimerDone(false)
     setAwardedRoundId('')
+    setUsedQuestionIds([...effectiveUsedQuestionIds, nextRound.questionId])
+    if (!availableQuestionCount && usedQuestionIds.length) {
+      setGameMessage('Question set restarted. No repeats until this new set is used.')
+    }
   }
 
   const handleStopRound = () => {
@@ -99,6 +123,7 @@ export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardP
     setSecondsLeft(BOOKS_GAME_SECONDS)
     setTimerDone(false)
     setAwardedRoundId('')
+    setGameMessage('')
   }
 
   const handleAwardGold = async () => {
@@ -164,8 +189,12 @@ export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardP
         <div className="books-list-panel">
           <div className="books-list-heading">
             <strong>{selectedTestament.label}</strong>
-            <span>{selectedTestament.books.length} books</span>
+            <span>
+              {selectedTestament.books.length} books · {questionCount} questions
+            </span>
           </div>
+
+          {gameMessage ? <p className="books-empty-note">{gameMessage}</p> : null}
 
           {round ? (
             <div className="books-round-focus">

@@ -127,6 +127,7 @@ export const NEW_TESTAMENT_CATEGORIES = [
 ]
 
 export const TESTAMENT_CATEGORIES_BY_ID = {
+  mixed: [...OLD_TESTAMENT_CATEGORIES, ...NEW_TESTAMENT_CATEGORIES],
   new: NEW_TESTAMENT_CATEGORIES,
   old: OLD_TESTAMENT_CATEGORIES,
 }
@@ -145,5 +146,10 @@ export const TESTAMENTS = [
     id: 'new',
     label: 'New Testament',
     books: NEW_TESTAMENT_BOOKS,
+  },
+  {
+    id: 'mixed',
+    label: 'Mixed',
+    books: [...OLD_TESTAMENT_BOOKS, ...NEW_TESTAMENT_BOOKS],
   },
 ]

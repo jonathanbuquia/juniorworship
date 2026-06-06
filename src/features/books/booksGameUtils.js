@@ -14,21 +14,44 @@ function toDateKey(value) {
   return `${year}-${month}-${day}`
 }
 
-export function createBooksRound(books, presentPlayers) {
+export function createBooksQuestionId(blankIndex) {
+  return `book-${blankIndex}`
+}
+
+export function getBooksQuestionIds(books) {
+  if (books.length < 3) {
+    return []
+  }
+
+  return Array.from({ length: books.length - 2 }, (_unused, index) => createBooksQuestionId(index + 1))
+}
+
+export function createBooksRound(books, presentPlayers, usedQuestionIds = []) {
   if (books.length < 3 || !presentPlayers.length) {
     return null
   }
 
-  const blankIndex = Math.floor(Math.random() * (books.length - 2)) + 1
+  const usedQuestionIdSet = new Set(usedQuestionIds)
+  const availableBlankIndexes = Array.from({ length: books.length - 2 }, (_unused, index) => index + 1).filter(
+    (blankIndex) => !usedQuestionIdSet.has(createBooksQuestionId(blankIndex)),
+  )
+
+  if (!availableBlankIndexes.length) {
+    return null
+  }
+
+  const blankIndex = availableBlankIndexes[Math.floor(Math.random() * availableBlankIndexes.length)]
   const playerIndex = Math.floor(Math.random() * presentPlayers.length)
+  const questionId = createBooksQuestionId(blankIndex)
 
   return {
     answer: books[blankIndex],
     blankIndex,
-    id: `${Date.now()}-${blankIndex}-${presentPlayers[playerIndex].id}`,
+    id: `${Date.now()}-${questionId}-${presentPlayers[playerIndex].id}`,
     nextBook: books[blankIndex + 1],
     player: presentPlayers[playerIndex],
     previousBook: books[blankIndex - 1],
+    questionId,
   }
 }
 
