@@ -2021,8 +2021,21 @@
 }
 
 .books-round-card.missing strong {
+  width: min(100%, 520px);
   font-size: clamp(3rem, 6.8vw, 7.4rem);
   letter-spacing: -0.08em;
+  overflow-wrap: normal;
+  white-space: nowrap;
+}
+
+.books-blank-line {
+  width: min(100%, clamp(180px, 34vw, 500px));
+  height: clamp(10px, 1.2vw, 18px);
+  display: inline-block;
+  border-radius: 999px;
+  background: currentColor;
+  box-shadow: 0 0.14em 0 rgba(255, 255, 255, 0.5);
+  vertical-align: middle;
 }
 
 .books-list li.category-law,

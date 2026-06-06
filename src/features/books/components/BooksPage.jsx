@@ -210,7 +210,7 @@ export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardP
                     key={`${round.id}-${book}`}
                   >
                     <span>{bookNumber}</span>
-                    <strong>{isMissing ? '____________' : book}</strong>
+                    <strong>{isMissing ? <span className="books-blank-line" aria-label="Missing book" /> : book}</strong>
                   </div>
                 )
               })}
