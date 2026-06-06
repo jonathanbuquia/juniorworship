@@ -10,6 +10,11 @@ export default function AnnouncementAxolotlPreview() {
 
         <div className="seahorse-body">
           <span className="seahorse-belly" />
+          <span className="seahorse-spot spot-one" />
+          <span className="seahorse-spot spot-two" />
+          <span className="seahorse-spot spot-three" />
+          <span className="seahorse-spot spot-four" />
+          <span className="seahorse-spot spot-five" />
           <span className="seahorse-ridge ridge-one" />
           <span className="seahorse-ridge ridge-two" />
           <span className="seahorse-ridge ridge-three" />
@@ -17,12 +22,14 @@ export default function AnnouncementAxolotlPreview() {
           <span className="seahorse-fin" />
         </div>
 
+        <span className="seahorse-crown crown-one" />
+        <span className="seahorse-crown crown-two" />
+        <span className="seahorse-crown crown-three" />
+        <span className="seahorse-snout" />
+
         <div className="seahorse-head">
-          <span className="seahorse-crown crown-one" />
-          <span className="seahorse-crown crown-two" />
-          <span className="seahorse-crown crown-three" />
-          <span className="seahorse-snout" />
           <span className="seahorse-cheek" />
+          <span className="seahorse-brow" />
           <div className="seahorse-eye">
             <span className="eye-spark" />
           </div>

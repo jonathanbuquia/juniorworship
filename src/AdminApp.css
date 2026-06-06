@@ -3158,7 +3158,7 @@
   width: min(100%, 430px);
   height: clamp(270px, 42vh, 360px);
   animation: announcementSeahorseFloat 5.4s ease-in-out infinite;
-  filter: drop-shadow(0 24px 28px rgba(113, 55, 20, 0.2));
+  filter: drop-shadow(0 24px 28px rgba(11, 105, 119, 0.22));
 }
 
 .seahorse-body,
@@ -3171,186 +3171,249 @@
 .seahorse-ridge,
 .seahorse-fin,
 .seahorse-crown,
+.seahorse-spot,
 .tail-ring,
 .seahorse-cheek {
   position: absolute;
 }
 
 .seahorse-body {
-  left: 164px;
-  top: 90px;
-  width: 98px;
-  height: 212px;
-  border-radius: 52% 62% 50% 44%;
+  left: 170px;
+  top: 82px;
+  width: 112px;
+  height: 224px;
+  border-radius: 58% 54% 48% 54%;
   background:
-    radial-gradient(circle at 36% 14%, rgba(255, 255, 255, 0.52) 0 8%, transparent 8.8%),
-    repeating-linear-gradient(180deg, rgba(129, 38, 15, 0.26) 0 4px, transparent 4px 19px),
-    linear-gradient(155deg, #ff8051 0%, #e94725 54%, #b72718 100%);
-  clip-path: polygon(40% 0, 76% 10%, 94% 28%, 92% 62%, 70% 100%, 34% 92%, 8% 56%, 0 24%);
+    radial-gradient(circle at 42% 18%, rgba(255, 255, 255, 0.32) 0 10%, transparent 10.8%),
+    linear-gradient(90deg, rgba(95, 221, 224, 0.25), transparent 34%),
+    linear-gradient(155deg, #23c7c9 0%, #08aeb9 56%, #078293 100%);
+  clip-path: polygon(42% 0, 78% 9%, 96% 28%, 90% 60%, 72% 100%, 36% 94%, 12% 68%, 0 38%, 12% 14%);
   box-shadow:
-    inset -14px -18px 0 rgba(91, 21, 12, 0.16),
-    inset 14px 8px 0 rgba(255, 255, 255, 0.2);
+    inset -16px -18px 0 rgba(0, 99, 112, 0.18),
+    inset 18px 10px 0 rgba(255, 255, 255, 0.16);
 }
 
 .seahorse-belly {
-  left: 18px;
-  top: 34px;
-  width: 44px;
+  left: 4px;
+  top: 52px;
+  width: 58px;
   height: 150px;
-  border-radius: 999px 999px 70% 70%;
+  border-radius: 72% 42% 44% 76%;
   background:
-    repeating-linear-gradient(180deg, rgba(173, 50, 22, 0.2) 0 3px, transparent 3px 18px),
-    linear-gradient(180deg, rgba(255, 169, 93, 0.76), rgba(245, 86, 38, 0.44));
+    repeating-linear-gradient(180deg, transparent 0 18px, rgba(26, 158, 168, 0.45) 18px 22px),
+    linear-gradient(180deg, rgba(220, 255, 250, 0.88), rgba(171, 237, 231, 0.72));
+  transform: rotate(9deg);
+}
+
+.seahorse-spot {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: rgba(123, 233, 225, 0.68);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+
+.seahorse-spot.spot-one {
+  right: 22px;
+  top: 30px;
+}
+
+.seahorse-spot.spot-two {
+  right: 12px;
+  top: 70px;
+  width: 24px;
+  height: 24px;
+}
+
+.seahorse-spot.spot-three {
+  right: 26px;
+  top: 112px;
+  width: 16px;
+  height: 16px;
+}
+
+.seahorse-spot.spot-four {
+  right: 38px;
+  top: 152px;
+  width: 26px;
+  height: 26px;
+}
+
+.seahorse-spot.spot-five {
+  right: 24px;
+  top: 194px;
+  width: 18px;
+  height: 18px;
 }
 
 .seahorse-ridge {
-  right: -24px;
-  width: 42px;
-  height: 28px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #ff6f3d, #b71913);
-  clip-path: polygon(0 50%, 100% 0, 74% 50%, 100% 100%);
-  transform: rotate(5deg);
+  right: -42px;
+  width: 76px;
+  height: 54px;
+  border-radius: 42% 58% 48% 52%;
+  background: linear-gradient(135deg, #13aab3, #047a88);
+  clip-path: polygon(0 50%, 60% 0, 100% 18%, 78% 50%, 100% 82%, 60% 100%);
+  transform: rotate(4deg);
+  opacity: 0.96;
 }
 
 .seahorse-ridge.ridge-one {
-  top: 22px;
+  top: -4px;
 }
 
 .seahorse-ridge.ridge-two {
-  top: 58px;
+  top: 42px;
 }
 
 .seahorse-ridge.ridge-three {
-  top: 94px;
+  top: 90px;
 }
 
 .seahorse-ridge.ridge-four {
-  top: 130px;
+  top: 144px;
 }
 
 .seahorse-fin {
-  right: -38px;
-  top: 86px;
-  width: 56px;
-  height: 68px;
+  right: -78px;
+  top: 114px;
+  width: 106px;
+  height: 96px;
   border-radius: 50%;
   background:
-    repeating-linear-gradient(100deg, rgba(168, 42, 28, 0.24) 0 1px, transparent 1px 8px),
-    linear-gradient(140deg, rgba(255, 146, 91, 0.5), rgba(255, 231, 177, 0.2));
-  clip-path: polygon(0 50%, 86% 4%, 100% 50%, 82% 96%);
-  opacity: 0.78;
+    repeating-linear-gradient(102deg, rgba(7, 130, 147, 0.34) 0 2px, transparent 2px 13px),
+    linear-gradient(140deg, rgba(188, 251, 246, 0.82), rgba(115, 220, 224, 0.56));
+  clip-path: polygon(0 48%, 82% 0, 100% 18%, 88% 50%, 100% 82%, 82% 100%);
+  opacity: 0.88;
   animation: announcementSeahorseFin 1.8s ease-in-out infinite;
 }
 
 .seahorse-head {
-  left: 102px;
-  top: 34px;
-  width: 160px;
-  height: 122px;
-  border-radius: 54% 48% 48% 52%;
+  left: 82px;
+  top: 22px;
+  width: 184px;
+  height: 138px;
+  border-radius: 58% 46% 48% 52%;
   background:
-    radial-gradient(circle at 42% 20%, rgba(255, 255, 255, 0.58) 0 10%, transparent 10.8%),
-    linear-gradient(140deg, #ff9a60 0%, #ef4e25 58%, #c72817 100%);
-  clip-path: polygon(18% 44%, 34% 12%, 64% 0, 90% 20%, 100% 52%, 80% 88%, 42% 100%, 18% 74%);
-  box-shadow: inset 12px 8px 0 rgba(255, 255, 255, 0.2);
+    radial-gradient(circle at 42% 21%, rgba(255, 255, 255, 0.48) 0 11%, transparent 11.8%),
+    linear-gradient(145deg, #4fd8d5 0%, #17bcc3 58%, #0692a0 100%);
+  clip-path: polygon(20% 46%, 32% 16%, 62% 0, 90% 18%, 100% 54%, 78% 86%, 42% 100%, 18% 74%);
+  box-shadow:
+    inset -12px -10px 0 rgba(0, 113, 127, 0.12),
+    inset 14px 8px 0 rgba(255, 255, 255, 0.18);
 }
 
 .seahorse-snout {
-  left: -78px;
-  top: 58px;
-  width: 114px;
-  height: 28px;
-  border-radius: 999px 14px 18px 999px;
-  background: linear-gradient(90deg, #ff8b53, #e64124);
+  left: 12px;
+  top: 100px;
+  z-index: 3;
+  width: 144px;
+  height: 42px;
+  border-radius: 999px 16px 22px 999px;
+  background: linear-gradient(90deg, #56d6d8, #12aeb8);
   transform: rotate(-8deg);
 }
 
 .seahorse-snout::after {
   content: '';
   position: absolute;
-  left: 8px;
-  top: 11px;
-  width: 7px;
-  height: 7px;
+  left: 9px;
+  top: 12px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
-  background: rgba(130, 67, 30, 0.44);
+  border: 6px solid rgba(0, 121, 136, 0.58);
+  background: rgba(117, 232, 228, 0.9);
 }
 
 .seahorse-eye {
-  right: 32px;
-  top: 36px;
-  width: 32px;
-  height: 32px;
+  left: 62px;
+  top: 58px;
+  width: 46px;
+  height: 46px;
   border-radius: 50%;
   background: radial-gradient(circle at 58% 60%, #08173a 0 48%, #0d4b8f 49% 68%, #e7f9ff 69%);
   box-shadow:
-    0 0 0 5px rgba(255, 244, 211, 0.95),
-    0 5px 10px rgba(87, 44, 14, 0.16);
+    0 0 0 6px rgba(228, 255, 252, 0.95),
+    0 5px 10px rgba(6, 81, 97, 0.16);
   overflow: hidden;
 }
 
 .seahorse-eye .eye-spark {
-  left: 8px;
-  top: 6px;
-  width: 9px;
-  height: 9px;
+  left: 11px;
+  top: 8px;
+  width: 13px;
+  height: 13px;
 }
 
 .seahorse-smile {
-  left: 4px;
-  top: 78px;
-  width: 42px;
-  height: 16px;
-  border-bottom: 4px solid #914828;
+  left: 30px;
+  top: 98px;
+  width: 54px;
+  height: 18px;
+  border-bottom: 4px solid #067282;
   border-radius: 0 0 999px 999px;
   transform: rotate(-10deg);
 }
 
 .seahorse-cheek {
-  left: 50px;
-  top: 66px;
-  width: 28px;
-  height: 18px;
+  left: 104px;
+  top: 82px;
+  width: 36px;
+  height: 22px;
   border-radius: 50%;
-  background: rgba(255, 117, 111, 0.22);
+  background: rgba(104, 231, 226, 0.35);
+}
+
+.seahorse-brow {
+  position: absolute;
+  left: 56px;
+  top: 46px;
+  width: 46px;
+  height: 18px;
+  border-top: 6px solid #087489;
+  border-radius: 50%;
+  transform: rotate(10deg);
 }
 
 .seahorse-crown {
-  top: -12px;
-  width: 24px;
-  height: 34px;
-  border-radius: 10px;
-  background: linear-gradient(180deg, #ff8752, #bd2318);
-  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+  z-index: 1;
+  top: 18px;
+  width: 58px;
+  height: 74px;
+  border-radius: 50% 50% 18px 18px;
+  background: linear-gradient(180deg, #20c7cb, #057f91);
+  clip-path: polygon(50% 0, 100% 100%, 50% 76%, 0 100%);
+  opacity: 0.96;
 }
 
 .seahorse-crown.crown-one {
-  left: 62px;
-  transform: rotate(-18deg);
+  left: 146px;
+  transform: rotate(-20deg);
 }
 
 .seahorse-crown.crown-two {
-  left: 88px;
-  top: -26px;
+  left: 190px;
+  top: 10px;
+  transform: rotate(8deg);
 }
 
 .seahorse-crown.crown-three {
-  left: 114px;
-  transform: rotate(18deg);
+  left: 226px;
+  top: 30px;
+  transform: rotate(28deg);
 }
 
 .seahorse-tail {
-  left: 82px;
-  top: 254px;
-  width: 184px;
-  height: 106px;
+  left: 72px;
+  top: 260px;
+  width: 190px;
+  height: 112px;
   border-radius: 50%;
-  border: 26px solid #d93620;
+  border: 28px solid #08a9b5;
   border-left-color: transparent;
-  border-bottom-color: #ff6b37;
+  border-bottom-color: #10c3c6;
   transform: rotate(16deg);
-  box-shadow: inset 0 0 0 8px rgba(255, 156, 95, 0.28);
+  box-shadow: inset 0 0 0 8px rgba(111, 234, 224, 0.28);
 }
 
 .seahorse-tail::after {
@@ -3361,9 +3424,9 @@
   width: 58px;
   height: 48px;
   border-radius: 50%;
-  border: 18px solid #ee4a25;
+  border: 18px solid #06a1ad;
   border-left-color: transparent;
-  border-bottom-color: #ff7b42;
+  border-bottom-color: #19d2d0;
   transform: rotate(-24deg);
 }
 
@@ -3371,7 +3434,7 @@
   width: 38px;
   height: 8px;
   border-radius: 999px;
-  background: rgba(255, 223, 126, 0.44);
+  background: rgba(125, 242, 233, 0.46);
 }
 
 .tail-ring.ring-one {
