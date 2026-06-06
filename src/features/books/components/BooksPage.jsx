@@ -28,7 +28,7 @@ export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardP
   const selectedCategories = TESTAMENT_CATEGORIES_BY_ID[selectedTestament.id] ?? []
   const showBookFilters = selectedTestament.id !== 'mixed' && selectedCategories.length > 0 && !round
   const roundCategoryId = round ? getBookCategoryId(round.answer, selectedTestament.id) : ''
-  const questionCount = Math.max(0, selectedTestament.books.length - 2)
+  const questionCount = getBooksQuestionIds(selectedTestament.books).length
   const attendanceDate = useMemo(() => getBooksGameAttendanceDate(), [])
   const presentPlayers = useMemo(
     () => getPresentPlayersForDate(players, attendance, attendanceDate?.id),
@@ -198,18 +198,22 @@ export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardP
 
           {round ? (
             <div className="books-round-focus">
-              <div className="books-round-card clue">
-                <span>{round.blankIndex}</span>
-                <strong>{round.previousBook}</strong>
-              </div>
-              <div className={`books-round-card missing ${roundCategoryId ? `category-${roundCategoryId}` : ''}`}>
-                <span>{round.blankIndex + 1}</span>
-                <strong>____________</strong>
-              </div>
-              <div className="books-round-card clue">
-                <span>{round.blankIndex + 2}</span>
-                <strong>{round.nextBook}</strong>
-              </div>
+              {round.books.map((book, offset) => {
+                const isMissing = offset === round.blankOffset
+                const bookNumber = round.windowStartIndex + offset + 1
+
+                return (
+                  <div
+                    className={`books-round-card ${isMissing ? 'missing' : 'clue'} ${
+                      isMissing && roundCategoryId ? `category-${roundCategoryId}` : ''
+                    }`}
+                    key={`${round.id}-${book}`}
+                  >
+                    <span>{bookNumber}</span>
+                    <strong>{isMissing ? '____________' : book}</strong>
+                  </div>
+                )
+              })}
             </div>
           ) : selectedCategories.length && bookView === 'category' ? (
             <div className="books-category-list">

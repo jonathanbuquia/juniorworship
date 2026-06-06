@@ -10,6 +10,29 @@ import {
 } from '../quizUtils.js'
 import { buildMemoryVerseQuizDetails } from '../../memory/memoryUtils.js'
 
+const MEMORY_VERSE_BLANK_PATTERN = /(\(\d+\)\s+_____)/
+
+function renderQuizPrompt(question) {
+  const prompt = question?.prompt || 'Add the question text in controls.'
+
+  if (!question?.isMemoryVerse) {
+    return prompt
+  }
+
+  return String(prompt)
+    .split(/(\(\d+\)\s+_____)/g)
+    .filter(Boolean)
+    .map((part, index) =>
+      MEMORY_VERSE_BLANK_PATTERN.test(part) ? (
+        <span className="quiz-memory-blank" key={`${part}-${index}`}>
+          {part}
+        </span>
+      ) : (
+        part
+      ),
+    )
+}
+
 export default function QuizPage({
   activeMemoryVerse,
   isAdmin,
@@ -206,7 +229,7 @@ export default function QuizPage({
                       {activeQuestion.isMemoryVerse ? 'Memory Verse' : `Question ${quizCurrentIndex + 1}`} (
                       {getQuizQuestionGold(activeQuestion)} gold)
                     </div>
-                    <div className="quiz-display-question">{activeQuestion.prompt || 'Add the question text in controls.'}</div>
+                    <div className="quiz-display-question">{renderQuizPrompt(activeQuestion)}</div>
                     {!activeQuestion.isMemoryVerse ? (
                       <div className="quiz-display-choices">
                         {activeQuestion.choices.map((choice, choiceIndex) => (

@@ -14,8 +14,8 @@ function toDateKey(value) {
   return `${year}-${month}-${day}`
 }
 
-export function createBooksQuestionId(blankIndex) {
-  return `book-${blankIndex}`
+export function createBooksQuestionId(windowStartIndex, blankOffset) {
+  return `book-${windowStartIndex}-${blankOffset}`
 }
 
 export function getBooksQuestionIds(books) {
@@ -23,7 +23,9 @@ export function getBooksQuestionIds(books) {
     return []
   }
 
-  return Array.from({ length: books.length - 2 }, (_unused, index) => createBooksQuestionId(index + 1))
+  return Array.from({ length: books.length - 2 }, (_unused, windowStartIndex) =>
+    Array.from({ length: 3 }, (_offsetUnused, blankOffset) => createBooksQuestionId(windowStartIndex, blankOffset)),
+  ).flat()
 }
 
 export function createBooksRound(books, presentPlayers, usedQuestionIds = []) {
@@ -32,26 +34,34 @@ export function createBooksRound(books, presentPlayers, usedQuestionIds = []) {
   }
 
   const usedQuestionIdSet = new Set(usedQuestionIds)
-  const availableBlankIndexes = Array.from({ length: books.length - 2 }, (_unused, index) => index + 1).filter(
-    (blankIndex) => !usedQuestionIdSet.has(createBooksQuestionId(blankIndex)),
+  const availableQuestions = Array.from({ length: books.length - 2 }, (_unused, windowStartIndex) =>
+    Array.from({ length: 3 }, (_offsetUnused, blankOffset) => ({
+      blankOffset,
+      questionId: createBooksQuestionId(windowStartIndex, blankOffset),
+      windowStartIndex,
+    })),
   )
+    .flat()
+    .filter((question) => !usedQuestionIdSet.has(question.questionId))
 
-  if (!availableBlankIndexes.length) {
+  if (!availableQuestions.length) {
     return null
   }
 
-  const blankIndex = availableBlankIndexes[Math.floor(Math.random() * availableBlankIndexes.length)]
+  const question = availableQuestions[Math.floor(Math.random() * availableQuestions.length)]
+  const blankIndex = question.windowStartIndex + question.blankOffset
   const playerIndex = Math.floor(Math.random() * presentPlayers.length)
-  const questionId = createBooksQuestionId(blankIndex)
+  const windowBooks = books.slice(question.windowStartIndex, question.windowStartIndex + 3)
 
   return {
     answer: books[blankIndex],
     blankIndex,
-    id: `${Date.now()}-${questionId}-${presentPlayers[playerIndex].id}`,
-    nextBook: books[blankIndex + 1],
+    blankOffset: question.blankOffset,
+    books: windowBooks,
+    id: `${Date.now()}-${question.questionId}-${presentPlayers[playerIndex].id}`,
     player: presentPlayers[playerIndex],
-    previousBook: books[blankIndex - 1],
-    questionId,
+    questionId: question.questionId,
+    windowStartIndex: question.windowStartIndex,
   }
 }
 

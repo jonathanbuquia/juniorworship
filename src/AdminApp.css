@@ -1088,6 +1088,11 @@
   line-height: 1.5;
 }
 
+.quiz-memory-blank {
+  display: inline-block;
+  white-space: nowrap;
+}
+
 .quiz-display-choices {
   width: min(100%, 900px);
   margin: 0 auto;
