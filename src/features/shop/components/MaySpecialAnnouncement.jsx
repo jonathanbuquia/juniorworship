@@ -1,41 +1,72 @@
-import { MAY_EVENT_BETTA_SLUG, findShopItemBySlug } from '../../../../shared/shopCatalog.js'
 import ShopFishPreview from './ShopFishPreview.jsx'
 
-export default function MaySpecialAnnouncement({ onOpenShop }) {
-  const item = findShopItemBySlug(MAY_EVENT_BETTA_SLUG)
+const MONTH_NAMES = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+]
 
-  if (!item) {
-    return null
-  }
+const GOLDEN_ANGELFISH_FEATURE = {
+  slug: 'golden-angelfish',
+  name: 'Golden Angelfish',
+  subtitle: 'Monthly Special',
+  bodyColor: '#fff1a8',
+  accentColor: '#f5a800',
+  detailColor: '#fff9db',
+  finColor: '#b6df75',
+  price: 1500,
+  originalPrice: 3000,
+  isOnSale: true,
+  shopFishScale: 1.82,
+  abilities: ['Golden event preview', '1500 sale gold', 'Homepage only'],
+}
 
+function getLastSundayOfMonth(value = new Date()) {
+  const lastDayOfMonth = new Date(value.getFullYear(), value.getMonth() + 1, 0)
+  lastDayOfMonth.setDate(lastDayOfMonth.getDate() - lastDayOfMonth.getDay())
+
+  return lastDayOfMonth
+}
+
+export default function MaySpecialAnnouncement() {
+  const item = GOLDEN_ANGELFISH_FEATURE
+  const saleEndDate = getLastSundayOfMonth()
+  const saleEndLabel = `${MONTH_NAMES[saleEndDate.getMonth()]} ${saleEndDate.getDate()}`
+  const monthSpecialLabel = `${MONTH_NAMES[new Date().getMonth()]} Special`
   const abilityLabels = item.abilities ?? []
 
   return (
     <section className="may-special-announcement panel">
       <div className="may-special-copy">
         <div className="eyebrow">Announcement</div>
-        <p className="may-special-kicker">May Special</p>
+        <p className="may-special-kicker">{monthSpecialLabel}</p>
         <h1>{item.name}</h1>
-        <p className="may-special-lede">Event creature available until May 31.</p>
+        <p className="may-special-lede">Homepage preview sale until {saleEndLabel}.</p>
 
-        <div className="may-special-price" aria-label="May special sale price">
+        <div className="may-special-price" aria-label="Monthly special sale price">
           {item.isOnSale ? <span className="sale-pill">Sale</span> : null}
           <strong>{item.price} gold</strong>
           {item.isOnSale ? <del>{item.originalPrice} gold</del> : null}
         </div>
 
         {abilityLabels.length ? (
-          <div className="may-special-abilities" aria-label="May special abilities">
+          <div className="may-special-abilities" aria-label="Monthly special details">
             {abilityLabels.map((ability) => (
               <span key={ability}>{ability}</span>
             ))}
           </div>
         ) : null}
 
-        <p className="may-special-note">Back to {item.originalPrice} gold after May 31.</p>
-        <button className="primary-button may-special-button" onClick={onOpenShop} type="button">
-          Open Events Shop
-        </button>
+        <p className="may-special-note">Back to {item.originalPrice} gold after {saleEndLabel}. Not in the shop yet.</p>
       </div>
 
       <div className="may-special-visual" aria-hidden="true">
