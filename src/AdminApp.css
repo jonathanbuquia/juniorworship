@@ -3177,37 +3177,40 @@
 }
 
 .seahorse-body {
-  left: 146px;
-  top: 102px;
-  width: 128px;
-  height: 178px;
-  border-radius: 48% 44% 54% 46%;
+  left: 164px;
+  top: 90px;
+  width: 98px;
+  height: 212px;
+  border-radius: 52% 62% 50% 44%;
   background:
-    radial-gradient(circle at 42% 20%, rgba(255, 255, 255, 0.56) 0 10%, transparent 10.8%),
-    repeating-linear-gradient(180deg, rgba(154, 92, 24, 0.16) 0 3px, transparent 3px 18px),
-    linear-gradient(155deg, #ffd47c 0%, #f39a35 54%, #d46b25 100%);
-  clip-path: polygon(38% 0, 72% 6%, 98% 34%, 88% 70%, 62% 100%, 30% 94%, 10% 62%, 0 28%);
+    radial-gradient(circle at 36% 14%, rgba(255, 255, 255, 0.52) 0 8%, transparent 8.8%),
+    repeating-linear-gradient(180deg, rgba(129, 38, 15, 0.26) 0 4px, transparent 4px 19px),
+    linear-gradient(155deg, #ff8051 0%, #e94725 54%, #b72718 100%);
+  clip-path: polygon(40% 0, 76% 10%, 94% 28%, 92% 62%, 70% 100%, 34% 92%, 8% 56%, 0 24%);
   box-shadow:
-    inset -14px -18px 0 rgba(126, 61, 18, 0.14),
+    inset -14px -18px 0 rgba(91, 21, 12, 0.16),
     inset 14px 8px 0 rgba(255, 255, 255, 0.2);
 }
 
 .seahorse-belly {
-  left: 28px;
-  top: 30px;
-  width: 54px;
-  height: 126px;
-  border-radius: 999px;
-  background: linear-gradient(180deg, rgba(255, 237, 163, 0.62), rgba(255, 177, 86, 0.42));
+  left: 18px;
+  top: 34px;
+  width: 44px;
+  height: 150px;
+  border-radius: 999px 999px 70% 70%;
+  background:
+    repeating-linear-gradient(180deg, rgba(173, 50, 22, 0.2) 0 3px, transparent 3px 18px),
+    linear-gradient(180deg, rgba(255, 169, 93, 0.76), rgba(245, 86, 38, 0.44));
 }
 
 .seahorse-ridge {
-  right: 6px;
-  width: 28px;
-  height: 24px;
-  border-radius: 55% 45% 35% 65%;
-  background: linear-gradient(135deg, #ffbf50, #d66d22);
-  transform: rotate(18deg);
+  right: -24px;
+  width: 42px;
+  height: 28px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ff6f3d, #b71913);
+  clip-path: polygon(0 50%, 100% 0, 74% 50%, 100% 100%);
+  transform: rotate(5deg);
 }
 
 .seahorse-ridge.ridge-one {
@@ -3227,39 +3230,39 @@
 }
 
 .seahorse-fin {
-  right: -34px;
-  top: 72px;
-  width: 62px;
-  height: 72px;
+  right: -38px;
+  top: 86px;
+  width: 56px;
+  height: 68px;
   border-radius: 50%;
   background:
-    repeating-linear-gradient(100deg, rgba(74, 123, 190, 0.24) 0 1px, transparent 1px 8px),
-    linear-gradient(140deg, rgba(158, 218, 255, 0.54), rgba(255, 177, 83, 0.24));
+    repeating-linear-gradient(100deg, rgba(168, 42, 28, 0.24) 0 1px, transparent 1px 8px),
+    linear-gradient(140deg, rgba(255, 146, 91, 0.5), rgba(255, 231, 177, 0.2));
   clip-path: polygon(0 50%, 86% 4%, 100% 50%, 82% 96%);
   opacity: 0.78;
   animation: announcementSeahorseFin 1.8s ease-in-out infinite;
 }
 
 .seahorse-head {
-  left: 112px;
-  top: 42px;
-  width: 156px;
-  height: 126px;
-  border-radius: 58% 42% 50% 48%;
+  left: 102px;
+  top: 34px;
+  width: 160px;
+  height: 122px;
+  border-radius: 54% 48% 48% 52%;
   background:
-    radial-gradient(circle at 42% 20%, rgba(255, 255, 255, 0.66) 0 12%, transparent 12.8%),
-    linear-gradient(140deg, #ffe28c 0%, #f6a23a 58%, #e27c27 100%);
-  clip-path: polygon(14% 38%, 28% 12%, 60% 0, 90% 18%, 100% 52%, 80% 86%, 42% 100%, 18% 74%);
+    radial-gradient(circle at 42% 20%, rgba(255, 255, 255, 0.58) 0 10%, transparent 10.8%),
+    linear-gradient(140deg, #ff9a60 0%, #ef4e25 58%, #c72817 100%);
+  clip-path: polygon(18% 44%, 34% 12%, 64% 0, 90% 20%, 100% 52%, 80% 88%, 42% 100%, 18% 74%);
   box-shadow: inset 12px 8px 0 rgba(255, 255, 255, 0.2);
 }
 
 .seahorse-snout {
-  left: -42px;
-  top: 54px;
-  width: 76px;
-  height: 34px;
-  border-radius: 999px 16px 20px 999px;
-  background: linear-gradient(90deg, #ffd778, #f2a040);
+  left: -78px;
+  top: 58px;
+  width: 114px;
+  height: 28px;
+  border-radius: 999px 14px 18px 999px;
+  background: linear-gradient(90deg, #ff8b53, #e64124);
   transform: rotate(-8deg);
 }
 
@@ -3275,10 +3278,10 @@
 }
 
 .seahorse-eye {
-  right: 36px;
-  top: 38px;
-  width: 34px;
-  height: 34px;
+  right: 32px;
+  top: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background: radial-gradient(circle at 58% 60%, #08173a 0 48%, #0d4b8f 49% 68%, #e7f9ff 69%);
   box-shadow:
@@ -3295,17 +3298,17 @@
 }
 
 .seahorse-smile {
-  left: 30px;
-  top: 76px;
-  width: 36px;
-  height: 18px;
+  left: 4px;
+  top: 78px;
+  width: 42px;
+  height: 16px;
   border-bottom: 4px solid #914828;
   border-radius: 0 0 999px 999px;
   transform: rotate(-10deg);
 }
 
 .seahorse-cheek {
-  left: 52px;
+  left: 50px;
   top: 66px;
   width: 28px;
   height: 18px;
@@ -3314,53 +3317,53 @@
 }
 
 .seahorse-crown {
-  top: -18px;
-  width: 28px;
-  height: 42px;
-  border-radius: 999px 999px 8px 8px;
-  background: linear-gradient(180deg, #ffe382, #e9842d);
+  top: -12px;
+  width: 24px;
+  height: 34px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #ff8752, #bd2318);
   clip-path: polygon(50% 0, 100% 100%, 0 100%);
 }
 
 .seahorse-crown.crown-one {
-  left: 48px;
+  left: 62px;
   transform: rotate(-18deg);
 }
 
 .seahorse-crown.crown-two {
-  left: 74px;
+  left: 88px;
   top: -26px;
 }
 
 .seahorse-crown.crown-three {
-  left: 100px;
+  left: 114px;
   transform: rotate(18deg);
 }
 
 .seahorse-tail {
-  left: 106px;
-  top: 244px;
-  width: 158px;
-  height: 98px;
+  left: 82px;
+  top: 254px;
+  width: 184px;
+  height: 106px;
   border-radius: 50%;
-  border: 30px solid #e9852c;
+  border: 26px solid #d93620;
   border-left-color: transparent;
-  border-bottom-color: #f5a948;
-  transform: rotate(18deg);
-  box-shadow: inset 0 0 0 8px rgba(255, 218, 119, 0.28);
+  border-bottom-color: #ff6b37;
+  transform: rotate(16deg);
+  box-shadow: inset 0 0 0 8px rgba(255, 156, 95, 0.28);
 }
 
 .seahorse-tail::after {
   content: '';
   position: absolute;
-  left: 38px;
-  top: 19px;
-  width: 54px;
-  height: 42px;
+  left: 46px;
+  top: 20px;
+  width: 58px;
+  height: 48px;
   border-radius: 50%;
-  border: 18px solid #f3a13d;
+  border: 18px solid #ee4a25;
   border-left-color: transparent;
-  border-bottom-color: #ffd06e;
+  border-bottom-color: #ff7b42;
   transform: rotate(-24deg);
 }
 
