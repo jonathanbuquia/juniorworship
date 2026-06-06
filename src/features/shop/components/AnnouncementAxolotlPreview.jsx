@@ -1,46 +1,32 @@
 export default function AnnouncementAxolotlPreview() {
   return (
-    <div className="announcement-axolotl-preview">
-      <div className="axolotl-swim">
-        <div className="axolotl-tail">
-          <span className="tail-glow" />
+    <div className="announcement-seahorse-preview">
+      <div className="seahorse-swim">
+        <div className="seahorse-tail">
+          <span className="tail-ring ring-one" />
+          <span className="tail-ring ring-two" />
+          <span className="tail-ring ring-three" />
         </div>
 
-        <div className="axolotl-gills gills-left">
-          <span className="gill gill-a" />
-          <span className="gill gill-b" />
-          <span className="gill gill-c" />
+        <div className="seahorse-body">
+          <span className="seahorse-belly" />
+          <span className="seahorse-ridge ridge-one" />
+          <span className="seahorse-ridge ridge-two" />
+          <span className="seahorse-ridge ridge-three" />
+          <span className="seahorse-ridge ridge-four" />
+          <span className="seahorse-fin" />
         </div>
 
-        <div className="axolotl-gills gills-right">
-          <span className="gill gill-a" />
-          <span className="gill gill-b" />
-          <span className="gill gill-c" />
-        </div>
-
-        <div className="axolotl-body">
-          <span className="axolotl-spot spot-a" />
-          <span className="axolotl-spot spot-b" />
-          <span className="axolotl-spot spot-c" />
-          <span className="axolotl-spot spot-d" />
-          <span className="axolotl-blush blush-left" />
-          <span className="axolotl-blush blush-right" />
-          <span className="axolotl-nostril nostril-left" />
-          <span className="axolotl-nostril nostril-right" />
-          <div className="axolotl-eye eye-left">
+        <div className="seahorse-head">
+          <span className="seahorse-crown crown-one" />
+          <span className="seahorse-crown crown-two" />
+          <span className="seahorse-crown crown-three" />
+          <span className="seahorse-snout" />
+          <span className="seahorse-cheek" />
+          <div className="seahorse-eye">
             <span className="eye-spark" />
           </div>
-          <div className="axolotl-eye eye-right">
-            <span className="eye-spark" />
-          </div>
-          <div className="axolotl-mouth" />
-        </div>
-
-        <div className="axolotl-arm arm-left">
-          <span className="axolotl-hand" />
-        </div>
-        <div className="axolotl-arm arm-right">
-          <span className="axolotl-hand" />
+          <span className="seahorse-smile" />
         </div>
       </div>
     </div>
