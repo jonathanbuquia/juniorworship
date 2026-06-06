@@ -85,3 +85,41 @@ export function createAttendanceKey(playerId, dateId) {
 export function isPlayerMonthComplete(playerId, dateIds, attendance) {
   return dateIds.length > 0 && dateIds.every((dateId) => Boolean(attendance[createAttendanceKey(playerId, dateId)]))
 }
+
+function addDaysToDateKey(dateId, days) {
+  const date = new Date(`${dateId}T00:00:00`)
+  date.setDate(date.getDate() + days)
+
+  return toDateKey(date)
+}
+
+export function createMoonJellyStreakClaimKey(playerId, dateId) {
+  return `${playerId}:${dateId}`
+}
+
+export function getMoonJellyStreakBonusDateIds(playerId, dateIds, attendance, purchaseDateId) {
+  if (!playerId || !purchaseDateId) {
+    return []
+  }
+
+  let consecutiveCount = 0
+  let previousDateId = ''
+  const bonusDateIds = []
+
+  dateIds
+    .filter((dateId) => dateId >= purchaseDateId)
+    .sort()
+    .forEach((dateId) => {
+      const present = Boolean(attendance[createAttendanceKey(playerId, dateId)])
+      const consecutive = previousDateId && addDaysToDateKey(previousDateId, 7) === dateId
+
+      consecutiveCount = present ? (consecutive ? consecutiveCount + 1 : 1) : 0
+      previousDateId = dateId
+
+      if (present && consecutiveCount > 0 && consecutiveCount % 3 === 0) {
+        bonusDateIds.push(dateId)
+      }
+    })
+
+  return bonusDateIds
+}

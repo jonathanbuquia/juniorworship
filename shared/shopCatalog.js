@@ -41,6 +41,8 @@ export const SHOP_RARITY_FILTERS = [
 
 export const MAY_EVENT_BETTA_SLUG = 'may-blue-betta'
 export const MAY_EVENT_BETTA_SALE_END_DATE = '2026-05-31'
+export const MOON_JELLY_SLUG = 'moon-jelly'
+export const MOON_JELLY_SALE_END_DATE = '2026-06-28'
 
 function isDateOnOrBefore(dateKey, endDateKey) {
   return String(dateKey || '') <= endDateKey
@@ -140,6 +142,28 @@ export const SHOP_ITEMS = [
       'Perfect score sparkle!',
       'Keep swimming strong!',
       'You are amazing!',
+    ],
+  },
+  {
+    slug: MOON_JELLY_SLUG,
+    category: 'events',
+    rarity: 'special',
+    name: 'Moon Jelly',
+    subtitle: 'MONTHLY SPECIAL',
+    description: 'A glowing jellyfish that fills the aquarium with soft bubbles.',
+    price: 3000,
+    salePrice: 1500,
+    saleEndsOn: MOON_JELLY_SALE_END_DATE,
+    accentColor: '#bdb2ff',
+    bodyColor: '#c7f6ff',
+    finColor: '#a5b4fc',
+    detailColor: '#f5f0ff',
+    creatureType: 'jellyfish',
+    shopFishScale: 1.2,
+    abilities: [
+      'Click bubble burst',
+      '+300 gold for 3 straight Sundays',
+      'Counts after purchase',
     ],
   },
 ]

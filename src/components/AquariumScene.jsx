@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import '../PixelAquarium.css'
-import { findShopItemBySlug } from '../../shared/shopCatalog.js'
+import { findShopItemBySlug, MOON_JELLY_SLUG } from '../../shared/shopCatalog.js'
+import JellyfishFigure from './JellyfishFigure.jsx'
 
 const BASE_FISH_WIDTH = 198
 const BASE_FISH_HEIGHT = 126
@@ -116,7 +117,7 @@ function buildOwnedFishConfigs(ownedFish) {
   return ownedFish.flatMap((entry, entryIndex) => {
     const item = findShopItemBySlug(entry.slug)
 
-    if (!item || !Number.isInteger(entry.quantity) || entry.quantity <= 0) {
+    if (!item || item.creatureType || !Number.isInteger(entry.quantity) || entry.quantity <= 0) {
       return []
     }
 
@@ -145,6 +146,20 @@ function buildOwnedFishConfigs(ownedFish) {
         variant: item.slug,
       }
     })
+  })
+}
+
+function buildOwnedJellyfishConfigs(ownedFish) {
+  return ownedFish.flatMap((entry) => {
+    if (entry.slug !== MOON_JELLY_SLUG || !Number.isInteger(entry.quantity) || entry.quantity <= 0) {
+      return []
+    }
+
+    return Array.from({ length: entry.quantity }, (_unused, index) => ({
+      id: `${entry.slug}-${index + 1}`,
+      startX: clamp(0.28 + index * 0.08, 0.12, 0.76),
+      startY: clamp(0.18 + (index % 2) * 0.12, 0.12, 0.56),
+    }))
   })
 }
 
@@ -689,7 +704,18 @@ function CuteOctopus({ movable = false, persistedStart, tankRef, tankSize, onPer
   )
 }
 
-function CuteJellyfish({ movable = false, persistedStart, tankRef, tankSize, onPersistPosition }) {
+function CuteJellyfish({
+  bubbleBurstOnClick = false,
+  movable = false,
+  persistedStart,
+  startX = 0.28,
+  startY = 0.18,
+  tankRef,
+  tankSize,
+  onPersistPosition,
+}) {
+  const [bubbleBurstKey, setBubbleBurstKey] = useState(0)
+  const bubbleTimerRef = useRef(null)
   const draggable = useDraggableSwimmer({
     tankRef,
     width: BASE_JELLYFISH_WIDTH,
@@ -704,8 +730,8 @@ function CuteJellyfish({ movable = false, persistedStart, tankRef, tankSize, onP
     tankSize,
     width: BASE_JELLYFISH_WIDTH,
     height: BASE_JELLYFISH_HEIGHT,
-    startX: 0.28,
-    startY: 0.18,
+    startX,
+    startY,
     speed: 28,
     directionX: 1,
     directionY: 0.2,
@@ -726,6 +752,40 @@ function CuteJellyfish({ movable = false, persistedStart, tankRef, tankSize, onP
   })
   const displayPosition = draggable.dragPosition ?? pose
 
+  useEffect(() => {
+    return () => {
+      if (bubbleTimerRef.current) {
+        window.clearTimeout(bubbleTimerRef.current)
+      }
+    }
+  }, [])
+
+  const createBubbleBurst = () => {
+    if (!bubbleBurstOnClick) {
+      return
+    }
+
+    if (bubbleTimerRef.current) {
+      window.clearTimeout(bubbleTimerRef.current)
+    }
+
+    setBubbleBurstKey((current) => current + 1)
+    bubbleTimerRef.current = window.setTimeout(() => setBubbleBurstKey(0), 980)
+  }
+
+  const handleClick = () => {
+    createBubbleBurst()
+  }
+
+  const handleKeyDown = (event) => {
+    if (!bubbleBurstOnClick || (event.key !== 'Enter' && event.key !== ' ')) {
+      return
+    }
+
+    event.preventDefault()
+    createBubbleBurst()
+  }
+
   return (
     <div
       className={`jellyfish-swim ${pose.paused ? 'paused' : ''} ${draggable.dragging ? 'dragging' : ''}`}
@@ -735,33 +795,24 @@ function CuteJellyfish({ movable = false, persistedStart, tankRef, tankSize, onP
         '--jellyfish-facing': pose.facing,
         '--jellyfish-tilt': `${pose.tilt * 0.45}deg`,
       }}
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
       onPointerDown={movable ? (event) => draggable.startDragging(event, displayPosition) : undefined}
+      tabIndex={bubbleBurstOnClick ? 0 : undefined}
       aria-label="Cute jellyfish"
     >
+      {bubbleBurstKey ? (
+        <div className="jellyfish-burst-bubbles" aria-hidden="true" key={bubbleBurstKey}>
+          <span className="burst-bubble bubble-one" />
+          <span className="burst-bubble bubble-two" />
+          <span className="burst-bubble bubble-three" />
+          <span className="burst-bubble bubble-four" />
+          <span className="burst-bubble bubble-five" />
+        </div>
+      ) : null}
       <div className="jellyfish-bob">
         <div className="jellyfish-motion">
-          <div className="jellyfish">
-            <div className="jellyfish-bell">
-              <div className="jellyfish-highlight" />
-              <div className="jellyfish-eye jellyfish-eye-left">
-                <span className="jellyfish-eye-spark" />
-              </div>
-              <div className="jellyfish-eye jellyfish-eye-right">
-                <span className="jellyfish-eye-spark" />
-              </div>
-              <div className="jellyfish-mouth" />
-              <div className="jellyfish-blush jellyfish-blush-left" />
-              <div className="jellyfish-blush jellyfish-blush-right" />
-            </div>
-            <div className="jellyfish-frill" aria-hidden="true" />
-            <div className="jellyfish-tentacles" aria-hidden="true">
-              <span className="jellyfish-tentacle tentacle-a" />
-              <span className="jellyfish-tentacle tentacle-b" />
-              <span className="jellyfish-tentacle tentacle-c" />
-              <span className="jellyfish-tentacle tentacle-d" />
-              <span className="jellyfish-tentacle tentacle-e" />
-            </div>
-          </div>
+          <JellyfishFigure />
         </div>
       </div>
     </div>
@@ -1132,6 +1183,7 @@ export default function AquariumScene({ ownedFish = [], playerId = '', movable =
   const [dragState, setDragState] = useState(null)
   const hasSelectedPlayer = Boolean(playerId)
   const purchasedFish = buildOwnedFishConfigs(ownedFish)
+  const purchasedJellyfish = buildOwnedJellyfishConfigs(ownedFish)
   const coralPositions = sceneState.coralPositions ?? {}
   const creatureStarts = sceneState.creatures ?? {}
   const hasSavedCorals = Object.keys(coralPositions).length > 0
@@ -1400,6 +1452,24 @@ export default function AquariumScene({ ownedFish = [], playerId = '', movable =
                   tankSize={tankSize}
                 />
               )}
+
+              {hasSelectedPlayer &&
+                tankSize.width > 0 &&
+                purchasedJellyfish.map((jellyfish) => (
+                  <CuteJellyfish
+                    bubbleBurstOnClick
+                    key={jellyfish.id}
+                    movable={movable}
+                    onPersistPosition={(position) =>
+                      handlePersistCreaturePosition(`owned-creature:${jellyfish.id}`, position)
+                    }
+                    persistedStart={creatureStarts[`owned-creature:${jellyfish.id}`] ?? null}
+                    startX={jellyfish.startX}
+                    startY={jellyfish.startY}
+                    tankRef={tankRef}
+                    tankSize={tankSize}
+                  />
+                ))}
 
               {hasSelectedPlayer &&
                 tankSize.width > 0 &&

@@ -1,9 +1,89 @@
 import { useMemo, useState } from 'react'
-import { ATTENDANCE_GOLD_REWARD, ATTENDANCE_MONTHLY_BONUS } from '../../app/constants.js'
-import { createAttendanceKey, createSundayColumns, isPlayerMonthComplete } from '../attendanceUtils.js'
+import {
+  ATTENDANCE_GOLD_REWARD,
+  ATTENDANCE_MONTHLY_BONUS,
+  MOON_JELLY_ATTENDANCE_BONUS,
+  MOON_JELLY_ATTENDANCE_CLAIMS_STORAGE_KEY,
+} from '../../app/constants.js'
+import { MOON_JELLY_SLUG } from '../../../../shared/shopCatalog.js'
+import {
+  createAttendanceKey,
+  createMoonJellyStreakClaimKey,
+  createSundayColumns,
+  getMoonJellyStreakBonusDateIds,
+  isPlayerMonthComplete,
+} from '../attendanceUtils.js'
 import { useAttendance } from '../hooks/useAttendance.js'
 
-export default function AttendancePage({ onAttendanceChange, players }) {
+function createLocalDateKey(value) {
+  const date = value instanceof Date ? value : new Date(value)
+
+  if (Number.isNaN(date.getTime())) {
+    return ''
+  }
+
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+
+  return `${year}-${month}-${day}`
+}
+
+function getMoonJellyPurchaseDateId(aquarium) {
+  const moonJelly = (aquarium?.fish ?? []).find(
+    (item) => item.slug === MOON_JELLY_SLUG && Number(item.quantity) > 0 && item.purchasedAt,
+  )
+
+  return moonJelly ? createLocalDateKey(moonJelly.purchasedAt) : ''
+}
+
+function readMoonJellyAttendanceClaims() {
+  try {
+    const savedValue = window.localStorage.getItem(MOON_JELLY_ATTENDANCE_CLAIMS_STORAGE_KEY)
+
+    if (!savedValue) {
+      return {}
+    }
+
+    const parsed = JSON.parse(savedValue)
+    return parsed && typeof parsed === 'object' ? parsed : {}
+  } catch {
+    return {}
+  }
+}
+
+function saveMoonJellyAttendanceClaims(claims) {
+  window.localStorage.setItem(MOON_JELLY_ATTENDANCE_CLAIMS_STORAGE_KEY, JSON.stringify(claims))
+}
+
+function getMoonJellyBonusChange({ attendance, claims, dateIds, playerId, purchaseDateId }) {
+  const eligibleDateIds = getMoonJellyStreakBonusDateIds(playerId, dateIds, attendance, purchaseDateId)
+  const eligibleKeys = new Set(eligibleDateIds.map((dateId) => createMoonJellyStreakClaimKey(playerId, dateId)))
+  const playerClaimPrefix = `${playerId}:`
+  const playerClaimKeys = Object.keys(claims).filter((key) => {
+    const dateId = key.slice(playerClaimPrefix.length)
+    return key.startsWith(playerClaimPrefix) && dateId >= purchaseDateId
+  })
+  const newlyEarnedKeys = [...eligibleKeys].filter((key) => !claims[key])
+  const removedKeys = playerClaimKeys.filter((key) => !eligibleKeys.has(key))
+  const nextClaims = { ...claims }
+
+  newlyEarnedKeys.forEach((key) => {
+    nextClaims[key] = true
+  })
+  removedKeys.forEach((key) => {
+    delete nextClaims[key]
+  })
+
+  return {
+    delta: (newlyEarnedKeys.length - removedKeys.length) * MOON_JELLY_ATTENDANCE_BONUS,
+    earnedCount: newlyEarnedKeys.length,
+    nextClaims,
+    removedCount: removedKeys.length,
+  }
+}
+
+export default function AttendancePage({ loadPlayerAquarium, onAttendanceChange, players }) {
   const { attendance, setAttendanceValue } = useAttendance()
   const [pendingKey, setPendingKey] = useState('')
   const [message, setMessage] = useState({ type: '', text: '' })
@@ -44,14 +124,39 @@ export default function AttendancePage({ onAttendanceChange, players }) {
           : date.monthlyBonusEligible && wasMonthComplete && !willMonthComplete
             ? -ATTENDANCE_MONTHLY_BONUS
             : 0
+      let moonJellyBonusChange = {
+        delta: 0,
+        earnedCount: 0,
+        nextClaims: null,
+        removedCount: 0,
+      }
+
+      if (loadPlayerAquarium) {
+        const aquarium = await loadPlayerAquarium(player.id)
+        const moonJellyPurchaseDateId = getMoonJellyPurchaseDateId(aquarium)
+
+        if (moonJellyPurchaseDateId) {
+          moonJellyBonusChange = getMoonJellyBonusChange({
+            attendance: nextAttendance,
+            claims: readMoonJellyAttendanceClaims(),
+            dateIds: sundayColumns.map((sunday) => sunday.id),
+            playerId: player.id,
+            purchaseDateId: moonJellyPurchaseDateId,
+          })
+        }
+      }
 
       await onAttendanceChange?.({
         date,
-        goldDelta: attendanceDelta + monthlyBonusDelta,
+        goldDelta: attendanceDelta + monthlyBonusDelta + moonJellyBonusChange.delta,
         monthlyBonusDelta,
+        moonJellyBonusDelta: moonJellyBonusChange.delta,
         player,
         present: nextPresent,
       })
+      if (moonJellyBonusChange.nextClaims) {
+        saveMoonJellyAttendanceClaims(moonJellyBonusChange.nextClaims)
+      }
       setAttendanceValue(attendanceKey, nextPresent)
       setMessage({
         type: 'success',
@@ -61,6 +166,12 @@ export default function AttendancePage({ onAttendanceChange, players }) {
             : `${player.display_name} marked absent. ${ATTENDANCE_GOLD_REWARD} gold removed.`,
           monthlyBonusDelta > 0 ? `Monthly bonus +${ATTENDANCE_MONTHLY_BONUS} gold added.` : '',
           monthlyBonusDelta < 0 ? `Monthly bonus ${ATTENDANCE_MONTHLY_BONUS} gold removed.` : '',
+          moonJellyBonusChange.earnedCount > 0
+            ? `Moon Jelly streak +${moonJellyBonusChange.earnedCount * MOON_JELLY_ATTENDANCE_BONUS} gold added.`
+            : '',
+          moonJellyBonusChange.removedCount > 0
+            ? `Moon Jelly streak ${moonJellyBonusChange.removedCount * MOON_JELLY_ATTENDANCE_BONUS} gold removed.`
+            : '',
         ]
           .filter(Boolean)
           .join(' '),
@@ -90,6 +201,8 @@ export default function AttendancePage({ onAttendanceChange, players }) {
         <strong>+{ATTENDANCE_GOLD_REWARD} gold</strong>
         <span>Month Complete</span>
         <strong>+{ATTENDANCE_MONTHLY_BONUS} gold</strong>
+        <span>Moon Jelly Streak</span>
+        <strong>+{MOON_JELLY_ATTENDANCE_BONUS} gold</strong>
       </div>
 
       {message.text ? <p className={`status-line ${message.type}`}>{message.text}</p> : null}

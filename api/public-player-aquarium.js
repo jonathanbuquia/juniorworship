@@ -15,7 +15,7 @@ export default async function handler(req, res) {
     const admin = createServiceClient()
     const { data, error } = await admin
       .from('inventory')
-      .select('quantity, shop_items!inner(slug, name)')
+      .select('created_at, quantity, shop_items!inner(slug, name)')
       .eq('user_id', playerId)
       .gt('quantity', 0)
       .order('created_at', { ascending: true })
@@ -26,6 +26,7 @@ export default async function handler(req, res) {
 
     const fish = (data ?? []).map((entry) => ({
       name: entry.shop_items?.name ?? '',
+      purchasedAt: entry.created_at ?? '',
       quantity: entry.quantity ?? 0,
       slug: entry.shop_items?.slug ?? '',
     }))

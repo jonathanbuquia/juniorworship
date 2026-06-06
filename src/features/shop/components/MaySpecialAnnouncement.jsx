@@ -1,4 +1,5 @@
-import AnnouncementAxolotlPreview from './AnnouncementAxolotlPreview.jsx'
+import AnnouncementMoonJellyPreview from './AnnouncementMoonJellyPreview.jsx'
+import { MOON_JELLY_SLUG, findShopItemBySlug } from '../../../../shared/shopCatalog.js'
 
 const MONTH_NAMES = [
   'January',
@@ -15,15 +16,6 @@ const MONTH_NAMES = [
   'December',
 ]
 
-const AXOLOTL_FEATURE = {
-  name: 'Axolotl',
-  subtitle: 'Monthly Special',
-  price: 1500,
-  originalPrice: 3000,
-  isOnSale: true,
-  abilities: ['Cute event preview', '1500 sale gold', 'Homepage only'],
-}
-
 function getLastSundayOfMonth(value = new Date()) {
   const lastDayOfMonth = new Date(value.getFullYear(), value.getMonth() + 1, 0)
   lastDayOfMonth.setDate(lastDayOfMonth.getDate() - lastDayOfMonth.getDay())
@@ -32,7 +24,7 @@ function getLastSundayOfMonth(value = new Date()) {
 }
 
 export default function MaySpecialAnnouncement() {
-  const item = AXOLOTL_FEATURE
+  const item = findShopItemBySlug(MOON_JELLY_SLUG)
   const saleEndDate = getLastSundayOfMonth()
   const saleEndLabel = `${MONTH_NAMES[saleEndDate.getMonth()]} ${saleEndDate.getDate()}`
   const monthSpecialLabel = `${MONTH_NAMES[new Date().getMonth()]} Special`
@@ -44,7 +36,7 @@ export default function MaySpecialAnnouncement() {
         <div className="eyebrow">Announcement</div>
         <p className="may-special-kicker">{monthSpecialLabel}</p>
         <h1>{item.name}</h1>
-        <p className="may-special-lede">Homepage preview sale until {saleEndLabel}.</p>
+        <p className="may-special-lede">Event shop sale until {saleEndLabel}.</p>
 
         <div className="may-special-price" aria-label="Monthly special sale price">
           {item.isOnSale ? <span className="sale-pill">Sale</span> : null}
@@ -60,7 +52,7 @@ export default function MaySpecialAnnouncement() {
           </div>
         ) : null}
 
-        <p className="may-special-note">Back to {item.originalPrice} gold after {saleEndLabel}. Not in the shop yet.</p>
+        <p className="may-special-note">Back to {item.originalPrice} gold after {saleEndLabel}. Available in Events.</p>
       </div>
 
       <div className="may-special-visual" aria-hidden="true">
@@ -75,7 +67,7 @@ export default function MaySpecialAnnouncement() {
           <span className="announcement-rock rock-left" />
           <span className="announcement-rock rock-right" />
         </div>
-        <AnnouncementAxolotlPreview />
+        <AnnouncementMoonJellyPreview />
       </div>
     </section>
   )

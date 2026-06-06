@@ -1295,7 +1295,11 @@ export default function AdminApp() {
 
           {viewingAttendance && isAdmin ? (
             <div className="attendance-stage">
-              <AttendancePage onAttendanceChange={handleAttendanceChange} players={players.length ? players : publicPlayers} />
+              <AttendancePage
+                loadPlayerAquarium={fetchPlayerAquarium}
+                onAttendanceChange={handleAttendanceChange}
+                players={players.length ? players : publicPlayers}
+              />
             </div>
           ) : null}
 
