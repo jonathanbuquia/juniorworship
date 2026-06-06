@@ -1,5 +1,5 @@
 import AnnouncementMoonJellyPreview from './AnnouncementMoonJellyPreview.jsx'
-import { MOON_JELLY_SLUG, findShopItemBySlug } from '../../../../shared/shopCatalog.js'
+import { MOON_JELLY_SLUG, findShopItemBySlug, formatRequirementsSummary } from '../../../../shared/shopCatalog.js'
 
 const MONTH_NAMES = [
   'January',
@@ -29,6 +29,7 @@ export default function MaySpecialAnnouncement() {
   const saleEndLabel = `${MONTH_NAMES[saleEndDate.getMonth()]} ${saleEndDate.getDate()}`
   const monthSpecialLabel = `${MONTH_NAMES[new Date().getMonth()]} Special`
   const abilityLabels = item.abilities ?? []
+  const requirementsLabel = item.requirements?.length ? formatRequirementsSummary(item.requirements) : ''
 
   return (
     <section className="may-special-announcement panel">
@@ -50,6 +51,12 @@ export default function MaySpecialAnnouncement() {
               <span key={ability}>{ability}</span>
             ))}
           </div>
+        ) : null}
+
+        {requirementsLabel ? (
+          <p className="may-special-requirement">
+            <strong>Requires:</strong> {requirementsLabel}
+          </p>
         ) : null}
 
         <p className="may-special-note">Back to {item.originalPrice} gold after {saleEndLabel}. Available in Events.</p>

@@ -1,5 +1,21 @@
 import { allowMethods, createServiceClient, parseBody, requireAdmin, sendJson } from './_lib/supabase.js'
-import { findShopItemBySlug } from '../shared/shopCatalog.js'
+import { findShopItemBySlug, formatRequirementsSummary } from '../shared/shopCatalog.js'
+
+function getMissingRequirements(requirements, inventory = []) {
+  return requirements
+    .map((requirement) => {
+      const ownedQuantity = inventory
+        .filter((entry) => entry.shop_items?.slug === requirement.slug)
+        .reduce((total, entry) => total + Number(entry.quantity || 0), 0)
+
+      return {
+        ...requirement,
+        missingQuantity: Math.max(0, requirement.quantity - ownedQuantity),
+        ownedQuantity,
+      }
+    })
+    .filter((requirement) => requirement.missingQuantity > 0)
+}
 
 export default async function handler(req, res) {
   if (!allowMethods(req, res, ['POST'])) {
@@ -43,6 +59,31 @@ export default async function handler(req, res) {
       return sendJson(res, 400, {
         error: `${player.display_name} needs ${catalogItem.price} gold for ${catalogItem.name}, but only has ${player.gold}.`,
       })
+    }
+
+    if (catalogItem.requirements?.length) {
+      const { data: requirementInventory, error: requirementInventoryError } = await admin
+        .from('inventory')
+        .select('quantity, shop_items!inner(slug, name)')
+        .eq('user_id', player.id)
+        .in(
+          'shop_items.slug',
+          catalogItem.requirements.map((requirement) => requirement.slug),
+        )
+
+      if (requirementInventoryError) {
+        return sendJson(res, 400, {
+          error: requirementInventoryError.message || 'Unable to check item requirements.',
+        })
+      }
+
+      const missingRequirements = getMissingRequirements(catalogItem.requirements, requirementInventory ?? [])
+
+      if (missingRequirements.length) {
+        return sendJson(res, 400, {
+          error: `${catalogItem.name} requires ${formatRequirementsSummary(catalogItem.requirements)} first.`,
+        })
+      }
     }
 
     const { data: itemRecord, error: itemError } = await admin

@@ -43,6 +43,23 @@ export const MAY_EVENT_BETTA_SLUG = 'may-blue-betta'
 export const MAY_EVENT_BETTA_SALE_END_DATE = '2026-05-31'
 export const MOON_JELLY_SLUG = 'moon-jelly'
 export const MOON_JELLY_SALE_END_DATE = '2026-06-28'
+export const MOON_JELLY_REQUIREMENTS = [
+  {
+    name: 'Sunbeam Guppy',
+    quantity: 2,
+    slug: 'sunbeam-guppy',
+  },
+  {
+    name: 'Coral Clownfish',
+    quantity: 2,
+    slug: 'coral-clownfish',
+  },
+  {
+    name: 'Mint Angel Fish',
+    quantity: 2,
+    slug: 'mint-angel-fish',
+  },
+]
 
 function isDateOnOrBefore(dateKey, endDateKey) {
   return String(dateKey || '') <= endDateKey
@@ -150,7 +167,7 @@ export const SHOP_ITEMS = [
     rarity: 'special',
     name: 'Moon Jelly',
     subtitle: 'MONTHLY SPECIAL',
-    description: 'A glowing jellyfish that fills the aquarium with soft bubbles.',
+    description: 'Unlock after owning 2 each of the three common starter fish.',
     price: 3000,
     salePrice: 1500,
     saleEndsOn: MOON_JELLY_SALE_END_DATE,
@@ -165,8 +182,17 @@ export const SHOP_ITEMS = [
       '+300 gold for 3 straight Sundays',
       'Counts after purchase',
     ],
+    requirements: MOON_JELLY_REQUIREMENTS,
   },
 ]
+
+export function formatRequirementLabel(requirement) {
+  return `${requirement.quantity} ${requirement.name}`
+}
+
+export function formatRequirementsSummary(requirements = []) {
+  return requirements.map(formatRequirementLabel).join(', ')
+}
 
 export function findShopItemBySlug(slug) {
   const item = SHOP_ITEMS.find((shopItem) => shopItem.slug === slug) ?? null

@@ -189,7 +189,7 @@ insert into public.shop_items (slug, name, description, price, accent_color)
 values
   ('starter-food', 'Starter Food', 'A simple pellet pack that keeps the fish tank busy.', 25, '#80d7ff'),
   ('coral-cave', 'Coral Cave', 'A bright coral shelter for the lower side of the tank.', 70, '#ff8f73'),
-  ('moon-jelly', 'Moon Jelly', 'A soft jellyfish companion that adds a glowing accent.', 110, '#bdb2ff')
+  ('moon-jelly', 'Moon Jelly', 'Unlock after owning 2 each of the three common starter fish.', 1500, '#bdb2ff')
 on conflict (slug) do update
 set
   name = excluded.name,

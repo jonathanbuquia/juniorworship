@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import {
   SHOP_CATEGORIES,
   SHOP_RARITY_FILTERS,
+  formatRequirementLabel,
   getShopItemsByCategoryAndRarity,
 } from '../../../../shared/shopCatalog.js'
 import ShopFishPreview from './ShopFishPreview.jsx'
@@ -97,6 +98,7 @@ export default function ShopPage({
               const needsMoreGold = selectedPlayer ? selectedPlayer.gold < item.price : false
               const rarityLabel = item.rarity ? item.rarity.toUpperCase() : ''
               const abilityLabels = item.abilities ?? []
+              const requirementLabels = item.requirements?.map(formatRequirementLabel) ?? []
 
               return (
                 <MotionDiv
@@ -124,6 +126,17 @@ export default function ShopPage({
                           <span className="shop-ability-chip" key={ability}>
                             {ability}
                           </span>
+                        ))}
+                      </div>
+                    ) : null}
+
+                    {item.description ? <p className="shop-item-description">{item.description}</p> : null}
+
+                    {requirementLabels.length ? (
+                      <div className="shop-requirement-list" aria-label={`${item.name} requirements`}>
+                        <span>Requires</span>
+                        {requirementLabels.map((requirement) => (
+                          <strong key={requirement}>{requirement}</strong>
                         ))}
                       </div>
                     ) : null}
