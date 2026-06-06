@@ -1036,6 +1036,15 @@ export default function AdminApp() {
     navigate(BOOKS_PATH)
   }
 
+  const handleOpenHome = () => {
+    setAuthMenuOpen(false)
+    setProfileMenuOpen(false)
+    setViewedPlayerId('')
+    setActivePlayerHudCollapsed(false)
+    closeCompactNav()
+    navigate(DEFAULT_PATH)
+  }
+
   const handleShowMemoryVerseEditor = () => {
     setMemoryVerseEditorOpen(true)
     setMemoryControlsOpen(true)
@@ -1232,6 +1241,7 @@ export default function AdminApp() {
             onOpenAdmin={handleToggleAdmin}
             onOpenAttendance={handleOpenAttendance}
             onOpenBooks={handleOpenBooks}
+            onOpenHome={handleOpenHome}
             onOpenMemoryVerse={handleOpenMemoryVerse}
             onOpenProfileMenu={handleOpenProfileMenu}
             onOpenQuiz={handleOpenQuiz}
@@ -1249,6 +1259,7 @@ export default function AdminApp() {
             viewingAdmin={viewingAdmin}
             viewingAttendance={viewingAttendance}
             viewingBooks={viewingBooks}
+            viewingHome={viewingHome}
             viewingMemory={viewingMemory}
             viewingQuiz={viewingQuiz}
             viewingShop={viewingShop}

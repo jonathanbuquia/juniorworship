@@ -27,6 +27,7 @@ export default function GameTopBar({
   onOpenAdmin,
   onOpenAttendance,
   onOpenBooks,
+  onOpenHome,
   onOpenMemoryVerse,
   onOpenProfileMenu,
   onOpenQuiz,
@@ -44,6 +45,7 @@ export default function GameTopBar({
   viewingAdmin,
   viewingAttendance,
   viewingBooks,
+  viewingHome,
   viewingMemory,
   viewingQuiz,
   viewingShop,
@@ -97,6 +99,34 @@ export default function GameTopBar({
       </div>
 
       <div className="rail-top">
+        <MotionButton
+          aria-label="Home"
+          className={`rail-button rail-button-secondary ${viewingHome && !viewedPlayer ? 'active' : ''}`}
+          layout
+          onClick={onOpenHome}
+          type="button"
+          whileHover={{ y: -2 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <span aria-hidden="true" className="rail-button-icon">
+            <RailIcon type="home" />
+          </span>
+          <AnimatePresence initial={false}>
+            {!effectiveCollapsed ? (
+              <MotionSpan
+                animate={{ opacity: 1, x: 0 }}
+                className="rail-button-label"
+                exit={{ opacity: 0, x: -8 }}
+                initial={{ opacity: 0, x: -8 }}
+                key="home-label"
+                transition={POPOVER_TRANSITION}
+              >
+                HOME
+              </MotionSpan>
+            ) : null}
+          </AnimatePresence>
+        </MotionButton>
+
         <div className="header-menu-wrap">
           <MotionButton
             aria-label="Profile"

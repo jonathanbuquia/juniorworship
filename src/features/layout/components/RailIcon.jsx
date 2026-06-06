@@ -17,6 +17,16 @@ export default function RailIcon({ type }) {
     )
   }
 
+  if (type === 'home') {
+    return (
+      <svg aria-hidden="true" viewBox="0 0 24 24">
+        <path d="M4.5 11.5 12 5l7.5 6.5" />
+        <path d="M7 10.5V19h10v-8.5" />
+        <path d="M10 19v-5h4v5" />
+      </svg>
+    )
+  }
+
   if (type === 'shop') {
     return (
       <svg aria-hidden="true" viewBox="0 0 24 24">
