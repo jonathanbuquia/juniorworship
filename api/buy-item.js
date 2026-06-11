@@ -1,6 +1,7 @@
 /* global process */
 
 import { createClient } from '@supabase/supabase-js'
+import { findShopItemBySlug, isEventShopItem } from '../shared/shopCatalog.js'
 
 function sendJson(res, status, body) {
   res.statusCode = status
@@ -24,7 +25,7 @@ function readItemId(body) {
 async function updateInventory(admin, { itemId, playerId }) {
   const { data: itemRecord, error: itemError } = await admin
     .from('shop_items')
-    .select('id, name, price')
+    .select('id, name, price, slug')
     .eq('id', itemId)
     .single()
 
@@ -46,21 +47,6 @@ async function updateInventory(admin, { itemId, playerId }) {
     return { error: 'Not enough gold for that item.', status: 400 }
   }
 
-  const nextGold = player.gold - itemRecord.price
-  const { data: updatedPlayer, error: goldError } = await admin
-    .from('profiles')
-    .update({
-      gold: nextGold,
-    })
-    .eq('id', playerId)
-    .eq('gold', player.gold)
-    .select('gold')
-    .single()
-
-  if (goldError || !updatedPlayer) {
-    return { error: goldError?.message || 'The purchase could not be completed.', status: 400 }
-  }
-
   const { data: existingInventory, error: inventoryLookupError } = await admin
     .from('inventory')
     .select('id, quantity')
@@ -77,6 +63,27 @@ async function updateInventory(admin, { itemId, playerId }) {
       .eq('id', playerId)
 
     return { error: inventoryLookupError.message || 'The purchase could not be completed.', status: 400 }
+  }
+
+  const catalogItem = findShopItemBySlug(itemRecord.slug)
+
+  if (isEventShopItem(catalogItem) && Number(existingInventory?.quantity ?? 0) > 0) {
+    return { error: `${itemRecord.name} is a special event creature and can only be bought once.`, status: 400 }
+  }
+
+  const nextGold = player.gold - itemRecord.price
+  const { data: updatedPlayer, error: goldError } = await admin
+    .from('profiles')
+    .update({
+      gold: nextGold,
+    })
+    .eq('id', playerId)
+    .eq('gold', player.gold)
+    .select('gold')
+    .single()
+
+  if (goldError || !updatedPlayer) {
+    return { error: goldError?.message || 'The purchase could not be completed.', status: 400 }
   }
 
   let quantity = 1

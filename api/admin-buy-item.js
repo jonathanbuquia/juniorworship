@@ -1,5 +1,5 @@
 import { allowMethods, createServiceClient, parseBody, requireAdmin, sendJson } from './_lib/supabase.js'
-import { findShopItemBySlug, formatRequirementsSummary } from '../shared/shopCatalog.js'
+import { findShopItemBySlug, formatRequirementsSummary, isEventShopItem } from '../shared/shopCatalog.js'
 
 function getMissingRequirements(requirements, inventory = []) {
   return requirements
@@ -109,6 +109,25 @@ export default async function handler(req, res) {
       })
     }
 
+    const { data: existingInventory, error: inventoryLookupError } = await admin
+      .from('inventory')
+      .select('id, quantity')
+      .eq('user_id', player.id)
+      .eq('item_id', itemRecord.id)
+      .maybeSingle()
+
+    if (inventoryLookupError) {
+      return sendJson(res, 400, {
+        error: inventoryLookupError.message || 'The purchase could not be completed.',
+      })
+    }
+
+    if (isEventShopItem(catalogItem) && Number(existingInventory?.quantity ?? 0) > 0) {
+      return sendJson(res, 400, {
+        error: `${catalogItem.name} is a special event creature and can only be bought once per player.`,
+      })
+    }
+
     const nextGold = player.gold - itemRecord.price
     const { data: updatedPlayer, error: goldError } = await admin
       .from('profiles')
@@ -123,26 +142,6 @@ export default async function handler(req, res) {
     if (goldError || !updatedPlayer) {
       return sendJson(res, 400, {
         error: goldError?.message || 'The purchase could not be completed.',
-      })
-    }
-
-    const { data: existingInventory, error: inventoryLookupError } = await admin
-      .from('inventory')
-      .select('id, quantity')
-      .eq('user_id', player.id)
-      .eq('item_id', itemRecord.id)
-      .maybeSingle()
-
-    if (inventoryLookupError) {
-      await admin
-        .from('profiles')
-        .update({
-          gold: player.gold,
-        })
-        .eq('id', player.id)
-
-      return sendJson(res, 400, {
-        error: inventoryLookupError.message || 'The purchase could not be completed.',
       })
     }
 

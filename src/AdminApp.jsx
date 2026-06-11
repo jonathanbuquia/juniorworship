@@ -186,6 +186,7 @@ export default function AdminApp() {
   const [deletePending, setDeletePending] = useState(false)
   const [adminSection, setAdminSection] = useState(ADMIN_SECTIONS.createPlayer)
   const [shopCategory, setShopCategory] = useState(() => SHOP_CATEGORIES[0]?.id ?? 'fish')
+  const [shopPlayerInventory, setShopPlayerInventory] = useState([])
   const [shopPendingSlug, setShopPendingSlug] = useState('')
   const [shopNotice, setShopNotice] = useState(createEmptyMessage)
   const [activePlayerHudCollapsed, setActivePlayerHudCollapsed] = useState(false)
@@ -304,6 +305,35 @@ export default function AdminApp() {
       window.clearTimeout(timeoutId)
     }
   }, [shopNotice])
+
+  useEffect(() => {
+    let isCurrent = true
+
+    const loadShopPlayerInventory = async () => {
+      if (!shopPlayerId) {
+        setShopPlayerInventory([])
+        return
+      }
+
+      try {
+        const data = await fetchPlayerAquarium(shopPlayerId)
+
+        if (isCurrent) {
+          setShopPlayerInventory(data.fish ?? [])
+        }
+      } catch {
+        if (isCurrent) {
+          setShopPlayerInventory([])
+        }
+      }
+    }
+
+    loadShopPlayerInventory()
+
+    return () => {
+      isCurrent = false
+    }
+  }, [shopPlayerId])
 
   const handleToggleAuthMenu = () => {
     setAuthMenuOpen((current) => !current)
@@ -1160,6 +1190,11 @@ export default function AdminApp() {
         await loadViewedPlayerAquarium(data.player.id)
       }
 
+      if (shopPlayerId === data.player.id) {
+        const aquariumData = await fetchPlayerAquarium(data.player.id)
+        setShopPlayerInventory(aquariumData.fish ?? [])
+      }
+
       setShopNotice({
         type: 'success',
         text: `${data.item.name} bought for ${data.player.display_name}. ${data.player.gold} gold left.`,
@@ -1414,6 +1449,7 @@ export default function AdminApp() {
                 selectedCategory={shopCategory}
                 selectedPlayer={shopPlayer}
                 selectedPlayerId={shopPlayerId}
+                selectedPlayerItems={shopPlayerInventory}
               />
             </div>
           ) : null}

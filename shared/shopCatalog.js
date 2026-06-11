@@ -43,6 +43,7 @@ export const MAY_EVENT_BETTA_SLUG = 'may-blue-betta'
 export const MAY_EVENT_BETTA_SALE_END_DATE = '2026-05-31'
 export const MOON_JELLY_SLUG = 'moon-jelly'
 export const MOON_JELLY_SALE_END_DATE = '2026-06-28'
+export const EVENT_SHOP_CATEGORY_ID = 'events'
 export const MOON_JELLY_REQUIREMENTS = [
   {
     name: 'Sunbeam Guppy',
@@ -192,6 +193,10 @@ export function formatRequirementLabel(requirement) {
 
 export function formatRequirementsSummary(requirements = []) {
   return requirements.map(formatRequirementLabel).join(', ')
+}
+
+export function isEventShopItem(item) {
+  return item?.category === EVENT_SHOP_CATEGORY_ID
 }
 
 export function findShopItemBySlug(slug) {

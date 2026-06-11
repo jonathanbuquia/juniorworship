@@ -5,6 +5,7 @@ import {
   SHOP_RARITY_FILTERS,
   formatRequirementLabel,
   getShopItemsByCategoryAndRarity,
+  isEventShopItem,
 } from '../../../../shared/shopCatalog.js'
 import ShopFishPreview from './ShopFishPreview.jsx'
 
@@ -20,6 +21,7 @@ export default function ShopPage({
   selectedCategory,
   selectedPlayer,
   selectedPlayerId,
+  selectedPlayerItems = [],
 }) {
   const activeCategory = SHOP_CATEGORIES.find((category) => category.id === selectedCategory) ?? SHOP_CATEGORIES[0]
   const [rarityFilter, setRarityFilter] = useState('all')
@@ -99,6 +101,10 @@ export default function ShopPage({
               const rarityLabel = item.rarity ? item.rarity.toUpperCase() : ''
               const abilityLabels = item.abilities ?? []
               const requirementLabels = item.requirements?.map(formatRequirementLabel) ?? []
+              const alreadyOwned =
+                isEventShopItem(item) &&
+                selectedPlayerItems.some((ownedItem) => ownedItem.slug === item.slug && Number(ownedItem.quantity) > 0)
+              const buyDisabled = !isAdmin || Boolean(pendingItemSlug) || alreadyOwned
 
               return (
                 <MotionDiv
@@ -152,11 +158,11 @@ export default function ShopPage({
                       </div>
                       <button
                         className={`primary-button compact-button ${needsMoreGold ? 'warning' : ''}`}
-                        disabled={!isAdmin || Boolean(pendingItemSlug)}
+                        disabled={buyDisabled}
                         onClick={isAdmin ? () => onBuyItem(item) : undefined}
                         type="button"
                       >
-                        {!isAdmin ? 'Admin only' : pendingItemSlug === item.slug ? 'Buying...' : 'Buy'}
+                        {!isAdmin ? 'Admin only' : alreadyOwned ? 'Owned' : pendingItemSlug === item.slug ? 'Buying...' : 'Buy'}
                       </button>
                     </div>
                   </div>
