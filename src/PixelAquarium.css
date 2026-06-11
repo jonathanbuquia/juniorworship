@@ -131,6 +131,7 @@
 .stingray-swim,
 .puffer-swim,
 .octopus-swim,
+.squid-swim,
 .jellyfish-swim,
 .crab-swim {
   position: absolute;
@@ -597,6 +598,249 @@
   right: 6px;
   transform: rotate(-18deg);
   animation: armWaveB 2.8s ease-in-out infinite reverse;
+}
+
+.squid-swim {
+  width: 146px;
+  height: 158px;
+  z-index: 3;
+  transform: translate3d(var(--swim-x), var(--swim-y), 0);
+  cursor: grab;
+  touch-action: none;
+  will-change: transform;
+}
+
+.squid-swim.dragging {
+  cursor: grabbing;
+}
+
+.squid-bob {
+  width: 100%;
+  height: 100%;
+  animation: squidFloat 3.1s ease-in-out infinite;
+}
+
+.squid-swim.paused .squid-bob {
+  animation-duration: 4.4s;
+}
+
+.squid-motion {
+  width: 100%;
+  height: 100%;
+  transform: scaleX(var(--squid-facing)) rotate(var(--squid-tilt));
+  transform-origin: center center;
+  will-change: transform;
+}
+
+.squid {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.squid-mantle,
+.squid-fin,
+.squid-eye,
+.squid-eye-spark,
+.squid-mouth,
+.squid-highlight,
+.squid-blush,
+.squid-speck,
+.squid-tentacle {
+  position: absolute;
+}
+
+.squid-mantle {
+  left: 29px;
+  top: 4px;
+  width: 88px;
+  height: 104px;
+  border-radius: 48% 48% 56% 56% / 54% 54% 44% 44%;
+  background:
+    radial-gradient(circle at 34% 22%, rgba(255, 255, 255, 0.5) 0 10%, transparent 10.4%),
+    linear-gradient(180deg, #b994ff 0%, #8f78ff 48%, #6f55df 100%);
+  clip-path: polygon(50% 0, 86% 16%, 100% 58%, 76% 100%, 24% 100%, 0 58%, 14% 16%);
+  box-shadow:
+    inset -10px -14px 0 rgba(71, 43, 147, 0.18),
+    inset 8px 10px 0 rgba(255, 255, 255, 0.12);
+}
+
+.squid-fin {
+  top: 46px;
+  width: 32px;
+  height: 44px;
+  border-radius: 70% 30% 62% 38%;
+  background: linear-gradient(180deg, #aee7ff 0%, #7cc9f2 100%);
+  opacity: 0.92;
+}
+
+.squid-fin.fin-left {
+  left: 13px;
+  transform: rotate(-24deg);
+  animation: squidFinLeft 1.8s ease-in-out infinite;
+}
+
+.squid-fin.fin-right {
+  right: 13px;
+  transform: rotate(24deg) scaleX(-1);
+  animation: squidFinRight 1.8s ease-in-out infinite;
+}
+
+.squid-eye {
+  top: 48px;
+  width: 17px;
+  height: 21px;
+  border-radius: 50%;
+  background: #172944;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.94);
+  overflow: hidden;
+}
+
+.squid-eye-left {
+  left: 22px;
+}
+
+.squid-eye-right {
+  right: 22px;
+}
+
+.squid-eye-spark {
+  left: 4px;
+  top: 3px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: white;
+  animation: eyeSparkWobble 2.4s ease-in-out infinite;
+}
+
+.squid-mouth {
+  left: 50%;
+  top: 76px;
+  width: 15px;
+  height: 9px;
+  border-bottom: 3px solid #4f358f;
+  border-radius: 0 0 12px 12px;
+  transform: translateX(-50%);
+}
+
+.squid-highlight {
+  left: 20px;
+  top: 18px;
+  width: 26px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.28);
+  transform: rotate(-18deg);
+}
+
+.squid-blush {
+  top: 68px;
+  width: 11px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(255, 203, 230, 0.82);
+}
+
+.squid-blush.blush-left {
+  left: 13px;
+}
+
+.squid-blush.blush-right {
+  right: 13px;
+}
+
+.squid-speckles {
+  position: absolute;
+  inset: 0;
+}
+
+.squid-speck {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(238, 228, 255, 0.56);
+}
+
+.squid-speck.speck-a {
+  left: 40px;
+  top: 30px;
+}
+
+.squid-speck.speck-b {
+  right: 34px;
+  top: 24px;
+}
+
+.squid-speck.speck-c {
+  left: 50%;
+  top: 38px;
+}
+
+.squid-tentacles {
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  bottom: 7px;
+  height: 70px;
+}
+
+.squid-tentacle {
+  top: 0;
+  width: 16px;
+  height: 68px;
+  border-radius: 14px 14px 18px 18px;
+  background: linear-gradient(180deg, #8f78ff 0%, #6c55d9 72%, #5ecfff 100%);
+  transform-origin: top center;
+}
+
+.squid-tentacle::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  bottom: 9px;
+  height: 16px;
+  border-radius: 999px;
+  background: rgba(210, 245, 255, 0.58);
+}
+
+.squid-tentacle.tentacle-a {
+  left: 4px;
+  transform: rotate(24deg);
+  animation: squidTentacleA 2.3s ease-in-out infinite;
+}
+
+.squid-tentacle.tentacle-b {
+  left: 22px;
+  height: 62px;
+  transform: rotate(10deg);
+  animation: squidTentacleB 2.1s ease-in-out infinite;
+}
+
+.squid-tentacle.tentacle-c {
+  left: 39px;
+  height: 72px;
+  animation: squidTentacleA 2.6s ease-in-out infinite reverse;
+}
+
+.squid-tentacle.tentacle-d {
+  right: 39px;
+  height: 72px;
+  animation: squidTentacleB 2.5s ease-in-out infinite reverse;
+}
+
+.squid-tentacle.tentacle-e {
+  right: 22px;
+  height: 62px;
+  transform: rotate(-10deg);
+  animation: squidTentacleA 2.2s ease-in-out infinite;
+}
+
+.squid-tentacle.tentacle-f {
+  right: 4px;
+  transform: rotate(-24deg);
+  animation: squidTentacleB 2.4s ease-in-out infinite;
 }
 
 .jellyfish-swim {
@@ -2348,6 +2592,65 @@
   }
 }
 
+@keyframes squidFloat {
+  0%,
+  100% {
+    transform: translateY(0) scaleY(1);
+  }
+
+  45% {
+    transform: translateY(-9px) scaleY(0.98);
+  }
+
+  75% {
+    transform: translateY(-2px) scaleY(1.02);
+  }
+}
+
+@keyframes squidFinLeft {
+  0%,
+  100% {
+    transform: rotate(-24deg) scaleY(1);
+  }
+
+  50% {
+    transform: rotate(-34deg) scaleY(0.92);
+  }
+}
+
+@keyframes squidFinRight {
+  0%,
+  100% {
+    transform: rotate(24deg) scaleX(-1) scaleY(1);
+  }
+
+  50% {
+    transform: rotate(34deg) scaleX(-1) scaleY(0.92);
+  }
+}
+
+@keyframes squidTentacleA {
+  0%,
+  100% {
+    transform: rotate(16deg);
+  }
+
+  50% {
+    transform: rotate(-9deg);
+  }
+}
+
+@keyframes squidTentacleB {
+  0%,
+  100% {
+    transform: rotate(-14deg);
+  }
+
+  50% {
+    transform: rotate(10deg);
+  }
+}
+
 @keyframes jellyfishPulse {
   0%,
   100% {
@@ -2494,6 +2797,11 @@
     height: 124px;
   }
 
+  .squid-swim {
+    width: 118px;
+    height: 128px;
+  }
+
   .jellyfish-swim {
     width: 104px;
     height: 136px;
@@ -2549,6 +2857,11 @@
   .octopus-swim {
     width: 102px;
     height: 102px;
+  }
+
+  .squid-swim {
+    width: 96px;
+    height: 104px;
   }
 
   .jellyfish-swim {
@@ -2615,6 +2928,11 @@
   .octopus-swim {
     width: 84px;
     height: 84px;
+  }
+
+  .squid-swim {
+    width: 80px;
+    height: 88px;
   }
 
   .jellyfish-swim {

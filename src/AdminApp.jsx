@@ -1228,7 +1228,9 @@ export default function AdminApp() {
             key={viewedPlayer?.id ?? 'no-player'}
             movable={false}
             ownedFish={aquariumFish}
+            playerDisplayName={viewedPlayer?.display_name ?? ''}
             playerId={viewedPlayer?.id ?? ''}
+            playerLoginName={viewedPlayer?.login_name ?? ''}
           />
         </div>
       ) : null}

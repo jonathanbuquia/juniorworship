@@ -7,6 +7,8 @@ const BASE_FISH_WIDTH = 198
 const BASE_FISH_HEIGHT = 126
 const BASE_OCTOPUS_WIDTH = 152
 const BASE_OCTOPUS_HEIGHT = 150
+const BASE_SQUID_WIDTH = 146
+const BASE_SQUID_HEIGHT = 158
 const BASE_JELLYFISH_WIDTH = 126
 const BASE_JELLYFISH_HEIGHT = 164
 const BASE_CRAB_WIDTH = 148
@@ -58,6 +60,10 @@ function randomBetween(min, max) {
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max)
+}
+
+function isJonathanProfileName(...names) {
+  return names.some((name) => String(name || '').trim().toLowerCase() === 'jonathan')
 }
 
 function useFishSpeech(fish) {
@@ -704,6 +710,92 @@ function CuteOctopus({ movable = false, persistedStart, tankRef, tankSize, onPer
   )
 }
 
+function CuteSquid({ movable = false, persistedStart, tankRef, tankSize, onPersistPosition }) {
+  const draggable = useDraggableSwimmer({
+    tankRef,
+    width: BASE_SQUID_WIDTH,
+    height: BASE_SQUID_HEIGHT,
+    minY: 24,
+    maxYInset: 0.2,
+    disabled: !movable,
+    persistedStart,
+    onPersistPosition,
+  })
+  const pose = useCreatureMotion({
+    tankSize,
+    width: BASE_SQUID_WIDTH,
+    height: BASE_SQUID_HEIGHT,
+    startX: 0.36,
+    startY: 0.32,
+    speed: 38,
+    directionX: 1,
+    directionY: 0.12,
+    minY: 24,
+    maxYInset: 0.2,
+    pauseChance: 0.28,
+    pauseMin: 0.45,
+    pauseMax: 1.3,
+    decisionMin: 1.2,
+    decisionMax: 3.2,
+    initialDecisionMin: 0.5,
+    initialDecisionMax: 1.6,
+    initialPauseMin: 0.1,
+    initialPauseMax: 0.5,
+    bounceVerticalJitter: 10,
+    restartKey: draggable.restartKey,
+    startOverride: draggable.startOverride,
+  })
+  const displayPosition = draggable.dragPosition ?? pose
+
+  return (
+    <div
+      className={`squid-swim ${pose.paused ? 'paused' : ''} ${draggable.dragging ? 'dragging' : ''}`}
+      style={{
+        '--swim-x': `${displayPosition.x}px`,
+        '--swim-y': `${displayPosition.y}px`,
+        '--squid-facing': pose.facing,
+        '--squid-tilt': `${pose.tilt * 0.45}deg`,
+      }}
+      onPointerDown={movable ? (event) => draggable.startDragging(event, displayPosition) : undefined}
+      aria-label="Cute squid sample"
+    >
+      <div className="squid-bob">
+        <div className="squid-motion">
+          <div className="squid">
+            <div className="squid-fin fin-left" />
+            <div className="squid-fin fin-right" />
+            <div className="squid-mantle">
+              <div className="squid-highlight" />
+              <div className="squid-eye squid-eye-left">
+                <span className="squid-eye-spark" />
+              </div>
+              <div className="squid-eye squid-eye-right">
+                <span className="squid-eye-spark" />
+              </div>
+              <div className="squid-blush blush-left" />
+              <div className="squid-blush blush-right" />
+              <div className="squid-mouth" />
+              <div className="squid-speckles" aria-hidden="true">
+                <span className="squid-speck speck-a" />
+                <span className="squid-speck speck-b" />
+                <span className="squid-speck speck-c" />
+              </div>
+            </div>
+            <div className="squid-tentacles" aria-hidden="true">
+              <span className="squid-tentacle tentacle-a" />
+              <span className="squid-tentacle tentacle-b" />
+              <span className="squid-tentacle tentacle-c" />
+              <span className="squid-tentacle tentacle-d" />
+              <span className="squid-tentacle tentacle-e" />
+              <span className="squid-tentacle tentacle-f" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function CuteJellyfish({
   bubbleBurstOnClick = false,
   movable = false,
@@ -1175,13 +1267,20 @@ function MovableCoral({ coral, movable = false, position, dragging, onPointerDow
   )
 }
 
-export default function AquariumScene({ ownedFish = [], playerId = '', movable = false }) {
+export default function AquariumScene({
+  ownedFish = [],
+  playerDisplayName = '',
+  playerId = '',
+  playerLoginName = '',
+  movable = false,
+}) {
   const tankRef = useRef(null)
   const [tankSize, setTankSize] = useState({ width: 0, height: 0 })
   const [contentScale, setContentScale] = useState(() => getTankContentScale(window.innerWidth))
   const [sceneState, setSceneState] = useState(() => readAquariumState(playerId))
   const [dragState, setDragState] = useState(null)
   const hasSelectedPlayer = Boolean(playerId)
+  const showJonathanSquidSample = hasSelectedPlayer && isJonathanProfileName(playerDisplayName, playerLoginName)
   const purchasedFish = buildOwnedFishConfigs(ownedFish)
   const purchasedJellyfish = buildOwnedJellyfishConfigs(ownedFish)
   const coralPositions = sceneState.coralPositions ?? {}
@@ -1448,6 +1547,15 @@ export default function AquariumScene({ ownedFish = [], playerId = '', movable =
                   movable={movable}
                   onPersistPosition={(position) => handlePersistCreaturePosition('octopus', position)}
                   persistedStart={creatureStarts.octopus ?? null}
+                  tankRef={tankRef}
+                  tankSize={tankSize}
+                />
+              )}
+              {showJonathanSquidSample && tankSize.width > 0 && (
+                <CuteSquid
+                  movable={movable}
+                  onPersistPosition={(position) => handlePersistCreaturePosition('sample-squid', position)}
+                  persistedStart={creatureStarts['sample-squid'] ?? null}
                   tankRef={tankRef}
                   tankSize={tankSize}
                 />
