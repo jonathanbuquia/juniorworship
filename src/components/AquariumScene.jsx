@@ -786,8 +786,6 @@ function CuteSquid({ movable = false, persistedStart, tankRef, tankSize, onPersi
               <span className="squid-tentacle tentacle-b" />
               <span className="squid-tentacle tentacle-c" />
               <span className="squid-tentacle tentacle-d" />
-              <span className="squid-tentacle tentacle-e" />
-              <span className="squid-tentacle tentacle-f" />
             </div>
           </div>
         </div>

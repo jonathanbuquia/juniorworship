@@ -658,10 +658,10 @@
   border-radius: 48% 48% 56% 56% / 54% 54% 44% 44%;
   background:
     radial-gradient(circle at 34% 22%, rgba(255, 255, 255, 0.5) 0 10%, transparent 10.4%),
-    linear-gradient(180deg, #b994ff 0%, #8f78ff 48%, #6f55df 100%);
+    linear-gradient(180deg, #72dcff 0%, #25add6 52%, #1588b6 100%);
   clip-path: polygon(50% 0, 86% 16%, 100% 58%, 76% 100%, 24% 100%, 0 58%, 14% 16%);
   box-shadow:
-    inset -10px -14px 0 rgba(71, 43, 147, 0.18),
+    inset -10px -14px 0 rgba(13, 87, 125, 0.18),
     inset 8px 10px 0 rgba(255, 255, 255, 0.12);
 }
 
@@ -670,7 +670,7 @@
   width: 32px;
   height: 44px;
   border-radius: 70% 30% 62% 38%;
-  background: linear-gradient(180deg, #aee7ff 0%, #7cc9f2 100%);
+  background: linear-gradient(180deg, #72dcff 0%, #25add6 100%);
   opacity: 0.92;
 }
 
@@ -719,7 +719,7 @@
   top: 76px;
   width: 15px;
   height: 9px;
-  border-bottom: 3px solid #4f358f;
+  border-bottom: 3px solid #075b80;
   border-radius: 0 0 12px 12px;
   transform: translateX(-50%);
 }
@@ -739,7 +739,7 @@
   width: 11px;
   height: 7px;
   border-radius: 50%;
-  background: rgba(255, 203, 230, 0.82);
+  background: rgba(206, 244, 255, 0.78);
 }
 
 .squid-blush.blush-left {
@@ -759,7 +759,7 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: rgba(238, 228, 255, 0.56);
+  background: rgba(207, 246, 255, 0.56);
 }
 
 .squid-speck.speck-a {
@@ -790,7 +790,7 @@
   width: 16px;
   height: 68px;
   border-radius: 14px 14px 18px 18px;
-  background: linear-gradient(180deg, #8f78ff 0%, #6c55d9 72%, #5ecfff 100%);
+  background: linear-gradient(180deg, #25add6 0%, #1588b6 100%);
   transform-origin: top center;
 }
 
@@ -802,45 +802,34 @@
   bottom: 9px;
   height: 16px;
   border-radius: 999px;
-  background: rgba(210, 245, 255, 0.58);
+  background: rgba(207, 246, 255, 0.58);
 }
 
 .squid-tentacle.tentacle-a {
-  left: 4px;
-  transform: rotate(24deg);
+  left: 15px;
+  transform: rotate(18deg);
   animation: squidTentacleA 2.3s ease-in-out infinite;
 }
 
 .squid-tentacle.tentacle-b {
-  left: 22px;
+  left: 35px;
   height: 62px;
-  transform: rotate(10deg);
+  transform: rotate(6deg);
   animation: squidTentacleB 2.1s ease-in-out infinite;
 }
 
 .squid-tentacle.tentacle-c {
-  left: 39px;
+  right: 35px;
   height: 72px;
+  transform: rotate(-6deg);
   animation: squidTentacleA 2.6s ease-in-out infinite reverse;
 }
 
 .squid-tentacle.tentacle-d {
-  right: 39px;
+  right: 15px;
   height: 72px;
+  transform: rotate(-18deg);
   animation: squidTentacleB 2.5s ease-in-out infinite reverse;
-}
-
-.squid-tentacle.tentacle-e {
-  right: 22px;
-  height: 62px;
-  transform: rotate(-10deg);
-  animation: squidTentacleA 2.2s ease-in-out infinite;
-}
-
-.squid-tentacle.tentacle-f {
-  right: 4px;
-  transform: rotate(-24deg);
-  animation: squidTentacleB 2.4s ease-in-out infinite;
 }
 
 .jellyfish-swim {
