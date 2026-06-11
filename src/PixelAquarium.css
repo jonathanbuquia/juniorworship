@@ -601,6 +601,7 @@
 }
 
 .squid-swim {
+  --squid-art-scale: 0.74;
   width: 118px;
   height: 128px;
   z-index: 3;
@@ -627,7 +628,7 @@
 .squid-motion {
   width: 100%;
   height: 100%;
-  transform: scaleX(var(--squid-facing)) rotate(var(--squid-tilt));
+  transform: scale(var(--squid-art-scale)) scaleX(var(--squid-facing)) rotate(var(--squid-tilt));
   transform-origin: center center;
   will-change: transform;
 }
