@@ -1571,36 +1571,6 @@
   font-size: 0.92rem;
 }
 
-.attendance-sync-row {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.attendance-sync-row button {
-  border: 0;
-  border-radius: 999px;
-  padding: 10px 16px;
-  font: inherit;
-  font-weight: 900;
-  color: white;
-  background: linear-gradient(135deg, #139bb8, #14759d);
-  box-shadow: 0 12px 22px rgba(20, 117, 157, 0.18);
-  cursor: pointer;
-}
-
-.attendance-sync-row button:disabled {
-  cursor: wait;
-  opacity: 0.68;
-}
-
-.attendance-sync-row span {
-  color: #5f7890;
-  font-size: 0.88rem;
-  font-weight: 800;
-}
-
 .attendance-table-frame {
   max-height: calc(100vh - 190px);
   overflow: auto;

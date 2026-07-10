@@ -88,13 +88,9 @@ export default function AttendancePage({ accessToken = '', canEdit = false, load
     attendance,
     attendanceLoading,
     attendanceMessage,
-    localPresentCount,
     setAttendanceValue,
-    syncingAttendance,
-    syncLocalAttendance,
   } = useAttendance({
-    accessToken,
-    canSync: canEdit,
+    mergeLocalOnLoad: Boolean(accessToken || canEdit),
   })
   const [pendingKey, setPendingKey] = useState('')
   const [message, setMessage] = useState({ type: '', text: '' })
@@ -218,17 +214,6 @@ export default function AttendancePage({ accessToken = '', canEdit = false, load
         <span>Moon Jelly Streak</span>
         <strong>+{MOON_JELLY_ATTENDANCE_BONUS} gold</strong>
       </div>
-
-      {canEdit ? (
-        <div className="attendance-sync-row">
-          <button disabled={syncingAttendance} onClick={() => syncLocalAttendance()} type="button">
-            {syncingAttendance ? 'Syncing...' : 'Sync saved checks'}
-          </button>
-          <span>
-            {localPresentCount} checked record{localPresentCount === 1 ? '' : 's'} saved on this browser
-          </span>
-        </div>
-      ) : null}
 
       {statusMessage.text ? <p className={`status-line ${statusMessage.type}`}>{statusMessage.text}</p> : null}
 

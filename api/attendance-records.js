@@ -137,7 +137,6 @@ async function writeAttendanceToFallback(admin, records) {
   const { error } = await admin.from('shop_items').upsert(
     {
       accent_color: '#68d8ff',
-      category: 'system',
       description: JSON.stringify(nextAttendance),
       name: 'System Attendance Records',
       price: 0,
