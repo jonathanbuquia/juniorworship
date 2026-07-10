@@ -19,6 +19,7 @@ export const MEMORY_VERSE_QUIZ_POINTS = 5
 export const MEMORY_VERSE_STORAGE_KEY = 'memory-verse-helper'
 export const QUIZ_STORAGE_KEY = 'quiz-helper'
 export const ATTENDANCE_STORAGE_KEY = 'attendance-records:v1'
+export const ATTENDANCE_START_DATE = '2026-04-05'
 export const ATTENDANCE_WEEK_COUNT = 16
 export const ATTENDANCE_GOLD_REWARD = 50
 export const ATTENDANCE_MONTHLY_BONUS = 150

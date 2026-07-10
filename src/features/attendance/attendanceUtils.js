@@ -1,4 +1,4 @@
-import { ATTENDANCE_MONTHLY_BONUS_START_MONTH, ATTENDANCE_WEEK_COUNT } from '../app/constants.js'
+import { ATTENDANCE_MONTHLY_BONUS_START_MONTH, ATTENDANCE_START_DATE, ATTENDANCE_WEEK_COUNT } from '../app/constants.js'
 
 const SUNDAY = 0
 const DATE_FORMATTER = new Intl.DateTimeFormat('en-US', {
@@ -9,6 +9,16 @@ const MONTH_COLOR_COUNT = 6
 
 function createLocalDate(value) {
   return new Date(value.getFullYear(), value.getMonth(), value.getDate())
+}
+
+function createDateFromDateKey(dateId) {
+  const date = new Date(`${dateId}T00:00:00`)
+
+  if (Number.isNaN(date.getTime()) || toDateKey(date) !== dateId) {
+    return null
+  }
+
+  return date
 }
 
 function toDateKey(value) {
@@ -38,9 +48,9 @@ function createColumnFromDate(date) {
 
 function getDateIdFromAttendanceKey(key) {
   const dateId = key.split(':').at(-1)
-  const date = new Date(`${dateId}T00:00:00`)
+  const date = createDateFromDateKey(dateId)
 
-  if (Number.isNaN(date.getTime()) || toDateKey(date) !== dateId || date.getDay() !== SUNDAY) {
+  if (!date || date.getDay() !== SUNDAY) {
     return ''
   }
 
@@ -56,7 +66,14 @@ function getStartingSunday(value = new Date()) {
 }
 
 export function createSundayColumns(count = ATTENDANCE_WEEK_COUNT, startDate = new Date(), attendance = {}) {
-  const firstSunday = getStartingSunday(startDate)
+  const currentFirstSunday = getStartingSunday(startDate)
+  const configuredStartDate = createDateFromDateKey(ATTENDANCE_START_DATE)
+  const firstSunday =
+    configuredStartDate && configuredStartDate.getDay() === SUNDAY && configuredStartDate < currentFirstSunday
+      ? configuredStartDate
+      : currentFirstSunday
+  const lastGeneratedSunday = new Date(currentFirstSunday)
+  lastGeneratedSunday.setDate(currentFirstSunday.getDate() + (count - 1) * 7)
   const dateIds = new Set()
 
   Object.keys(attendance).forEach((key) => {
@@ -67,15 +84,17 @@ export function createSundayColumns(count = ATTENDANCE_WEEK_COUNT, startDate = n
     }
   })
 
-  Array.from({ length: count }, (_unused, index) => {
-    const date = new Date(firstSunday)
-    date.setDate(firstSunday.getDate() + index * 7)
+  for (const date = new Date(firstSunday); date <= lastGeneratedSunday; date.setDate(date.getDate() + 7)) {
     dateIds.add(toDateKey(date))
-  })
+  }
 
   return Array.from(dateIds)
     .sort()
-    .map((dateId) => createColumnFromDate(new Date(`${dateId}T00:00:00`)))
+    .map((dateId) => {
+      const date = createDateFromDateKey(dateId)
+      return date ? createColumnFromDate(date) : null
+    })
+    .filter(Boolean)
 }
 
 export function createAttendanceKey(playerId, dateId) {
