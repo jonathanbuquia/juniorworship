@@ -4,7 +4,6 @@ import './AdminApp.css'
 import AquariumScene from './components/AquariumScene'
 import AdminPanel from './features/admin/components/AdminPanel.jsx'
 import AttendancePage from './features/attendance/components/AttendancePage.jsx'
-import PublicAttendancePage from './features/attendance/components/PublicAttendancePage.jsx'
 import { useAuthState } from './features/auth/hooks/useAuthState.js'
 import {
   ADMIN_PATH,
@@ -1349,19 +1348,15 @@ export default function AdminApp() {
 
           {showMaySpecialAnnouncement ? <MaySpecialAnnouncement onOpenShop={handleOpenShop} /> : null}
 
-          {viewingAttendance ? (
+          {viewingAttendance && isAdmin ? (
             <div className="attendance-stage">
-              {isAdmin ? (
-                <AttendancePage
-                  accessToken={accessToken}
-                  canEdit
-                  loadPlayerAquarium={fetchPlayerAquarium}
-                  onAttendanceChange={handleAttendanceChange}
-                  players={players.length ? players : publicPlayers}
-                />
-              ) : (
-                <PublicAttendancePage players={publicPlayers} />
-              )}
+              <AttendancePage
+                accessToken={accessToken}
+                canEdit
+                loadPlayerAquarium={fetchPlayerAquarium}
+                onAttendanceChange={handleAttendanceChange}
+                players={players.length ? players : publicPlayers}
+              />
             </div>
           ) : null}
 
@@ -1470,7 +1465,7 @@ export default function AdminApp() {
             </div>
           ) : null}
 
-          {(viewingBooks || viewingMemory || viewingQuiz) && !isAdmin ? (
+          {(viewingAttendance || viewingBooks || viewingMemory || viewingQuiz) && !isAdmin ? (
             <section className="panel memory-locked-panel">
               <div className="eyebrow">Admin Only</div>
               <h2>This page is only for the admin.</h2>
