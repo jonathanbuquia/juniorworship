@@ -83,8 +83,11 @@ function getMoonJellyBonusChange({ attendance, claims, dateIds, playerId, purcha
   }
 }
 
-export default function AttendancePage({ canEdit = false, loadPlayerAquarium, onAttendanceChange, players }) {
-  const { attendance, setAttendanceValue } = useAttendance()
+export default function AttendancePage({ accessToken = '', canEdit = false, loadPlayerAquarium, onAttendanceChange, players }) {
+  const { attendance, attendanceLoading, attendanceMessage, setAttendanceValue } = useAttendance({
+    accessToken,
+    canSync: canEdit,
+  })
   const [pendingKey, setPendingKey] = useState('')
   const [message, setMessage] = useState({ type: '', text: '' })
   const sundayColumns = useMemo(() => createSundayColumns(undefined, undefined, attendance), [attendance])
@@ -98,6 +101,7 @@ export default function AttendancePage({ canEdit = false, loadPlayerAquarium, on
       }, {}),
     [sundayColumns],
   )
+  const statusMessage = message.text ? message : attendanceMessage
 
   const handleAttendanceChange = async (player, date, nextPresent) => {
     const attendanceKey = createAttendanceKey(player.id, date.id)
@@ -193,7 +197,9 @@ export default function AttendancePage({ canEdit = false, loadPlayerAquarium, on
           <div className="eyebrow">Attendance</div>
           <h2>Sunday Attendance</h2>
         </div>
-        <strong>{canEdit ? `${players.length} players` : `View only - ${players.length} players`}</strong>
+        <strong>
+          {attendanceLoading ? 'Loading...' : canEdit ? `${players.length} players` : `View only - ${players.length} players`}
+        </strong>
       </div>
 
       <div className="attendance-reward-note">
@@ -205,7 +211,7 @@ export default function AttendancePage({ canEdit = false, loadPlayerAquarium, on
         <strong>+{MOON_JELLY_ATTENDANCE_BONUS} gold</strong>
       </div>
 
-      {message.text ? <p className={`status-line ${message.type}`}>{message.text}</p> : null}
+      {statusMessage.text ? <p className={`status-line ${statusMessage.type}`}>{statusMessage.text}</p> : null}
 
       <div className="attendance-table-frame">
         <table className="attendance-table">

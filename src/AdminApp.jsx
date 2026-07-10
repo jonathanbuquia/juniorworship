@@ -45,6 +45,7 @@ import { createEmptyQuizAwardScores, getQuizQuestionPoints, parseQuizDraftText }
 import MaySpecialAnnouncement from './features/shop/components/MaySpecialAnnouncement.jsx'
 import ShopPage from './features/shop/components/ShopPage.jsx'
 import { bootstrapAdminAccount, loginAdmin } from './services/api/authService.js'
+import { saveAttendanceRecord } from './services/api/attendanceService.js'
 import { adjustPlayerGold, createPlayer, deletePlayer, fetchPlayerAquarium } from './services/api/playerService.js'
 import { buyItemForPlayer } from './services/api/shopService.js'
 
@@ -867,7 +868,7 @@ export default function AdminApp() {
     }
   }
 
-  const handleAttendanceChange = async ({ goldDelta, player }) => {
+  const handleAttendanceChange = async ({ date, goldDelta, player, present }) => {
     if (!accessToken || !isAdmin) {
       throw new Error('Sign in as admin to update attendance.')
     }
@@ -875,6 +876,12 @@ export default function AdminApp() {
     const data = await adjustPlayerGold(accessToken, {
       amount: goldDelta,
       playerId: player.id,
+    })
+
+    await saveAttendanceRecord(accessToken, {
+      dateId: date.id,
+      playerId: player.id,
+      present,
     })
 
     applyPlayerUpdate(data.player)
@@ -1344,6 +1351,7 @@ export default function AdminApp() {
           {viewingAttendance ? (
             <div className="attendance-stage">
               <AttendancePage
+                accessToken={accessToken}
                 canEdit={isAdmin}
                 loadPlayerAquarium={fetchPlayerAquarium}
                 onAttendanceChange={handleAttendanceChange}

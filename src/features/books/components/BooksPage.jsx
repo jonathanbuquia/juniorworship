@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { BOOKS_GAME_GOLD_REWARD, BOOKS_GAME_SECONDS } from '../../app/constants.js'
-import { readSavedAttendance, useAttendance } from '../../attendance/hooks/useAttendance.js'
+import { useAttendance } from '../../attendance/hooks/useAttendance.js'
 import { TESTAMENTS, TESTAMENT_CATEGORIES_BY_ID, getBookCategoryId } from '../bibleBooks.js'
 import {
   createBooksRound,
@@ -13,7 +13,7 @@ import {
 const MotionDiv = motion.div
 
 export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardPlayer, players }) {
-  const { attendance } = useAttendance()
+  const { attendance, refreshAttendance } = useAttendance()
   const [selectedTestamentId, setSelectedTestamentId] = useState(TESTAMENTS[0].id)
   const [bookView, setBookView] = useState('list')
   const [round, setRound] = useState(null)
@@ -77,9 +77,9 @@ export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardP
     setGameMessage('')
   }
 
-  const handleStartRound = () => {
+  const handleStartRound = async () => {
     setGameMessage('')
-    const latestAttendance = readSavedAttendance()
+    const latestAttendance = await refreshAttendance({ mergeLocal: false })
     const latestAttendanceDate = getBooksGameAttendanceDate()
     const latestPresentPlayers = getPresentPlayersForDate(players, latestAttendance, latestAttendanceDate?.id)
     const latestPresentPlayerIds = new Set(latestPresentPlayers.map((player) => player.id))
