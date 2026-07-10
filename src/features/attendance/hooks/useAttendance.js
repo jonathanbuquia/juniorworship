@@ -56,8 +56,8 @@ export function readSavedAttendance() {
   }
 }
 
-export function useAttendance({ accessToken = '', canSync = false } = {}) {
-  const [attendance, setAttendance] = useState(readSavedAttendance)
+export function useAttendance({ accessToken = '', canSync = false, mergeLocalOnLoad = true } = {}) {
+  const [attendance, setAttendance] = useState(() => (mergeLocalOnLoad ? readSavedAttendance() : {}))
   const [remoteAttendance, setRemoteAttendance] = useState({})
   const [attendanceLoading, setAttendanceLoading] = useState(false)
   const [attendanceMessage, setAttendanceMessage] = useState({ type: '', text: '' })
@@ -72,7 +72,8 @@ export function useAttendance({ accessToken = '', canSync = false } = {}) {
       const data = await fetchAttendanceRecords()
       const nextRemoteAttendance = data.attendance ?? {}
       const localAttendance = readSavedAttendance()
-      const nextAttendance = mergeLocal
+      const shouldMergeLocal = mergeLocalOnLoad && mergeLocal
+      const nextAttendance = shouldMergeLocal
         ? {
             ...localAttendance,
             ...nextRemoteAttendance,
@@ -86,17 +87,18 @@ export function useAttendance({ accessToken = '', canSync = false } = {}) {
       return nextAttendance
     } catch (error) {
       const fallbackAttendance = readSavedAttendance()
+      const nextFallbackAttendance = mergeLocalOnLoad ? fallbackAttendance : {}
 
-      setAttendance(fallbackAttendance)
+      setAttendance(nextFallbackAttendance)
       setAttendanceMessage({
         type: 'error',
         text: error.message || 'Unable to load saved attendance.',
       })
-      return fallbackAttendance
+      return nextFallbackAttendance
     } finally {
       setAttendanceLoading(false)
     }
-  }, [])
+  }, [mergeLocalOnLoad])
 
   useEffect(() => {
     refreshAttendance()

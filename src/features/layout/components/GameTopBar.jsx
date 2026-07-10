@@ -197,36 +197,66 @@ export default function GameTopBar({
       </div>
 
       <div className="rail-bottom">
-        <MotionButton
-          aria-label="Attendance"
-          className={`rail-button rail-button-secondary ${viewingAttendance ? 'active' : ''}`}
-          layout
-          onClick={onOpenAttendance}
-          type="button"
-          whileHover={{ y: -2 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          <span aria-hidden="true" className="rail-button-icon">
-            <RailIcon type="attendance" />
-          </span>
-          <AnimatePresence initial={false}>
-            {!effectiveCollapsed ? (
-              <MotionSpan
-                animate={{ opacity: 1, x: 0 }}
-                className="rail-button-label"
-                exit={{ opacity: 0, x: -8 }}
-                initial={{ opacity: 0, x: -8 }}
-                key="attendance-label"
-                transition={POPOVER_TRANSITION}
-              >
-                ATTENDANCE
-              </MotionSpan>
-            ) : null}
-          </AnimatePresence>
-        </MotionButton>
+        {!isAdmin ? (
+          <MotionButton
+            aria-label="Attendance"
+            className={`rail-button rail-button-secondary ${viewingAttendance ? 'active' : ''}`}
+            layout
+            onClick={onOpenAttendance}
+            type="button"
+            whileHover={{ y: -2 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <span aria-hidden="true" className="rail-button-icon">
+              <RailIcon type="attendance" />
+            </span>
+            <AnimatePresence initial={false}>
+              {!effectiveCollapsed ? (
+                <MotionSpan
+                  animate={{ opacity: 1, x: 0 }}
+                  className="rail-button-label"
+                  exit={{ opacity: 0, x: -8 }}
+                  initial={{ opacity: 0, x: -8 }}
+                  key="public-attendance-label"
+                  transition={POPOVER_TRANSITION}
+                >
+                  ATTENDANCE
+                </MotionSpan>
+              ) : null}
+            </AnimatePresence>
+          </MotionButton>
+        ) : null}
 
         {isAdmin ? (
           <MotionDiv className="rail-admin-tools" layout>
+            <MotionButton
+              aria-label="Admin Attendance"
+              className={`rail-button rail-button-secondary ${viewingAttendance ? 'active' : ''}`}
+              layout
+              onClick={onOpenAttendance}
+              type="button"
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <span aria-hidden="true" className="rail-button-icon">
+                <RailIcon type="attendance" />
+              </span>
+              <AnimatePresence initial={false}>
+                {!effectiveCollapsed ? (
+                  <MotionSpan
+                    animate={{ opacity: 1, x: 0 }}
+                    className="rail-button-label"
+                    exit={{ opacity: 0, x: -8 }}
+                    initial={{ opacity: 0, x: -8 }}
+                    key="admin-attendance-label"
+                    transition={POPOVER_TRANSITION}
+                  >
+                    ATTENDANCE
+                  </MotionSpan>
+                ) : null}
+              </AnimatePresence>
+            </MotionButton>
+
             <MotionButton
               aria-label="Books"
               className={`rail-button rail-button-secondary ${viewingBooks ? 'active' : ''}`}

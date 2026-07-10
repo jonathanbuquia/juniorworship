@@ -4,6 +4,7 @@ import './AdminApp.css'
 import AquariumScene from './components/AquariumScene'
 import AdminPanel from './features/admin/components/AdminPanel.jsx'
 import AttendancePage from './features/attendance/components/AttendancePage.jsx'
+import PublicAttendancePage from './features/attendance/components/PublicAttendancePage.jsx'
 import { useAuthState } from './features/auth/hooks/useAuthState.js'
 import {
   ADMIN_PATH,
@@ -1350,13 +1351,17 @@ export default function AdminApp() {
 
           {viewingAttendance ? (
             <div className="attendance-stage">
-              <AttendancePage
-                accessToken={accessToken}
-                canEdit={isAdmin}
-                loadPlayerAquarium={fetchPlayerAquarium}
-                onAttendanceChange={handleAttendanceChange}
-                players={players.length ? players : publicPlayers}
-              />
+              {isAdmin ? (
+                <AttendancePage
+                  accessToken={accessToken}
+                  canEdit
+                  loadPlayerAquarium={fetchPlayerAquarium}
+                  onAttendanceChange={handleAttendanceChange}
+                  players={players.length ? players : publicPlayers}
+                />
+              ) : (
+                <PublicAttendancePage players={publicPlayers} />
+              )}
             </div>
           ) : null}
 

@@ -1788,6 +1788,36 @@
   transform: scale(0.94);
 }
 
+.public-attendance-page .panel-note {
+  max-width: 560px;
+}
+
+.public-attendance-table .attendance-check-cell {
+  min-width: 96px;
+}
+
+.attendance-text-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 72px;
+  min-height: 30px;
+  border-radius: 999px;
+  color: #7890a2;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.attendance-text-status.present {
+  color: #075d47;
+  background: rgba(147, 239, 187, 0.88);
+  box-shadow: inset 0 0 0 1px rgba(10, 120, 83, 0.16);
+}
+
+.attendance-text-status.absent {
+  color: #8aa0ad;
+}
+
 .attendance-empty-cell {
   padding: 28px;
   color: #5d7c90;
