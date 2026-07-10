@@ -873,15 +873,15 @@ export default function AdminApp() {
       throw new Error('Sign in as admin to update attendance.')
     }
 
-    const data = await adjustPlayerGold(accessToken, {
-      amount: goldDelta,
-      playerId: player.id,
-    })
-
     await saveAttendanceRecord(accessToken, {
       dateId: date.id,
       playerId: player.id,
       present,
+    })
+
+    const data = await adjustPlayerGold(accessToken, {
+      amount: goldDelta,
+      playerId: player.id,
     })
 
     applyPlayerUpdate(data.player)

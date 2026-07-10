@@ -28,6 +28,16 @@ function mapRowsToAttendance(rows = []) {
   }, {})
 }
 
+function mergeAttendance(...attendanceMaps) {
+  return attendanceMaps.reduce(
+    (merged, attendance) => ({
+      ...merged,
+      ...attendance,
+    }),
+    {},
+  )
+}
+
 function parseFallbackAttendance(value) {
   try {
     const parsed = JSON.parse(value || '{}')
@@ -85,7 +95,12 @@ async function readAttendanceFromFallback(admin) {
 
 async function readAttendance(admin) {
   try {
-    return await readAttendanceFromTable(admin)
+    const [tableAttendance, fallbackAttendance] = await Promise.all([
+      readAttendanceFromTable(admin),
+      readAttendanceFromFallback(admin).catch(() => ({})),
+    ])
+
+    return mergeAttendance(fallbackAttendance, tableAttendance)
   } catch (error) {
     if (!isMissingAttendanceTable(error)) {
       throw error
@@ -137,14 +152,21 @@ async function writeAttendanceToFallback(admin, records) {
 }
 
 async function writeAttendance(admin, records) {
+  let wroteToTable = false
+
   try {
     await writeAttendanceToTable(admin, records)
+    wroteToTable = true
   } catch (error) {
     if (!isMissingAttendanceTable(error)) {
       throw error
     }
+  }
 
-    await writeAttendanceToFallback(admin, records)
+  await writeAttendanceToFallback(admin, records)
+
+  if (!wroteToTable) {
+    return readAttendanceFromFallback(admin)
   }
 
   return readAttendance(admin)
