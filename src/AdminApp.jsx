@@ -1341,9 +1341,10 @@ export default function AdminApp() {
 
           {showMaySpecialAnnouncement ? <MaySpecialAnnouncement onOpenShop={handleOpenShop} /> : null}
 
-          {viewingAttendance && isAdmin ? (
+          {viewingAttendance ? (
             <div className="attendance-stage">
               <AttendancePage
+                canEdit={isAdmin}
                 loadPlayerAquarium={fetchPlayerAquarium}
                 onAttendanceChange={handleAttendanceChange}
                 players={players.length ? players : publicPlayers}
@@ -1456,7 +1457,7 @@ export default function AdminApp() {
             </div>
           ) : null}
 
-          {(viewingAttendance || viewingBooks || viewingMemory || viewingQuiz) && !isAdmin ? (
+          {(viewingBooks || viewingMemory || viewingQuiz) && !isAdmin ? (
             <section className="panel memory-locked-panel">
               <div className="eyebrow">Admin Only</div>
               <h2>This page is only for the admin.</h2>

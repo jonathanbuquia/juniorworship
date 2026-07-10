@@ -83,7 +83,7 @@ function getMoonJellyBonusChange({ attendance, claims, dateIds, playerId, purcha
   }
 }
 
-export default function AttendancePage({ loadPlayerAquarium, onAttendanceChange, players }) {
+export default function AttendancePage({ canEdit = false, loadPlayerAquarium, onAttendanceChange, players }) {
   const { attendance, setAttendanceValue } = useAttendance()
   const [pendingKey, setPendingKey] = useState('')
   const [message, setMessage] = useState({ type: '', text: '' })
@@ -102,7 +102,7 @@ export default function AttendancePage({ loadPlayerAquarium, onAttendanceChange,
   const handleAttendanceChange = async (player, date, nextPresent) => {
     const attendanceKey = createAttendanceKey(player.id, date.id)
 
-    if (pendingKey) {
+    if (!canEdit || pendingKey) {
       return
     }
 
@@ -193,7 +193,7 @@ export default function AttendancePage({ loadPlayerAquarium, onAttendanceChange,
           <div className="eyebrow">Attendance</div>
           <h2>Sunday Attendance</h2>
         </div>
-        <strong>{players.length} players</strong>
+        <strong>{canEdit ? `${players.length} players` : `View only - ${players.length} players`}</strong>
       </div>
 
       <div className="attendance-reward-note">
@@ -243,7 +243,7 @@ export default function AttendancePage({ loadPlayerAquarium, onAttendanceChange,
                         <label className={`attendance-check ${pending ? 'pending' : ''}`}>
                           <input
                             checked={checked}
-                            disabled={Boolean(pendingKey)}
+                            disabled={!canEdit || Boolean(pendingKey)}
                             onChange={() => handleAttendanceChange(player, date, !checked)}
                             type="checkbox"
                           />
