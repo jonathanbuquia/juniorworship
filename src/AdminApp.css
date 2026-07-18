@@ -2830,7 +2830,7 @@
 .announcement-crab-preview {
   z-index: 1;
   width: min(100%, 500px);
-  min-height: clamp(260px, 38vh, 360px);
+  min-height: clamp(330px, 48vh, 470px);
   display: grid;
   place-items: center;
 }
@@ -2841,7 +2841,7 @@
   position: relative;
   width: 148px;
   height: 104px;
-  transform: scale(1.75);
+  transform: scale(2.55);
   animation: announcementMoonJellyFloat 4.6s ease-in-out infinite;
   filter:
     drop-shadow(0 26px 24px rgba(141, 62, 34, 0.18))
@@ -3935,6 +3935,14 @@
     --moon-jelly-scale: 0.9;
   }
 
+  .announcement-crab-preview {
+    min-height: 330px;
+  }
+
+  .announcement-crab-swim {
+    transform: scale(2.2);
+  }
+
   .shop-stage {
     min-height: 0;
   }
@@ -3998,6 +4006,15 @@
 
   .announcement-moon-jelly-swim {
     --moon-jelly-scale: 0.78;
+    transform-origin: center center;
+  }
+
+  .announcement-crab-preview {
+    min-height: 260px;
+  }
+
+  .announcement-crab-swim {
+    transform: scale(1.72);
     transform-origin: center center;
   }
 
