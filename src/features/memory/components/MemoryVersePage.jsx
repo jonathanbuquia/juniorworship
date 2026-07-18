@@ -5,6 +5,7 @@ import {
   getMemoryVerseWordCount,
 } from '../memoryUtils.js'
 import { MEMORY_VERSE_GOLD_REWARD } from '../../app/constants.js'
+import { JULY_EVENT_CRAB_MEMORY_BONUS } from '../../../../shared/shopCatalog.js'
 
 export default function MemoryVersePage({
   activeMemoryVerse,
@@ -190,7 +191,10 @@ export default function MemoryVersePage({
               </button>
             </div>
 
-            <p className="panel-copy">When a player recites the verse, tap their button to reward them.</p>
+            <p className="panel-copy">
+              When a player recites the verse, tap their button to reward them. July Crab owners receive +
+              {JULY_EVENT_CRAB_MEMORY_BONUS} extra gold.
+            </p>
 
             {!isAdmin ? (
               <p className="panel-note">Sign in as admin to give the {MEMORY_VERSE_GOLD_REWARD} gold reward.</p>

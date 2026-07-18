@@ -43,6 +43,9 @@ export const MAY_EVENT_BETTA_SLUG = 'may-blue-betta'
 export const MAY_EVENT_BETTA_SALE_END_DATE = '2026-05-31'
 export const MOON_JELLY_SLUG = 'moon-jelly'
 export const MOON_JELLY_SALE_END_DATE = '2026-06-28'
+export const JULY_EVENT_CRAB_SLUG = 'july-verse-crab'
+export const JULY_EVENT_CRAB_SALE_END_DATE = '2026-07-26'
+export const JULY_EVENT_CRAB_MEMORY_BONUS = 150
 export const EVENT_SHOP_CATEGORY_ID = 'events'
 export const MOON_JELLY_REQUIREMENTS = [
   {
@@ -160,6 +163,28 @@ export const SHOP_ITEMS = [
       'Perfect score sparkle!',
       'Keep swimming strong!',
       'You are amazing!',
+    ],
+  },
+  {
+    slug: JULY_EVENT_CRAB_SLUG,
+    category: 'events',
+    rarity: 'special',
+    name: 'July Crab',
+    subtitle: 'JULY SPECIAL',
+    description: 'A cheerful July event crab that rewards brave memory verse reciters.',
+    price: 3000,
+    salePrice: 1500,
+    saleEndsOn: JULY_EVENT_CRAB_SALE_END_DATE,
+    accentColor: '#ff7a45',
+    bodyColor: '#ff8c60',
+    finColor: '#dc5435',
+    detailColor: '#ffd7c2',
+    creatureType: 'crab',
+    shopFishScale: 1.08,
+    abilities: [
+      'Side-step crab walk',
+      `+${JULY_EVENT_CRAB_MEMORY_BONUS} memory verse gold`,
+      'Counts when verse reward is given',
     ],
   },
   {

@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import CrabFigure from '../../../components/CrabFigure.jsx'
 import JellyfishFigure from '../../../components/JellyfishFigure.jsx'
 
 const MotionDiv = motion.div
@@ -7,6 +8,7 @@ export default function ShopFishPreview({ className = '', item, index = 0 }) {
   const fishScale = item.shopFishScale ?? 1.08
   const rootClassName = ['shop-card-preview', className].filter(Boolean).join(' ')
   const isJellyfish = item.creatureType === 'jellyfish'
+  const isCrab = item.creatureType === 'crab'
 
   return (
     <div className={rootClassName}>
@@ -22,14 +24,29 @@ export default function ShopFishPreview({ className = '', item, index = 0 }) {
           x: ['-10%', '8%', '-10%'],
           y: [0, -7, 0, 5, 0],
         }}
-        className={`shop-fish-swim ${isJellyfish ? 'shop-jellyfish-swim' : ''}`}
+        className={`shop-fish-swim ${isJellyfish ? 'shop-jellyfish-swim' : ''} ${isCrab ? 'shop-crab-swim' : ''}`}
         transition={{
           duration: 4.8 + index * 0.55,
           ease: 'easeInOut',
           repeat: Infinity,
         }}
       >
-        {isJellyfish ? (
+        {isCrab ? (
+          <div
+            className="shop-card-crab"
+            style={{
+              '--crab-facing': 1,
+              '--crab-tilt': '-2deg',
+              '--shop-crab-scale': fishScale,
+            }}
+          >
+            <div className="crab-bob">
+              <div className="crab-motion">
+                <CrabFigure />
+              </div>
+            </div>
+          </div>
+        ) : isJellyfish ? (
           <div
             className="shop-card-jellyfish"
             style={{

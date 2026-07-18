@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import '../PixelAquarium.css'
 import { findShopItemBySlug, MOON_JELLY_SLUG } from '../../shared/shopCatalog.js'
+import CrabFigure from './CrabFigure.jsx'
 import JellyfishFigure from './JellyfishFigure.jsx'
 
 const BASE_FISH_WIDTH = 198
@@ -165,6 +166,21 @@ function buildOwnedJellyfishConfigs(ownedFish) {
       id: `${entry.slug}-${index + 1}`,
       startX: clamp(0.28 + index * 0.08, 0.12, 0.76),
       startY: clamp(0.18 + (index % 2) * 0.12, 0.12, 0.56),
+    }))
+  })
+}
+
+function buildOwnedCrabConfigs(ownedFish) {
+  return ownedFish.flatMap((entry) => {
+    const item = findShopItemBySlug(entry.slug)
+
+    if (item?.creatureType !== 'crab' || !Number.isInteger(entry.quantity) || entry.quantity <= 0) {
+      return []
+    }
+
+    return Array.from({ length: entry.quantity }, (_unused, index) => ({
+      id: `${entry.slug}-${index + 1}`,
+      startX: clamp(0.18 + index * 0.08, 0.08, 0.74),
     }))
   })
 }
@@ -909,7 +925,7 @@ function CuteJellyfish({
   )
 }
 
-function CuteCrab({ movable = false, persistedStart, tankRef, tankSize, onPersistPosition }) {
+function CuteCrab({ movable = false, persistedStart, startX = 0.42, tankRef, tankSize, onPersistPosition }) {
   const crabFloorY = Math.max(110, tankSize.height - tankSize.height * 0.12 - BASE_CRAB_HEIGHT)
   const draggable = useDraggableSwimmer({
     tankRef,
@@ -925,7 +941,7 @@ function CuteCrab({ movable = false, persistedStart, tankRef, tankSize, onPersis
     tankSize,
     width: BASE_CRAB_WIDTH,
     height: BASE_CRAB_HEIGHT,
-    startX: 0.42,
+    startX,
     startY: 0.78,
     speed: 26,
     directionX: 1,
@@ -962,33 +978,7 @@ function CuteCrab({ movable = false, persistedStart, tankRef, tankSize, onPersis
     >
       <div className="crab-bob">
         <div className="crab-motion">
-          <div className="crab">
-            <div className="crab-claw claw-left" />
-            <div className="crab-claw claw-right" />
-            <div className="crab-body">
-              <div className="crab-eye-stalk stalk-left">
-                <span className="crab-eye">
-                  <span className="crab-eye-spark" />
-                </span>
-              </div>
-              <div className="crab-eye-stalk stalk-right">
-                <span className="crab-eye">
-                  <span className="crab-eye-spark" />
-                </span>
-              </div>
-              <div className="crab-blush crab-blush-left" />
-              <div className="crab-blush crab-blush-right" />
-              <div className="crab-mouth" />
-            </div>
-            <div className="crab-legs" aria-hidden="true">
-              <span className="crab-leg leg-a" />
-              <span className="crab-leg leg-b" />
-              <span className="crab-leg leg-c" />
-              <span className="crab-leg leg-d" />
-              <span className="crab-leg leg-e" />
-              <span className="crab-leg leg-f" />
-            </div>
-          </div>
+          <CrabFigure />
         </div>
       </div>
     </div>
@@ -1281,6 +1271,7 @@ export default function AquariumScene({
   const showJonathanSquidSample = hasSelectedPlayer && isJonathanProfileName(playerDisplayName, playerLoginName)
   const purchasedFish = buildOwnedFishConfigs(ownedFish)
   const purchasedJellyfish = buildOwnedJellyfishConfigs(ownedFish)
+  const purchasedCrabs = buildOwnedCrabConfigs(ownedFish)
   const coralPositions = sceneState.coralPositions ?? {}
   const creatureStarts = sceneState.creatures ?? {}
   const hasSavedCorals = Object.keys(coralPositions).length > 0
@@ -1558,6 +1549,22 @@ export default function AquariumScene({
                   tankSize={tankSize}
                 />
               )}
+
+              {hasSelectedPlayer &&
+                tankSize.width > 0 &&
+                purchasedCrabs.map((crab) => (
+                  <CuteCrab
+                    key={crab.id}
+                    movable={movable}
+                    onPersistPosition={(position) =>
+                      handlePersistCreaturePosition(`owned-creature:${crab.id}`, position)
+                    }
+                    persistedStart={creatureStarts[`owned-creature:${crab.id}`] ?? null}
+                    startX={crab.startX}
+                    tankRef={tankRef}
+                    tankSize={tankSize}
+                  />
+                ))}
 
               {hasSelectedPlayer &&
                 tankSize.width > 0 &&

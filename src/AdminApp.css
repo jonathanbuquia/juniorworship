@@ -2827,6 +2827,31 @@
   transform: scale(1.6) scaleX(var(--jellyfish-facing)) rotate(var(--jellyfish-tilt));
 }
 
+.announcement-crab-preview {
+  z-index: 1;
+  width: min(100%, 500px);
+  min-height: clamp(260px, 38vh, 360px);
+  display: grid;
+  place-items: center;
+}
+
+.announcement-crab-swim {
+  --crab-facing: 1;
+  --crab-tilt: -2deg;
+  position: relative;
+  width: 148px;
+  height: 104px;
+  transform: scale(1.75);
+  animation: announcementMoonJellyFloat 4.6s ease-in-out infinite;
+  filter:
+    drop-shadow(0 26px 24px rgba(141, 62, 34, 0.18))
+    drop-shadow(0 0 24px rgba(255, 215, 194, 0.35));
+}
+
+.announcement-crab-swim .crab-motion {
+  transform: scaleX(var(--crab-facing)) rotate(var(--crab-tilt));
+}
+
 .announcement-moon-jelly-burst,
 .moon-bubble {
   pointer-events: none;
@@ -3677,6 +3702,28 @@
 
 .shop-card-jellyfish .jellyfish-bob {
   animation-duration: 2.7s;
+}
+
+.shop-crab-swim {
+  min-height: 170px;
+}
+
+.shop-card-crab {
+  --crab-facing: 1;
+  --crab-tilt: -2deg;
+  position: relative;
+  z-index: 1;
+  width: 148px;
+  height: 104px;
+  transform: scale(var(--shop-crab-scale, 1.08));
+  transform-origin: center center;
+  filter:
+    drop-shadow(0 18px 20px rgba(141, 62, 34, 0.14))
+    drop-shadow(0 0 18px rgba(255, 219, 196, 0.26));
+}
+
+.shop-card-crab .crab-motion {
+  transform: scaleX(var(--crab-facing)) rotate(var(--crab-tilt));
 }
 
 .shop-item-copy {

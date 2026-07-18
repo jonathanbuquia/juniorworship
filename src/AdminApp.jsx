@@ -40,7 +40,12 @@ import { usePlayerDirectory } from './features/players/hooks/usePlayerDirectory.
 import ActivePlayerHud from './features/players/components/ActivePlayerHud.jsx'
 import QuizPage from './features/quiz/components/QuizPage.jsx'
 import { useQuizState } from './features/quiz/hooks/useQuizState.js'
-import { MAY_EVENT_BETTA_SLUG, SHOP_CATEGORIES } from '../shared/shopCatalog.js'
+import {
+  JULY_EVENT_CRAB_MEMORY_BONUS,
+  JULY_EVENT_CRAB_SLUG,
+  MAY_EVENT_BETTA_SLUG,
+  SHOP_CATEGORIES,
+} from '../shared/shopCatalog.js'
 import { createEmptyQuizAwardScores, getQuizQuestionPoints, parseQuizDraftText } from './features/quiz/quizUtils.js'
 import MaySpecialAnnouncement from './features/shop/components/MaySpecialAnnouncement.jsx'
 import ShopPage from './features/shop/components/ShopPage.jsx'
@@ -817,14 +822,22 @@ export default function AdminApp() {
         throw new Error('Sign in as admin to reward players.')
       }
 
+      const aquarium = await fetchPlayerAquarium(playerId)
+      const ownsJulyCrab = (aquarium.fish ?? []).some(
+        (item) => item.slug === JULY_EVENT_CRAB_SLUG && Number(item.quantity) > 0,
+      )
+      const totalReward = MEMORY_VERSE_GOLD_REWARD + (ownsJulyCrab ? JULY_EVENT_CRAB_MEMORY_BONUS : 0)
+
       const data = await adjustPlayerGold(accessToken, {
-        amount: MEMORY_VERSE_GOLD_REWARD,
+        amount: totalReward,
         playerId,
       })
 
       setVerseAwardResult({
         type: 'success',
-        text: `+${MEMORY_VERSE_GOLD_REWARD} gold added to ${data.player.display_name}.`,
+        text: ownsJulyCrab
+          ? `+${totalReward} gold added to ${data.player.display_name}. July Crab bonus included.`
+          : `+${totalReward} gold added to ${data.player.display_name}.`,
       })
       applyPlayerUpdate(data.player)
     } catch (error) {

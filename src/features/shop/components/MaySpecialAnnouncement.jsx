@@ -1,5 +1,5 @@
-import AnnouncementMoonJellyPreview from './AnnouncementMoonJellyPreview.jsx'
-import { MOON_JELLY_SLUG, findShopItemBySlug, formatRequirementsSummary } from '../../../../shared/shopCatalog.js'
+import AnnouncementCrabPreview from './AnnouncementCrabPreview.jsx'
+import { JULY_EVENT_CRAB_SLUG, findShopItemBySlug, formatRequirementsSummary } from '../../../../shared/shopCatalog.js'
 
 const MONTH_NAMES = [
   'January',
@@ -24,7 +24,7 @@ function getLastSundayOfMonth(value = new Date()) {
 }
 
 export default function MaySpecialAnnouncement() {
-  const item = findShopItemBySlug(MOON_JELLY_SLUG)
+  const item = findShopItemBySlug(JULY_EVENT_CRAB_SLUG)
   const saleEndDate = getLastSundayOfMonth()
   const saleEndLabel = `${MONTH_NAMES[saleEndDate.getMonth()]} ${saleEndDate.getDate()}`
   const monthSpecialLabel = `${MONTH_NAMES[new Date().getMonth()]} Special`
@@ -74,7 +74,7 @@ export default function MaySpecialAnnouncement() {
           <span className="announcement-rock rock-left" />
           <span className="announcement-rock rock-right" />
         </div>
-        <AnnouncementMoonJellyPreview />
+        <AnnouncementCrabPreview />
       </div>
     </section>
   )
