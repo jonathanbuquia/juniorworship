@@ -192,7 +192,7 @@ export default function MemoryVersePage({
             </div>
 
             <p className="panel-copy">
-              When a player recites the verse, tap their button to reward them. July Crab owners receive +
+              When a player recites the verse, tap their button to reward them. Hermit Crab owners receive +
               {JULY_EVENT_CRAB_MEMORY_BONUS} extra gold.
             </p>
 

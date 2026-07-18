@@ -169,7 +169,7 @@ export const SHOP_ITEMS = [
     slug: JULY_EVENT_CRAB_SLUG,
     category: 'events',
     rarity: 'special',
-    name: 'July Crab',
+    name: 'Hermit Crab',
     subtitle: 'JULY SPECIAL',
     description: 'A cheerful July event crab that rewards brave memory verse reciters.',
     price: 3000,

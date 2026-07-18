@@ -836,7 +836,7 @@ export default function AdminApp() {
       setVerseAwardResult({
         type: 'success',
         text: ownsJulyCrab
-          ? `+${totalReward} gold added to ${data.player.display_name}. July Crab bonus included.`
+          ? `+${totalReward} gold added to ${data.player.display_name}. Hermit Crab bonus included.`
           : `+${totalReward} gold added to ${data.player.display_name}.`,
       })
       applyPlayerUpdate(data.player)
