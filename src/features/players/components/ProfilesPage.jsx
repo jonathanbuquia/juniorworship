@@ -28,12 +28,10 @@ export default function ProfilesPage({ onSelectPlayer, players = [], selectedPla
               whileHover={{ y: -4 }}
               whileTap={{ scale: 0.98 }}
             >
-              <span className="profile-card-avatar">{player.display_name?.charAt(0)?.toUpperCase() || '?'}</span>
               <span className="profile-card-copy">
                 <strong>{player.display_name}</strong>
                 <small>{player.gold ?? 0} gold coins</small>
               </span>
-              <span className="profile-card-open">Open</span>
             </MotionButton>
           ))}
         </div>
