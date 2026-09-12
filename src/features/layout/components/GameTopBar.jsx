@@ -1,7 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { POPOVER_TRANSITION, RAIL_TRANSITION } from '../../app/constants.js'
 import AuthPopover from '../../auth/components/AuthPopover.jsx'
-import ProfileMenu from '../../players/components/ProfileMenu.jsx'
 import RailIcon from './RailIcon.jsx'
 
 const MotionButton = motion.button
@@ -32,21 +31,18 @@ export default function GameTopBar({
   onOpenProfileMenu,
   onOpenQuiz,
   onOpenShop,
-  onSelectViewedPlayer,
   onSignOut,
   onToggleAuthMenu,
   onToggleNavCollapsed,
   profile,
-  profileMenuOpen,
-  publicPlayers,
   setupForm,
   setupMessage,
-  viewedPlayer,
   viewingAdmin,
   viewingAttendance,
   viewingBooks,
   viewingHome,
   viewingMemory,
+  viewingProfiles,
   viewingQuiz,
   viewingShop,
 }) {
@@ -101,7 +97,7 @@ export default function GameTopBar({
       <div className="rail-top">
         <MotionButton
           aria-label="Home"
-          className={`rail-button rail-button-secondary ${viewingHome && !viewedPlayer ? 'active' : ''}`}
+          className={`rail-button rail-button-secondary ${viewingHome ? 'active' : ''}`}
           layout
           onClick={onOpenHome}
           type="button"
@@ -127,45 +123,33 @@ export default function GameTopBar({
           </AnimatePresence>
         </MotionButton>
 
-        <div className="header-menu-wrap">
-          <MotionButton
-            aria-label="Profile"
-            className="rail-button rail-button-secondary"
-            layout
-            onClick={onOpenProfileMenu}
-            type="button"
-            whileHover={{ y: -2 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <span aria-hidden="true" className="rail-button-icon">
-              <RailIcon type="profile" />
-            </span>
-            <AnimatePresence initial={false}>
-              {!effectiveCollapsed ? (
-                <MotionSpan
-                  animate={{ opacity: 1, x: 0 }}
-                  className="rail-button-label"
-                  exit={{ opacity: 0, x: -8 }}
-                  initial={{ opacity: 0, x: -8 }}
-                  key="profile-label"
-                  transition={POPOVER_TRANSITION}
-                >
-                  PROFILE
-                </MotionSpan>
-              ) : null}
-            </AnimatePresence>
-          </MotionButton>
-
-          <AnimatePresence>
-            {profileMenuOpen ? (
-              <ProfileMenu
-                onSelectPlayer={onSelectViewedPlayer}
-                players={publicPlayers}
-                selectedPlayerId={viewedPlayer?.id ?? ''}
-              />
+        <MotionButton
+          aria-label="Profile"
+          className={`rail-button rail-button-secondary ${viewingProfiles ? 'active' : ''}`}
+          layout
+          onClick={onOpenProfileMenu}
+          type="button"
+          whileHover={{ y: -2 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <span aria-hidden="true" className="rail-button-icon">
+            <RailIcon type="profile" />
+          </span>
+          <AnimatePresence initial={false}>
+            {!effectiveCollapsed ? (
+              <MotionSpan
+                animate={{ opacity: 1, x: 0 }}
+                className="rail-button-label"
+                exit={{ opacity: 0, x: -8 }}
+                initial={{ opacity: 0, x: -8 }}
+                key="profile-label"
+                transition={POPOVER_TRANSITION}
+              >
+                PROFILE
+              </MotionSpan>
             ) : null}
           </AnimatePresence>
-        </div>
+        </MotionButton>
 
         <MotionButton
           aria-label="Shop"

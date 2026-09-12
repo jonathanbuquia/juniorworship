@@ -691,6 +691,151 @@
   align-items: stretch;
 }
 
+.profiles-stage {
+  width: min(100%, 1180px);
+  margin: 0 auto;
+  padding-top: 6px;
+  padding-bottom: 12px;
+}
+
+.profiles-page-shell {
+  width: 100%;
+  min-height: min(640px, calc(100vh - 142px));
+  padding: clamp(18px, 2.4vw, 30px);
+  display: grid;
+  align-content: start;
+  gap: 22px;
+  border-radius: 30px;
+}
+
+.profiles-page-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+}
+
+.profiles-page-heading h2 {
+  font-size: clamp(2.2rem, 4vw, 4.8rem);
+  line-height: 0.92;
+  letter-spacing: -0.06em;
+}
+
+.profiles-page-heading strong {
+  min-width: max-content;
+  padding: 10px 14px;
+  border-radius: 999px;
+  color: #0d5c7a;
+  background: rgba(207, 240, 255, 0.92);
+  box-shadow: inset 0 0 0 1px rgba(42, 128, 160, 0.12);
+}
+
+.profiles-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.profile-card {
+  min-height: 118px;
+  padding: 16px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    "avatar copy"
+    "avatar open";
+  align-items: center;
+  gap: 10px 14px;
+  text-align: left;
+  border-radius: 24px;
+  color: #123a52;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(224, 247, 255, 0.88)),
+    radial-gradient(circle at 90% 0%, rgba(126, 215, 236, 0.45), transparent 42%);
+  box-shadow:
+    0 18px 36px rgba(23, 85, 116, 0.12),
+    inset 0 0 0 1px rgba(71, 126, 151, 0.14);
+  cursor: pointer;
+}
+
+.profile-card.active {
+  color: white;
+  background:
+    linear-gradient(135deg, #0f9eb7, #0f75a7),
+    radial-gradient(circle at 90% 0%, rgba(255, 255, 255, 0.28), transparent 42%);
+  box-shadow: 0 22px 44px rgba(15, 117, 167, 0.25);
+}
+
+.profile-card-avatar {
+  grid-area: avatar;
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  border-radius: 20px;
+  color: #0d6c8b;
+  font-size: 1.55rem;
+  font-weight: 900;
+  background: rgba(190, 238, 251, 0.9);
+  box-shadow: inset 0 0 0 1px rgba(53, 130, 164, 0.14);
+}
+
+.profile-card.active .profile-card-avatar {
+  color: #06425d;
+  background: rgba(230, 250, 255, 0.92);
+}
+
+.profile-card-copy {
+  grid-area: copy;
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.profile-card-copy strong {
+  overflow: hidden;
+  color: inherit;
+  font-size: 1.18rem;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-card-copy small {
+  color: inherit;
+  font-weight: 800;
+  opacity: 0.72;
+}
+
+.profile-card-open {
+  grid-area: open;
+  width: max-content;
+  padding: 7px 11px;
+  border-radius: 999px;
+  color: #0d6c8b;
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  background: rgba(207, 240, 255, 0.88);
+}
+
+.profile-card.active .profile-card-open {
+  color: #0d5c7a;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.profiles-empty-card {
+  min-height: 280px;
+  display: grid;
+  place-content: center;
+  gap: 8px;
+  text-align: center;
+  border-radius: 26px;
+  background: rgba(255, 255, 255, 0.76);
+  box-shadow: inset 0 0 0 1px rgba(73, 123, 147, 0.12);
+}
+
 .admin-panel-shell {
   width: min(100%, 1180px);
   margin: 0 auto;
@@ -2391,6 +2536,27 @@
 @media (max-width: 700px) {
   .portal-overlay {
     padding: 14px;
+  }
+
+  .profiles-page-shell {
+    min-height: calc(100dvh - 28px);
+    padding: 14px;
+    border-radius: 24px;
+  }
+
+  .profiles-page-heading {
+    align-items: start;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .profiles-card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-card {
+    min-height: 104px;
+    border-radius: 20px;
   }
 
   .books-page-shell {

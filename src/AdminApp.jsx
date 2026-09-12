@@ -16,6 +16,7 @@ import {
   MEMORY_VERSE_QUIZ_POINTS,
   MEMORY_PATH,
   POPOVER_TRANSITION,
+  PROFILES_PATH,
   QUIZ_PATH,
   RAIL_TRANSITION,
   SHOP_NOTICE_DURATION,
@@ -38,6 +39,7 @@ import {
 import BooksPage from './features/books/components/BooksPage.jsx'
 import { usePlayerDirectory } from './features/players/hooks/usePlayerDirectory.js'
 import ActivePlayerHud from './features/players/components/ActivePlayerHud.jsx'
+import ProfilesPage from './features/players/components/ProfilesPage.jsx'
 import QuizPage from './features/quiz/components/QuizPage.jsx'
 import { useQuizState } from './features/quiz/hooks/useQuizState.js'
 import {
@@ -233,6 +235,7 @@ export default function AdminApp() {
   const viewingAttendance = pathname === ATTENDANCE_PATH
   const viewingBooks = pathname === BOOKS_PATH
   const viewingMemory = pathname === MEMORY_PATH
+  const viewingProfiles = pathname === PROFILES_PATH
   const viewingQuiz = pathname === QUIZ_PATH
   const viewingShop = pathname === SHOP_PATH
   const viewingHome = pathname === DEFAULT_PATH
@@ -241,6 +244,7 @@ export default function AdminApp() {
     !viewingAttendance &&
     !viewingBooks &&
     !viewingMemory &&
+    !viewingProfiles &&
     !viewingQuiz &&
     !viewingAdmin &&
     !viewingShop &&
@@ -253,6 +257,7 @@ export default function AdminApp() {
     !viewingAttendance &&
     !viewingBooks &&
     !viewingMemory &&
+    !viewingProfiles &&
     !viewingQuiz &&
     !viewingShop &&
     !isTeachingFullscreen
@@ -346,8 +351,10 @@ export default function AdminApp() {
   }
 
   const handleOpenProfileMenu = () => {
-    setProfileMenuOpen((current) => !current)
+    setProfileMenuOpen(false)
     setAuthMenuOpen(false)
+    closeCompactNav()
+    navigate(PROFILES_PATH)
   }
 
   const handleToggleNavCollapsed = () => {
@@ -1317,6 +1324,7 @@ export default function AdminApp() {
             viewingBooks={viewingBooks}
             viewingHome={viewingHome}
             viewingMemory={viewingMemory}
+            viewingProfiles={viewingProfiles}
             viewingQuiz={viewingQuiz}
             viewingShop={viewingShop}
           />
@@ -1349,6 +1357,16 @@ export default function AdminApp() {
 
         <MotionMain className="layout-main" layout={!isCompactNav} transition={RAIL_TRANSITION}>
           {showMaySpecialAnnouncement ? <MaySpecialAnnouncement onOpenShop={handleOpenShop} /> : null}
+
+          {viewingProfiles ? (
+            <div className="profiles-stage">
+              <ProfilesPage
+                onSelectPlayer={handleSelectViewedPlayer}
+                players={publicPlayers}
+                selectedPlayerId={viewedPlayerId}
+              />
+            </div>
+          ) : null}
 
           {viewingAttendance && isAdmin ? (
             <div className="attendance-stage">
