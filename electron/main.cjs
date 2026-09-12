@@ -2,8 +2,15 @@ const { app, BrowserWindow } = require('electron')
 const path = require('node:path')
 const { pathToFileURL } = require('node:url')
 
+const DESKTOP_APP_PORT = 4177
 let localServer = null
 let mainWindow = null
+
+const gotSingleInstanceLock = app.requestSingleInstanceLock()
+
+if (!gotSingleInstanceLock) {
+  app.quit()
+}
 
 async function startServer() {
   if (localServer) {
@@ -12,7 +19,7 @@ async function startServer() {
 
   const serverModulePath = path.join(__dirname, '..', 'local-server.mjs')
   const { startLocalServer } = await import(pathToFileURL(serverModulePath).href)
-  localServer = await startLocalServer({ open: false, port: 0 })
+  localServer = await startLocalServer({ open: false, port: DESKTOP_APP_PORT })
 
   return localServer
 }
@@ -42,6 +49,18 @@ async function createMainWindow() {
 
   await mainWindow.loadURL(server.url)
 }
+
+app.on('second-instance', () => {
+  if (!mainWindow) {
+    return
+  }
+
+  if (mainWindow.isMinimized()) {
+    mainWindow.restore()
+  }
+
+  mainWindow.focus()
+})
 
 app.whenReady().then(createMainWindow).catch((error) => {
   console.error(error)
