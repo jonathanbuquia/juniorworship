@@ -79,7 +79,7 @@ export function createSundayColumns(count = ATTENDANCE_WEEK_COUNT, startDate = n
   Object.keys(attendance).forEach((key) => {
     const dateId = getDateIdFromAttendanceKey(key)
 
-    if (dateId) {
+    if (dateId && dateId >= ATTENDANCE_START_DATE) {
       dateIds.add(dateId)
     }
   })
