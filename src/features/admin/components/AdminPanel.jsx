@@ -299,7 +299,6 @@ export default function AdminPanel({
   onCreatePlayerChange,
   onDeletePlayer,
   onGoldFormChange,
-  onLogout,
   onQuickGoldAmount,
   onReturnToGame,
   onSectionChange,
@@ -314,8 +313,8 @@ export default function AdminPanel({
     <section className="panel admin-panel-shell">
       <aside className="admin-sidebar">
         <div className="sidebar-top">
-          <div className="eyebrow">Admin Dashboard</div>
-          <h2>{profile?.display_name || 'Admin'}</h2>
+          <div className="eyebrow">Player Controls</div>
+          <h2>{profile?.display_name || 'Teacher'}</h2>
           <p className="panel-copy">
             Use the left controls to switch tasks. The larger workspace on the right is where you work.
           </p>
@@ -353,9 +352,6 @@ export default function AdminPanel({
         <div className="sidebar-footer">
           <button className="ghost-button" onClick={onReturnToGame} type="button">
             Back to game
-          </button>
-          <button className="ghost-button" onClick={onLogout} type="button">
-            Log out
           </button>
         </div>
       </aside>

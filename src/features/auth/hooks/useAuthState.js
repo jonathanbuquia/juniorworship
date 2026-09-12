@@ -4,17 +4,27 @@ import { applySupabaseSession, fetchProfileById, signOutSupabaseSession } from '
 import { hasSupabaseEnv, supabase } from '../../../lib/supabase.js'
 
 const LOCAL_SESSION_STORAGE_KEY = 'aquarium-local-admin-session'
+const LOCAL_ADMIN_PROFILE = {
+  display_name: 'Teacher',
+  gold: 0,
+  id: 'local-admin',
+  login_name: 'local',
+  role: 'admin',
+}
+const LOCAL_ADMIN_SESSION = {
+  access_token: 'local-admin',
+  refresh_token: 'local-admin',
+  token_type: 'bearer',
+  user: {
+    id: LOCAL_ADMIN_PROFILE.id,
+    user_metadata: {
+      profile: LOCAL_ADMIN_PROFILE,
+    },
+  },
+}
 
 function getLocalProfileFromSession(session) {
   return session?.user?.user_metadata?.profile ?? null
-}
-
-function readLocalSession() {
-  try {
-    return JSON.parse(window.localStorage.getItem(LOCAL_SESSION_STORAGE_KEY) || 'null')
-  } catch {
-    return null
-  }
 }
 
 export function useAuthState() {
@@ -29,12 +39,10 @@ export function useAuthState() {
 
   useEffect(() => {
     if (!hasSupabaseEnv || !supabase) {
-      const localSession = readLocalSession()
-
-      if (localSession) {
-        setSession(localSession)
-        setProfile(getLocalProfileFromSession(localSession))
-      }
+      window.localStorage.setItem(LOCAL_SESSION_STORAGE_KEY, JSON.stringify(LOCAL_ADMIN_SESSION))
+      setSession(LOCAL_ADMIN_SESSION)
+      setProfile(LOCAL_ADMIN_PROFILE)
+      setHasAdmin(true)
 
       setAuthLoading(false)
       return undefined
@@ -136,9 +144,9 @@ export function useAuthState() {
     }
 
     if (!nextSession) {
-      window.localStorage.removeItem(LOCAL_SESSION_STORAGE_KEY)
-      setSession(null)
-      setProfile(null)
+      window.localStorage.setItem(LOCAL_SESSION_STORAGE_KEY, JSON.stringify(LOCAL_ADMIN_SESSION))
+      setSession(LOCAL_ADMIN_SESSION)
+      setProfile(LOCAL_ADMIN_PROFILE)
       return
     }
 
@@ -153,9 +161,9 @@ export function useAuthState() {
       return
     }
 
-    window.localStorage.removeItem(LOCAL_SESSION_STORAGE_KEY)
-    setSession(null)
-    setProfile(null)
+    window.localStorage.setItem(LOCAL_SESSION_STORAGE_KEY, JSON.stringify(LOCAL_ADMIN_SESSION))
+    setSession(LOCAL_ADMIN_SESSION)
+    setProfile(LOCAL_ADMIN_PROFILE)
   }
 
   return {

@@ -156,6 +156,17 @@ function requireAdmin(req, data) {
   const authHeader = String(req.headers.authorization || '')
   const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : ''
 
+  if (token === 'local-admin') {
+    return {
+      admin: {
+        display_name: 'Teacher',
+        id: 'local-admin',
+        login_name: 'local',
+        role: 'admin',
+      },
+    }
+  }
+
   if (!data.admin) {
     return { error: 'Create the local admin account first.', status: 401 }
   }
@@ -186,7 +197,7 @@ async function handleApi(req, res, url) {
   const route = `${req.method} ${url.pathname}`
 
   if (route === 'GET /api/admin-status') {
-    return sendJson(res, 200, { hasAdmin: Boolean(data.admin) })
+    return sendJson(res, 200, { hasAdmin: true })
   }
 
   if (route === 'POST /api/bootstrap-admin') {

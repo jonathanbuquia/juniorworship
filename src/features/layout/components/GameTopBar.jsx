@@ -50,7 +50,7 @@ export default function GameTopBar({
   viewingQuiz,
   viewingShop,
 }) {
-  const adminActionLabel = profile ? 'ADMIN' : hasAdmin ? 'ADMIN SIGN IN' : 'SET UP ADMIN'
+  const adminActionLabel = isAdmin ? 'PLAYERS' : hasAdmin ? 'ADMIN SIGN IN' : 'SET UP ADMIN'
   const effectiveCollapsed = isCompactNav ? false : navCollapsed
 
   return (
@@ -318,7 +318,7 @@ export default function GameTopBar({
             aria-label={adminActionLabel}
             className="rail-button rail-button-primary"
             layout
-            onClick={onToggleAuthMenu}
+            onClick={isAdmin ? onOpenAdmin : onToggleAuthMenu}
             type="button"
             whileHover={{ y: -2 }}
             whileTap={{ scale: 0.98 }}
@@ -343,7 +343,7 @@ export default function GameTopBar({
           </MotionButton>
 
           <AnimatePresence>
-            {authMenuOpen ? (
+            {authMenuOpen && !isAdmin ? (
               <AuthPopover
                 authPending={authPending}
                 hasAdmin={hasAdmin}
