@@ -1,6 +1,6 @@
 $projectRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $shortcutPath = Join-Path ([Environment]::GetFolderPath('Desktop')) 'Aquarium.lnk'
-$targetPath = Join-Path $projectRoot 'Open Aquarium.bat'
+$targetPath = Join-Path $projectRoot 'Open Aquarium App.vbs'
 
 $shell = New-Object -ComObject WScript.Shell
 $shortcut = $shell.CreateShortcut($shortcutPath)

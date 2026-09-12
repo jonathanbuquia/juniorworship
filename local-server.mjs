@@ -4,7 +4,7 @@ import { existsSync } from 'node:fs'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import http from 'node:http'
 import path from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 
 import { findShopItemBySlug, formatRequirementsSummary, isEventShopItem } from './shared/shopCatalog.js'
 
@@ -521,34 +521,61 @@ async function serveStatic(req, res, url) {
   res.end(body)
 }
 
-const server = http.createServer(async (req, res) => {
-  try {
-    const url = new URL(req.url || '/', `http://${req.headers.host || `127.0.0.1:${PORT}`}`)
+function createAquariumServer(port) {
+  return http.createServer(async (req, res) => {
+    try {
+      const url = new URL(req.url || '/', `http://${req.headers.host || `127.0.0.1:${port}`}`)
 
-    if (url.pathname.startsWith('/api/')) {
-      await handleApi(req, res, url)
-      return
+      if (url.pathname.startsWith('/api/')) {
+        await handleApi(req, res, url)
+        return
+      }
+
+      await serveStatic(req, res, url)
+    } catch (error) {
+      sendJson(res, 500, { error: error.message || 'Local server error.' })
     }
+  })
+}
 
-    await serveStatic(req, res, url)
-  } catch (error) {
-    sendJson(res, 500, { error: error.message || 'Local server error.' })
-  }
-})
+export function startLocalServer({ host = '127.0.0.1', open = false, port = PORT } = {}) {
+  const server = createAquariumServer(port)
 
-server.listen(PORT, '127.0.0.1', () => {
-  const appUrl = `http://127.0.0.1:${PORT}`
-  console.log(`Aquarium is running at ${appUrl}`)
-  console.log(`Local data is saved in ${DATA_PATH}`)
+  return new Promise((resolve, reject) => {
+    server.once('error', reject)
+    server.listen(port, host, () => {
+      server.off('error', reject)
 
-  if (process.argv.includes('--open')) {
-    const command =
-      process.platform === 'win32'
-        ? `start "" "${appUrl}"`
-        : process.platform === 'darwin'
-          ? `open "${appUrl}"`
-          : `xdg-open "${appUrl}"`
+      const address = server.address()
+      const actualPort = typeof address === 'object' && address ? address.port : port
+      const appUrl = `http://${host}:${actualPort}`
 
-    exec(command)
-  }
-})
+      console.log(`Aquarium is running at ${appUrl}`)
+      console.log(`Local data is saved in ${DATA_PATH}`)
+
+      if (open) {
+        const command =
+          process.platform === 'win32'
+            ? `start "" "${appUrl}"`
+            : process.platform === 'darwin'
+              ? `open "${appUrl}"`
+              : `xdg-open "${appUrl}"`
+
+        exec(command)
+      }
+
+      resolve({
+        close: () => new Promise((closeResolve) => server.close(closeResolve)),
+        server,
+        url: appUrl,
+      })
+    })
+  })
+}
+
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+  startLocalServer({ open: process.argv.includes('--open') }).catch((error) => {
+    console.error(error)
+    process.exit(1)
+  })
+}

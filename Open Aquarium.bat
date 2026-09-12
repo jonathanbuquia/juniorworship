@@ -18,13 +18,9 @@ if not exist "node_modules" (
   )
 )
 
-echo Building Aquarium...
-call npm run build
+echo Opening Aquarium desktop app...
+call npm run desktop
 if errorlevel 1 (
   pause
   exit /b 1
 )
-
-echo Opening Aquarium...
-node local-server.mjs --open
-pause
