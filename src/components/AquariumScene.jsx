@@ -1258,6 +1258,7 @@ function MovableCoral({ coral, movable = false, position, dragging, onPointerDow
 export default function AquariumScene({
   ownedFish = [],
   playerDisplayName = '',
+  playerGold = 0,
   playerId = '',
   playerLoginName = '',
   movable = false,
@@ -1439,9 +1440,17 @@ export default function AquariumScene({
         <div className="pixel-cloud cloud-b" aria-hidden="true" />
 
         <div className="tank-wrap">
-          <div className="tank-shadow" aria-hidden="true" />
-          <div className="tank" ref={tankRef} style={{ '--tank-content-scale': contentScale }}>
-            <div className="tank-content tank-scenery">
+          <div className="tank-stage">
+            {hasSelectedPlayer ? (
+              <div className="aquarium-player-heading">
+                <strong>{playerDisplayName}</strong>
+                <span>{playerGold ?? 0} gold coins</span>
+              </div>
+            ) : null}
+
+            <div className="tank-shadow" aria-hidden="true" />
+            <div className="tank" ref={tankRef} style={{ '--tank-content-scale': contentScale }}>
+              <div className="tank-content tank-scenery">
               <div className="pixel-grid" aria-hidden="true" />
               <div className="water-shine" aria-hidden="true" />
               <div className="water-ripple" aria-hidden="true" />
@@ -1598,6 +1607,7 @@ export default function AquariumScene({
                   />
                 ))}
             </div>
+          </div>
           </div>
         </div>
       </section>

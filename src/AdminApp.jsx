@@ -38,7 +38,6 @@ import {
 } from './features/memory/memoryUtils.js'
 import BooksPage from './features/books/components/BooksPage.jsx'
 import { usePlayerDirectory } from './features/players/hooks/usePlayerDirectory.js'
-import ActivePlayerHud from './features/players/components/ActivePlayerHud.jsx'
 import ProfilesPage from './features/players/components/ProfilesPage.jsx'
 import QuizPage from './features/quiz/components/QuizPage.jsx'
 import { useQuizState } from './features/quiz/hooks/useQuizState.js'
@@ -196,7 +195,6 @@ export default function AdminApp() {
   const [shopPlayerInventory, setShopPlayerInventory] = useState([])
   const [shopPendingSlug, setShopPendingSlug] = useState('')
   const [shopNotice, setShopNotice] = useState(createEmptyMessage)
-  const [activePlayerHudCollapsed, setActivePlayerHudCollapsed] = useState(false)
   const [authMenuOpen, setAuthMenuOpen] = useState(false)
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
   const [loginMessage, setLoginMessage] = useState(createEmptyMessage)
@@ -251,17 +249,6 @@ export default function AdminApp() {
     Boolean(viewedPlayer)
   const showMaySpecialAnnouncement = viewingHome && !viewedPlayer
   const isTeachingFullscreen = isMemoryFullscreen || isQuizFullscreen
-  const showActivePlayerHud =
-    Boolean(viewedPlayer) &&
-    !viewingAdmin &&
-    !viewingAttendance &&
-    !viewingBooks &&
-    !viewingMemory &&
-    !viewingProfiles &&
-    !viewingQuiz &&
-    !viewingShop &&
-    !isTeachingFullscreen
-
   useEffect(() => {
     if (adminStatusError) {
       setSetupMessage({
@@ -1096,7 +1083,6 @@ export default function AdminApp() {
     setAuthMenuOpen(false)
     setProfileMenuOpen(false)
     setViewedPlayerId('')
-    setActivePlayerHudCollapsed(false)
     closeCompactNav()
     navigate(DEFAULT_PATH)
   }
@@ -1237,7 +1223,6 @@ export default function AdminApp() {
 
   const handleSelectViewedPlayer = (playerId) => {
     setViewedPlayerId(playerId)
-    setActivePlayerHudCollapsed(false)
     setProfileMenuOpen(false)
     closeCompactNav()
 
@@ -1255,6 +1240,7 @@ export default function AdminApp() {
             movable={false}
             ownedFish={aquariumFish}
             playerDisplayName={viewedPlayer?.display_name ?? ''}
+            playerGold={viewedPlayer?.gold ?? 0}
             playerId={viewedPlayer?.id ?? ''}
             playerLoginName={viewedPlayer?.login_name ?? ''}
           />
@@ -1329,16 +1315,6 @@ export default function AdminApp() {
             viewingShop={viewingShop}
           />
         )}
-
-        <AnimatePresence>
-          {showActivePlayerHud ? (
-            <ActivePlayerHud
-              collapsed={activePlayerHudCollapsed}
-              onToggleCollapsed={() => setActivePlayerHudCollapsed((current) => !current)}
-              player={viewedPlayer}
-            />
-          ) : null}
-        </AnimatePresence>
 
         <AnimatePresence>
           {viewingShop && shopNotice.text ? (
