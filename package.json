@@ -6,6 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "local:app": "npm run build && node local-server.mjs --open",
+    "local:import-live": "node scripts/import-live-data.mjs",
+    "local:start": "node local-server.mjs --open",
     "lint": "eslint .",
     "preview": "vite preview"
   },

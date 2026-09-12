@@ -113,7 +113,6 @@ export default function AdminApp() {
     applySession,
     authLoading,
     hasAdmin,
-    hasSupabaseEnv,
     profile,
     profileError,
     profileLoading,
@@ -1349,16 +1348,6 @@ export default function AdminApp() {
         </AnimatePresence>
 
         <MotionMain className="layout-main" layout={!isCompactNav} transition={RAIL_TRANSITION}>
-          {!hasSupabaseEnv ? (
-            <section className="env-warning panel">
-              <div className="eyebrow">Setup Needed</div>
-              <p className="panel-copy">
-                Add your `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `SUPABASE_URL`, and `SUPABASE_SERVICE_ROLE_KEY`
-                values before using admin and account features.
-              </p>
-            </section>
-          ) : null}
-
           {showMaySpecialAnnouncement ? <MaySpecialAnnouncement onOpenShop={handleOpenShop} /> : null}
 
           {viewingAttendance && isAdmin ? (

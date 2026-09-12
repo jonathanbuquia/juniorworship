@@ -5,7 +5,6 @@ import {
   fetchPlayerAquarium,
   fetchPublicPlayers,
 } from '../../../services/api/playerService.js'
-import { hasSupabaseEnv } from '../../../lib/supabase.js'
 
 export function usePlayerDirectory({ accessToken, profile }) {
   const [playersLoading, setPlayersLoading] = useState(false)
@@ -19,12 +18,6 @@ export function usePlayerDirectory({ accessToken, profile }) {
 
   const loadPublicPlayers = useCallback(
     async ({ preferredPlayerId = '', preserveSelection = true } = {}) => {
-      if (!hasSupabaseEnv) {
-        setPublicPlayers([])
-        setViewedPlayerId('')
-        return
-      }
-
       try {
         const data = await fetchPublicPlayers()
         const nextPlayers = data.players ?? []

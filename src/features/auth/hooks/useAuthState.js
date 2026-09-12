@@ -3,6 +3,20 @@ import { fetchAdminStatus } from '../../../services/api/authService.js'
 import { applySupabaseSession, fetchProfileById, signOutSupabaseSession } from '../../../services/profileService.js'
 import { hasSupabaseEnv, supabase } from '../../../lib/supabase.js'
 
+const LOCAL_SESSION_STORAGE_KEY = 'aquarium-local-admin-session'
+
+function getLocalProfileFromSession(session) {
+  return session?.user?.user_metadata?.profile ?? null
+}
+
+function readLocalSession() {
+  try {
+    return JSON.parse(window.localStorage.getItem(LOCAL_SESSION_STORAGE_KEY) || 'null')
+  } catch {
+    return null
+  }
+}
+
 export function useAuthState() {
   const [session, setSession] = useState(null)
   const [profile, setProfile] = useState(null)
@@ -15,6 +29,13 @@ export function useAuthState() {
 
   useEffect(() => {
     if (!hasSupabaseEnv || !supabase) {
+      const localSession = readLocalSession()
+
+      if (localSession) {
+        setSession(localSession)
+        setProfile(getLocalProfileFromSession(localSession))
+      }
+
       setAuthLoading(false)
       return undefined
     }
@@ -42,10 +63,6 @@ export function useAuthState() {
   }, [])
 
   useEffect(() => {
-    if (!hasSupabaseEnv) {
-      return
-    }
-
     let cancelled = false
 
     const loadAdminStatus = async () => {
@@ -72,7 +89,11 @@ export function useAuthState() {
 
   useEffect(() => {
     if (!sessionUserId || !supabase) {
-      setProfile(null)
+      if (!hasSupabaseEnv) {
+        setProfile(getLocalProfileFromSession(session))
+      } else {
+        setProfile(null)
+      }
       setProfileLoading(false)
       return
     }
@@ -106,11 +127,40 @@ export function useAuthState() {
     return () => {
       cancelled = true
     }
-  }, [sessionUserId])
+  }, [session, sessionUserId])
+
+  const applySession = async (nextSession) => {
+    if (hasSupabaseEnv && supabase) {
+      await applySupabaseSession(supabase, nextSession)
+      return
+    }
+
+    if (!nextSession) {
+      window.localStorage.removeItem(LOCAL_SESSION_STORAGE_KEY)
+      setSession(null)
+      setProfile(null)
+      return
+    }
+
+    window.localStorage.setItem(LOCAL_SESSION_STORAGE_KEY, JSON.stringify(nextSession))
+    setSession(nextSession)
+    setProfile(getLocalProfileFromSession(nextSession))
+  }
+
+  const signOut = async () => {
+    if (hasSupabaseEnv && supabase) {
+      await signOutSupabaseSession(supabase)
+      return
+    }
+
+    window.localStorage.removeItem(LOCAL_SESSION_STORAGE_KEY)
+    setSession(null)
+    setProfile(null)
+  }
 
   return {
     adminStatusError,
-    applySession: (nextSession) => applySupabaseSession(supabase, nextSession),
+    applySession,
     authLoading,
     hasAdmin,
     hasSupabaseEnv,
@@ -120,7 +170,7 @@ export function useAuthState() {
     session,
     setHasAdmin,
     setProfile,
-    signOut: () => signOutSupabaseSession(supabase),
+    signOut,
     supabase,
   }
 }
