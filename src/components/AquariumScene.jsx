@@ -1443,7 +1443,7 @@ export default function AquariumScene({
           <div className="tank-stage">
             {hasSelectedPlayer ? (
               <div className="aquarium-player-heading">
-                <strong>{playerDisplayName}</strong>
+                <strong>{playerDisplayName}'s Aquarium</strong>
                 <span>{playerGold ?? 0} gold coins</span>
               </div>
             ) : null}
