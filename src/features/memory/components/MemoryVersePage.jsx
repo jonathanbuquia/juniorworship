@@ -5,7 +5,7 @@ import {
   getMemoryVerseWordCount,
 } from '../memoryUtils.js'
 import { MEMORY_VERSE_GOLD_REWARD } from '../../app/constants.js'
-import { JULY_EVENT_CRAB_MEMORY_BONUS } from '../../../../shared/shopCatalog.js'
+import { HERMIT_CRAB_MEMORY_BONUS } from '../../../../shared/shopCatalog.js'
 
 export default function MemoryVersePage({
   activeMemoryVerse,
@@ -193,7 +193,7 @@ export default function MemoryVersePage({
 
             <p className="panel-copy">
               When a player recites the verse, tap their button to reward them. Hermit Crab owners receive +
-              {JULY_EVENT_CRAB_MEMORY_BONUS} extra gold.
+              {HERMIT_CRAB_MEMORY_BONUS} extra gold.
             </p>
 
             {!isAdmin ? (

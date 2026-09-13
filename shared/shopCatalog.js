@@ -43,9 +43,12 @@ export const MAY_EVENT_BETTA_SLUG = 'may-blue-betta'
 export const MAY_EVENT_BETTA_SALE_END_DATE = '2026-05-31'
 export const MOON_JELLY_SLUG = 'moon-jelly'
 export const MOON_JELLY_SALE_END_DATE = '2026-06-28'
-export const JULY_EVENT_CRAB_SLUG = 'july-verse-crab'
-export const JULY_EVENT_CRAB_SALE_END_DATE = '2026-07-26'
-export const JULY_EVENT_CRAB_MEMORY_BONUS = 150
+export const HERMIT_CRAB_SLUG = 'july-verse-crab'
+export const HERMIT_CRAB_SALE_END_DATE = '2026-09-30'
+export const HERMIT_CRAB_MEMORY_BONUS = 150
+export const JULY_EVENT_CRAB_SLUG = HERMIT_CRAB_SLUG
+export const JULY_EVENT_CRAB_SALE_END_DATE = HERMIT_CRAB_SALE_END_DATE
+export const JULY_EVENT_CRAB_MEMORY_BONUS = HERMIT_CRAB_MEMORY_BONUS
 export const EVENT_SHOP_CATEGORY_ID = 'events'
 export const MOON_JELLY_REQUIREMENTS = [
   {
@@ -166,15 +169,15 @@ export const SHOP_ITEMS = [
     ],
   },
   {
-    slug: JULY_EVENT_CRAB_SLUG,
+    slug: HERMIT_CRAB_SLUG,
     category: 'events',
     rarity: 'special',
     name: 'Hermit Crab',
-    subtitle: 'JULY SPECIAL',
-    description: 'A cheerful July event crab that rewards brave memory verse reciters.',
+    subtitle: 'SEPTEMBER SPECIAL',
+    description: 'A cheerful September event crab that rewards brave memory verse reciters.',
     price: 3000,
     salePrice: 1500,
-    saleEndsOn: JULY_EVENT_CRAB_SALE_END_DATE,
+    saleEndsOn: HERMIT_CRAB_SALE_END_DATE,
     accentColor: '#ff7a45',
     bodyColor: '#ff8c60',
     finColor: '#dc5435',
@@ -183,7 +186,7 @@ export const SHOP_ITEMS = [
     shopFishScale: 1.08,
     abilities: [
       'Side-step crab walk',
-      `+${JULY_EVENT_CRAB_MEMORY_BONUS} memory verse gold`,
+      `+${HERMIT_CRAB_MEMORY_BONUS} memory verse gold`,
       'Counts when verse reward is given',
     ],
   },

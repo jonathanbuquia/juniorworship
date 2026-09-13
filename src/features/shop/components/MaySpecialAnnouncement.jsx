@@ -1,5 +1,5 @@
 import AnnouncementCrabPreview from './AnnouncementCrabPreview.jsx'
-import { JULY_EVENT_CRAB_SLUG, findShopItemBySlug, formatRequirementsSummary } from '../../../../shared/shopCatalog.js'
+import { HERMIT_CRAB_SLUG, findShopItemBySlug, formatRequirementsSummary } from '../../../../shared/shopCatalog.js'
 
 const MONTH_NAMES = [
   'January',
@@ -16,16 +16,19 @@ const MONTH_NAMES = [
   'December',
 ]
 
-function getLastSundayOfMonth(value = new Date()) {
-  const lastDayOfMonth = new Date(value.getFullYear(), value.getMonth() + 1, 0)
-  lastDayOfMonth.setDate(lastDayOfMonth.getDate() - lastDayOfMonth.getDay())
+function parseLocalDateKey(dateKey) {
+  const [year, month, day] = String(dateKey || '').split('-').map(Number)
 
-  return lastDayOfMonth
+  if (!year || !month || !day) {
+    return new Date()
+  }
+
+  return new Date(year, month - 1, day)
 }
 
 export default function MaySpecialAnnouncement() {
-  const item = findShopItemBySlug(JULY_EVENT_CRAB_SLUG)
-  const saleEndDate = getLastSundayOfMonth()
+  const item = findShopItemBySlug(HERMIT_CRAB_SLUG)
+  const saleEndDate = parseLocalDateKey(item.saleEndsOn)
   const saleEndLabel = `${MONTH_NAMES[saleEndDate.getMonth()]} ${saleEndDate.getDate()}`
   const monthSpecialLabel = `${MONTH_NAMES[new Date().getMonth()]} Special`
   const abilityLabels = item.abilities ?? []

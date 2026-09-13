@@ -42,8 +42,8 @@ import ProfilesPage from './features/players/components/ProfilesPage.jsx'
 import QuizPage from './features/quiz/components/QuizPage.jsx'
 import { useQuizState } from './features/quiz/hooks/useQuizState.js'
 import {
-  JULY_EVENT_CRAB_MEMORY_BONUS,
-  JULY_EVENT_CRAB_SLUG,
+  HERMIT_CRAB_MEMORY_BONUS,
+  HERMIT_CRAB_SLUG,
   MAY_EVENT_BETTA_SLUG,
   SHOP_CATEGORIES,
 } from '../shared/shopCatalog.js'
@@ -816,10 +816,10 @@ export default function AdminApp() {
       }
 
       const aquarium = await fetchPlayerAquarium(playerId)
-      const ownsJulyCrab = (aquarium.fish ?? []).some(
-        (item) => item.slug === JULY_EVENT_CRAB_SLUG && Number(item.quantity) > 0,
+      const ownsHermitCrab = (aquarium.fish ?? []).some(
+        (item) => item.slug === HERMIT_CRAB_SLUG && Number(item.quantity) > 0,
       )
-      const totalReward = MEMORY_VERSE_GOLD_REWARD + (ownsJulyCrab ? JULY_EVENT_CRAB_MEMORY_BONUS : 0)
+      const totalReward = MEMORY_VERSE_GOLD_REWARD + (ownsHermitCrab ? HERMIT_CRAB_MEMORY_BONUS : 0)
 
       const data = await adjustPlayerGold(accessToken, {
         amount: totalReward,
@@ -828,7 +828,7 @@ export default function AdminApp() {
 
       setVerseAwardResult({
         type: 'success',
-        text: ownsJulyCrab
+        text: ownsHermitCrab
           ? `+${totalReward} gold added to ${data.player.display_name}. Hermit Crab bonus included.`
           : `+${totalReward} gold added to ${data.player.display_name}.`,
       })
