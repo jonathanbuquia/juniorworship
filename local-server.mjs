@@ -1,6 +1,6 @@
 import { exec } from 'node:child_process'
 import crypto from 'node:crypto'
-import { existsSync } from 'node:fs'
+import { createReadStream, existsSync, statSync } from 'node:fs'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import http from 'node:http'
 import path from 'node:path'
@@ -13,6 +13,7 @@ const PORT = Number(process.env.AQUARIUM_PORT || 4177)
 const DATA_DIR = path.join(__dirname, 'local-data')
 const DATA_PATH = path.join(DATA_DIR, 'sunday-school.json')
 const DIST_DIR = path.join(__dirname, 'dist')
+const BOOKS_OF_THE_BIBLE_VIDEO_PATH = 'E:\\SUNDAY SCHOOL\\JUNIOR WORSHIP\\BOOKS OF THE BIBLE.mp4'
 
 const MIME_TYPES = new Map([
   ['.css', 'text/css; charset=utf-8'],
@@ -49,6 +50,59 @@ function sendJson(res, status, payload) {
     'Content-Type': 'application/json; charset=utf-8',
   })
   res.end(body)
+}
+
+function serveBooksOfTheBibleVideo(req, res) {
+  if (!existsSync(BOOKS_OF_THE_BIBLE_VIDEO_PATH)) {
+    return sendJson(res, 404, { error: 'Books of the Bible video was not found on this laptop.' })
+  }
+
+  const { size } = statSync(BOOKS_OF_THE_BIBLE_VIDEO_PATH)
+  const range = req.headers.range
+  const headers = {
+    'Accept-Ranges': 'bytes',
+    'Cache-Control': 'no-store',
+    'Content-Type': 'video/mp4',
+  }
+
+  if (!range) {
+    res.writeHead(200, {
+      ...headers,
+      'Content-Length': size,
+    })
+    createReadStream(BOOKS_OF_THE_BIBLE_VIDEO_PATH).pipe(res)
+    return
+  }
+
+  const match = /^bytes=(\d*)-(\d*)$/.exec(range)
+
+  if (!match) {
+    res.writeHead(416, {
+      ...headers,
+      'Content-Range': `bytes */${size}`,
+    })
+    res.end()
+    return
+  }
+
+  const start = match[1] ? Number(match[1]) : 0
+  const end = match[2] ? Number(match[2]) : size - 1
+
+  if (start >= size || end >= size || start > end) {
+    res.writeHead(416, {
+      ...headers,
+      'Content-Range': `bytes */${size}`,
+    })
+    res.end()
+    return
+  }
+
+  res.writeHead(206, {
+    ...headers,
+    'Content-Length': end - start + 1,
+    'Content-Range': `bytes ${start}-${end}/${size}`,
+  })
+  createReadStream(BOOKS_OF_THE_BIBLE_VIDEO_PATH, { start, end }).pipe(res)
 }
 
 function createPasswordHash(password, salt = crypto.randomBytes(16).toString('hex')) {
@@ -536,6 +590,11 @@ function createAquariumServer(port) {
   return http.createServer(async (req, res) => {
     try {
       const url = new URL(req.url || '/', `http://${req.headers.host || `127.0.0.1:${port}`}`)
+
+      if (url.pathname === '/media/books-of-the-bible') {
+        serveBooksOfTheBibleVideo(req, res)
+        return
+      }
 
       if (url.pathname.startsWith('/api/')) {
         await handleApi(req, res, url)

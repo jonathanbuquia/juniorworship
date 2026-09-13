@@ -23,10 +23,11 @@ export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardP
   const [usedPlayerIds, setUsedPlayerIds] = useState([])
   const [usedQuestionIds, setUsedQuestionIds] = useState([])
   const [gameMessage, setGameMessage] = useState('')
+  const [songOpen, setSongOpen] = useState(false)
 
   const selectedTestament = TESTAMENTS.find((testament) => testament.id === selectedTestamentId) ?? TESTAMENTS[0]
   const selectedCategories = TESTAMENT_CATEGORIES_BY_ID[selectedTestament.id] ?? []
-  const showBookFilters = selectedTestament.id !== 'mixed' && selectedCategories.length > 0 && !round
+  const showBookFilters = selectedTestament.id !== 'mixed' && selectedCategories.length > 0 && !round && !songOpen
   const roundCategoryId = round ? getBookCategoryId(round.answer, selectedTestament.id) : ''
   const questionCount = getBooksQuestionIds(selectedTestament.books).length
   const attendanceDate = useMemo(() => getBooksGameAttendanceDate(), [])
@@ -75,10 +76,12 @@ export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardP
     setUsedPlayerIds([])
     setUsedQuestionIds([])
     setGameMessage('')
+    setSongOpen(false)
   }
 
   const handleStartRound = async () => {
     setGameMessage('')
+    setSongOpen(false)
     const latestAttendance = await refreshAttendance({ mergeLocal: false })
     const latestAttendanceDate = getBooksGameAttendanceDate()
     const latestPresentPlayers = getPresentPlayersForDate(players, latestAttendance, latestAttendanceDate?.id)
@@ -119,6 +122,15 @@ export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardP
       setUsedPlayerIds((current) => current.filter((playerId) => playerId !== round.player.id))
     }
 
+    setRound(null)
+    setSecondsLeft(BOOKS_GAME_SECONDS)
+    setTimerDone(false)
+    setAwardedRoundId('')
+    setGameMessage('')
+  }
+
+  const handleToggleSong = () => {
+    setSongOpen((current) => !current)
     setRound(null)
     setSecondsLeft(BOOKS_GAME_SECONDS)
     setTimerDone(false)
@@ -182,21 +194,38 @@ export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardP
               Start
             </button>
           ) : null}
+          {!round ? (
+            <button
+              className={`ghost-button books-song-button ${songOpen ? 'active' : ''}`}
+              onClick={handleToggleSong}
+              type="button"
+            >
+              {songOpen ? 'Book List' : 'Song'}
+            </button>
+          ) : null}
         </div>
       </div>
 
-      <div className={`books-game-board ${round ? '' : 'list-mode'}`}>
+      <div className={`books-game-board ${round ? '' : 'list-mode'} ${songOpen ? 'song-mode' : ''}`}>
         <div className="books-list-panel">
-          <div className="books-list-heading">
-            <strong>{selectedTestament.label}</strong>
-            <span>
-              {selectedTestament.books.length} books · {questionCount} questions
-            </span>
-          </div>
+          {songOpen ? (
+            <div className="books-song-panel">
+              <video className="books-song-video" controls preload="metadata" src="/media/books-of-the-bible">
+                Your app could not play this video.
+              </video>
+            </div>
+          ) : (
+            <>
+              <div className="books-list-heading">
+                <strong>{selectedTestament.label}</strong>
+                <span>
+                  {selectedTestament.books.length} books · {questionCount} questions
+                </span>
+              </div>
 
-          {gameMessage ? <p className="books-empty-note">{gameMessage}</p> : null}
+              {gameMessage ? <p className="books-empty-note">{gameMessage}</p> : null}
 
-          {round ? (
+              {round ? (
             <div className="books-round-focus">
               {round.books.map((book, offset) => {
                 const isMissing = offset === round.blankOffset
@@ -215,7 +244,7 @@ export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardP
                 )
               })}
             </div>
-          ) : selectedCategories.length && bookView === 'category' ? (
+              ) : selectedCategories.length && bookView === 'category' ? (
             <div className="books-category-list">
               {selectedCategories.map((category) => (
                 <section className={`books-category-card ${category.id}`} key={category.id}>
@@ -230,7 +259,7 @@ export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardP
                 </section>
               ))}
             </div>
-          ) : (
+              ) : (
             <ol className="books-list">
               {selectedTestament.books.map((book, index) => {
                 const categoryId = getBookCategoryId(book, selectedTestament.id)
@@ -244,6 +273,8 @@ export default function BooksPage({ awardMessage, awardPendingPlayerId, onAwardP
                 )
               })}
             </ol>
+              )}
+            </>
           )}
         </div>
 
