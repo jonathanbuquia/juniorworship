@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react'
-import { motion } from 'framer-motion'
 import {
   SHOP_CATEGORIES,
   SHOP_RARITY_FILTERS,
@@ -8,8 +7,6 @@ import {
   isEventShopItem,
 } from '../../../../shared/shopCatalog.js'
 import ShopFishPreview from './ShopFishPreview.jsx'
-
-const MotionDiv = motion.div
 
 export default function ShopPage({
   isAdmin,
@@ -107,13 +104,9 @@ export default function ShopPage({
               const buyDisabled = !isAdmin || Boolean(pendingItemSlug) || alreadyOwned
 
               return (
-                <MotionDiv
-                  animate={{ opacity: 1, y: 0 }}
+                <div
                   className="shop-item-card"
-                  initial={{ opacity: 0, y: 14 }}
                   key={item.slug}
-                  transition={{ delay: index * 0.05, duration: 0.24, ease: 'easeOut' }}
-                  whileHover={{ y: -4 }}
                 >
                   <ShopFishPreview index={index} item={item} />
 
@@ -166,7 +159,7 @@ export default function ShopPage({
                       </button>
                     </div>
                   </div>
-                </MotionDiv>
+                </div>
               )
             })}
           </div>

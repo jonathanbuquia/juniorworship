@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
 import './AdminApp.css'
 import AquariumScene from './components/AquariumScene'
 import AdminPanel from './features/admin/components/AdminPanel.jsx'
@@ -15,10 +14,8 @@ import {
   MEMORY_VERSE_GOLD_REWARD,
   MEMORY_VERSE_QUIZ_POINTS,
   MEMORY_PATH,
-  POPOVER_TRANSITION,
   PROFILES_PATH,
   QUIZ_PATH,
-  RAIL_TRANSITION,
   SHOP_NOTICE_DURATION,
   SHOP_PATH,
 } from './features/app/constants.js'
@@ -56,8 +53,6 @@ import { saveAttendanceRecord } from './services/api/attendanceService.js'
 import { adjustPlayerGold, createPlayer, deletePlayer, fetchPlayerAquarium } from './services/api/playerService.js'
 import { buyItemForPlayer } from './services/api/shopService.js'
 
-const MotionDiv = motion.div
-const MotionMain = motion.main
 const DEFAULT_PATH = '/'
 const BETTA_PERFECT_QUIZ_BONUS = 100
 const BETTA_QUIZ_BONUS_STORAGE_KEY = 'may-betta-perfect-quiz-bonus:v1'
@@ -1249,29 +1244,21 @@ export default function AdminApp() {
         </div>
       ) : null}
 
-      <MotionDiv
+      <div
         className={`portal-overlay top-layout ${isTeachingFullscreen ? 'fullscreen-active' : ''} ${isCompactNav ? 'compact-nav-mode' : ''}`}
-        layout={!isCompactNav}
-        transition={RAIL_TRANSITION}
       >
         {!isTeachingFullscreen && isCompactNav ? (
           <CompactNavToggle onClick={handleToggleNavCollapsed} open={navDrawerOpen} />
         ) : null}
 
-        <AnimatePresence>
-          {!isTeachingFullscreen && isCompactNav && navDrawerOpen ? (
-            <motion.button
-              animate={{ opacity: 1 }}
-              aria-label="Close menu"
-              className="compact-nav-backdrop"
-              exit={{ opacity: 0 }}
-              initial={{ opacity: 0 }}
-              onClick={closeCompactNav}
-              transition={POPOVER_TRANSITION}
-              type="button"
-            />
-          ) : null}
-        </AnimatePresence>
+        {!isTeachingFullscreen && isCompactNav && navDrawerOpen ? (
+          <button
+            aria-label="Close menu"
+            className="compact-nav-backdrop"
+            onClick={closeCompactNav}
+            type="button"
+          />
+        ) : null}
 
         {isTeachingFullscreen ? null : (
           <GameTopBar
@@ -1318,22 +1305,16 @@ export default function AdminApp() {
           />
         )}
 
-        <AnimatePresence>
-          {viewingShop && shopNotice.text ? (
-            <MotionDiv
-              animate={{ opacity: 1, x: 0, y: 0 }}
-              className={`shop-floating-notice ${shopNotice.type || 'warning'}`}
-              exit={{ opacity: 0, x: 20, y: -12 }}
-              initial={{ opacity: 0, x: 20, y: -12 }}
-              transition={POPOVER_TRANSITION}
-            >
-              <strong>{shopNotice.type === 'success' ? 'Purchase complete' : 'Shop notice'}</strong>
-              <span>{shopNotice.text}</span>
-            </MotionDiv>
-          ) : null}
-        </AnimatePresence>
+        {viewingShop && shopNotice.text ? (
+          <div
+            className={`shop-floating-notice ${shopNotice.type || 'warning'}`}
+          >
+            <strong>{shopNotice.type === 'success' ? 'Purchase complete' : 'Shop notice'}</strong>
+            <span>{shopNotice.text}</span>
+          </div>
+        ) : null}
 
-        <MotionMain className="layout-main" layout={!isCompactNav} transition={RAIL_TRANSITION}>
+        <main className="layout-main">
           {showMaySpecialAnnouncement ? <MaySpecialAnnouncement onOpenShop={handleOpenShop} /> : null}
 
           {viewingProfiles ? (
@@ -1501,8 +1482,8 @@ export default function AdminApp() {
               />
             </div>
           ) : null}
-        </MotionMain>
-      </MotionDiv>
+        </main>
+      </div>
     </div>
   )
 }
