@@ -6,9 +6,9 @@ import { ensureDesktopBuild } from './desktop-build.mjs'
 const require = createRequire(import.meta.url)
 const root = fileURLToPath(new URL('../', import.meta.url))
 
-function run(command, args) {
+function run(command, args, { windowsHide = true } = {}) {
   return new Promise((resolve, reject) => {
-    const child = spawn(command, args, { cwd: root, stdio: 'inherit', windowsHide: true })
+    const child = spawn(command, args, { cwd: root, stdio: 'inherit', windowsHide })
     child.once('error', reject)
     child.once('exit', (code, signal) => {
       if (code === 0) resolve()
@@ -24,7 +24,8 @@ try {
     await run(process.execPath, [viteEntry, 'build'])
   })
   console.log(rebuilt ? 'Aquarium updated.' : 'Aquarium is up to date. Using saved build.')
-  if (!process.argv.includes('--build-only')) await run(require('electron'), ['.'])
+  // Hide build consoles, but let Electron show the application's actual window.
+  if (!process.argv.includes('--build-only')) await run(require('electron'), ['.'], { windowsHide: false })
 } catch (error) {
   console.error(error.message)
   process.exitCode = 1
