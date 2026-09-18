@@ -23,3 +23,9 @@ body,
 body {
   overflow: hidden;
 }
+
+.animations-paused *,
+.animations-paused *::before,
+.animations-paused *::after {
+  animation-play-state: paused !important;
+}

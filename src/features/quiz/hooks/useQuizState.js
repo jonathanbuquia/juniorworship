@@ -31,7 +31,7 @@ function getInitialQuizState() {
 }
 
 export function useQuizState() {
-  const initialState = getInitialQuizState()
+  const [initialState] = useState(getInitialQuizState)
   const [quizQuestions, setQuizQuestions] = useState(initialState.quizQuestions)
   const [quizCurrentIndex, setQuizCurrentIndex] = useState(initialState.quizCurrentIndex)
   const [quizAwardScores, setQuizAwardScores] = useState(initialState.quizAwardScores)

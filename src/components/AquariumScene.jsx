@@ -3,6 +3,7 @@ import '../PixelAquarium.css'
 import { findShopItemBySlug, MOON_JELLY_SLUG } from '../../shared/shopCatalog.js'
 import CrabFigure from './CrabFigure.jsx'
 import JellyfishFigure from './JellyfishFigure.jsx'
+import { useCreatureMotion } from '../features/aquarium/useCreatureMotion.js'
 
 const BASE_FISH_WIDTH = 198
 const BASE_FISH_HEIGHT = 126
@@ -53,10 +54,6 @@ function getTankContentScale(viewportWidth) {
   }
 
   return 1
-}
-
-function randomBetween(min, max) {
-  return min + Math.random() * (max - min)
 }
 
 function clamp(value, min, max) {
@@ -213,236 +210,6 @@ function readAquariumState(playerId) {
   }
 }
 
-function normalizeVelocity(x, y, speed) {
-  const magnitude = Math.hypot(x, y) || 1
-
-  return {
-    vx: (x / magnitude) * speed,
-    vy: (y / magnitude) * speed,
-  }
-}
-
-function turnVelocity(vx, vy, speed, intensity = 1) {
-  const currentAngle = Math.atan2(vy, vx)
-  const angle = currentAngle + randomBetween(-0.95, 0.95) * intensity
-  const verticalStretch = randomBetween(0.72, 0.96)
-
-  return {
-    vx: Math.cos(angle) * speed,
-    vy: Math.sin(angle) * speed * verticalStretch,
-  }
-}
-
-function useCreatureMotion({
-  tankSize,
-  width,
-  height,
-  startX,
-  startY,
-  speed,
-  directionX,
-  directionY,
-  minY = 14,
-  maxYInset = 0.24,
-  pauseChance = 0.24,
-  pauseMin = 0.45,
-  pauseMax = 1.35,
-  decisionMin = 1.1,
-  decisionMax = 3.1,
-  initialDecisionMin = 0.9,
-  initialDecisionMax = 2.4,
-  initialPauseMin = 0.2,
-  initialPauseMax = 0.7,
-  bounceVerticalJitter = 14,
-  fixedY = null,
-  startOverride = null,
-  restartKey = 0,
-}) {
-  const [pose, setPose] = useState(() => ({
-    x: 0,
-    y: 0,
-    facing: directionX >= 0 ? 1 : -1,
-    tilt: 0,
-    paused: false,
-    eyeX: 0,
-    eyeY: 0,
-  }))
-
-  useEffect(() => {
-    if (!tankSize.width || !tankSize.height) {
-      return undefined
-    }
-
-    const bounds = {
-      minX: 10,
-      maxX: Math.max(10, tankSize.width - width - 10),
-      minY: fixedY ?? minY,
-      maxY: fixedY ?? Math.max(minY, tankSize.height - tankSize.height * maxYInset - height),
-    }
-    const start = normalizeVelocity(directionX, directionY, speed)
-    const startPosition = startOverride
-      ? {
-          x: clamp(startOverride.x, bounds.minX, bounds.maxX),
-          y: fixedY ?? clamp(startOverride.y, bounds.minY, bounds.maxY),
-        }
-      : {
-          x: bounds.minX + (bounds.maxX - bounds.minX) * startX,
-          y: bounds.minY + (bounds.maxY - bounds.minY) * startY,
-        }
-    const state = {
-      x: startPosition.x,
-      y: startPosition.y,
-      vx: start.vx,
-      vy: start.vy,
-      speed,
-      decisionIn: randomBetween(initialDecisionMin, initialDecisionMax),
-      pauseLeft: randomBetween(initialPauseMin, initialPauseMax),
-      tilt: 0,
-      gazeX: 0,
-      gazeY: 0,
-      glanceIn: randomBetween(0.45, 1.4),
-    }
-
-    let frameId = 0
-    let previousTime = performance.now()
-
-    const update = (now) => {
-      const delta = Math.min((now - previousTime) / 1000, 0.05)
-      previousTime = now
-      let paused = false
-
-      if (state.pauseLeft > 0) {
-        state.pauseLeft -= delta
-        paused = true
-      } else {
-        state.x += state.vx * delta
-        if (fixedY == null) {
-          state.y += state.vy * delta
-        }
-      }
-
-      state.decisionIn -= delta
-      state.glanceIn -= delta
-
-      if (state.decisionIn <= 0) {
-        if (Math.random() < pauseChance) {
-          state.pauseLeft = randomBetween(pauseMin, pauseMax)
-        } else {
-          const variedSpeed = speed * randomBetween(0.84, 1.18)
-          const turned = turnVelocity(state.vx, state.vy, variedSpeed, randomBetween(0.65, 1.2))
-          state.vx = turned.vx
-          state.vy = turned.vy
-        }
-
-        state.decisionIn = randomBetween(decisionMin, decisionMax)
-      }
-
-      if (state.glanceIn <= 0) {
-        const lookAheadX = paused ? randomBetween(-0.18, 0.18) : clamp(state.vx / Math.max(speed, 1), -1, 1) * 0.62
-        const lookAheadY =
-          fixedY == null
-            ? paused
-              ? randomBetween(-0.28, 0.22)
-              : clamp(state.vy / Math.max(speed, 1), -1, 1) * 0.5
-            : randomBetween(-0.08, 0.08)
-
-        state.gazeX = lookAheadX + randomBetween(-0.14, 0.14)
-        state.gazeY = lookAheadY + randomBetween(-0.12, 0.12)
-        state.glanceIn = randomBetween(0.35, 1.15)
-      }
-
-      let bounced = false
-
-      if (state.x <= bounds.minX) {
-        state.x = bounds.minX
-        state.vx = Math.abs(state.vx)
-        state.vy += randomBetween(-bounceVerticalJitter, bounceVerticalJitter)
-        bounced = true
-      } else if (state.x >= bounds.maxX) {
-        state.x = bounds.maxX
-        state.vx = -Math.abs(state.vx)
-        state.vy += randomBetween(-bounceVerticalJitter, bounceVerticalJitter)
-        bounced = true
-      }
-
-      if (state.y <= bounds.minY) {
-        state.y = bounds.minY
-        state.vy = Math.abs(state.vy)
-        bounced = true
-      } else if (state.y >= bounds.maxY) {
-        state.y = bounds.maxY
-        state.vy = -Math.abs(state.vy)
-        bounced = true
-      }
-
-      if (bounced) {
-        const redirectedSpeed = clamp(Math.hypot(state.vx, state.vy), speed * 0.82, speed * 1.2)
-        const redirected = normalizeVelocity(state.vx, state.vy, redirectedSpeed)
-        state.vx = redirected.vx
-        state.vy = fixedY == null ? redirected.vy : 0
-        state.decisionIn = randomBetween(0.8, 2)
-      }
-
-      if (fixedY != null) {
-        state.y = bounds.minY
-        state.vy = 0
-      }
-
-      const targetTilt =
-        fixedY != null
-          ? 0
-          : paused
-            ? state.tilt * 0.7
-            : clamp((state.vy / Math.max(Math.abs(state.vx), 18)) * 30, -16, 16)
-      state.tilt += (targetTilt - state.tilt) * 0.14
-
-      setPose({
-        x: state.x,
-        y: state.y,
-        facing: state.vx >= 0 ? 1 : -1,
-        tilt: state.tilt,
-        paused,
-        eyeX: clamp(state.gazeX, -0.7, 0.7),
-        eyeY: clamp(state.gazeY, -0.65, 0.65),
-      })
-
-      frameId = window.requestAnimationFrame(update)
-    }
-
-    frameId = window.requestAnimationFrame(update)
-
-    return () => {
-      window.cancelAnimationFrame(frameId)
-    }
-  }, [
-    bounceVerticalJitter,
-    decisionMax,
-    decisionMin,
-    directionX,
-    directionY,
-    height,
-    initialDecisionMax,
-    initialDecisionMin,
-    initialPauseMax,
-    initialPauseMin,
-    maxYInset,
-    minY,
-    pauseChance,
-    pauseMax,
-    pauseMin,
-    speed,
-    startX,
-    startY,
-    tankSize.height,
-    tankSize.width,
-    width,
-    fixedY,
-    restartKey,
-    startOverride,
-  ])
-
-  return pose
-}
 
 function useDraggableSwimmer({
   tankRef,
@@ -554,19 +321,19 @@ function NaturalFish({ fish, movable = false, persistedStart, tankRef, tankSize,
     persistedStart,
     onPersistPosition,
   })
-  const pose = useCreatureMotion({
+  const { elementRef, getPosition } = useCreatureMotion({
     tankSize,
     width: BASE_FISH_WIDTH * fish.scale,
     height: BASE_FISH_HEIGHT * fish.scale,
     startX: fish.startX,
     startY: fish.startY,
     speed: fish.speed,
+    dragPosition: draggable.dragPosition,
     directionX: fish.directionX,
     directionY: fish.directionY,
     restartKey: draggable.restartKey,
     startOverride: draggable.startOverride,
   })
-  const displayPosition = draggable.dragPosition ?? pose
   const handleTalk = () => {
     speech.talk()
 
@@ -580,6 +347,7 @@ function NaturalFish({ fish, movable = false, persistedStart, tankRef, tankSize,
     const maxX = Math.max(minX, tankSize.width - width - 10)
     const minY = 14
     const maxY = Math.max(minY, tankSize.height - tankSize.height * 0.24 - height)
+    const displayPosition = getPosition()
     const nextX = displayPosition.x < tankSize.width / 2 ? maxX : minX
 
     onPersistPosition?.({
@@ -590,9 +358,10 @@ function NaturalFish({ fish, movable = false, persistedStart, tankRef, tankSize,
 
   return (
     <div
+      ref={elementRef}
       className={`fish-swim ${fish.variant ? `fish-${fish.variant}` : ''} ${fish.canTalk ? 'talking-fish' : ''} ${
         speech.bursting ? 'bursting' : ''
-      } ${pose.paused ? 'paused' : ''} ${draggable.dragging ? 'dragging' : ''}`}
+      } ${draggable.dragging ? 'dragging' : ''}`}
       style={{
         '--fish-scale': fish.scale,
         '--main': fish.palette.main,
@@ -601,16 +370,10 @@ function NaturalFish({ fish, movable = false, persistedStart, tankRef, tankSize,
         '--fin': fish.palette.fin,
         '--eye': fish.palette.eye,
         '--mouth': fish.palette.mouth,
-        '--swim-x': `${displayPosition.x}px`,
-        '--swim-y': `${displayPosition.y}px`,
-        '--fish-facing': pose.facing,
-        '--fish-tilt': `${pose.tilt}deg`,
-        '--eye-x': pose.eyeX,
-        '--eye-y': pose.eyeY,
       }}
       onClick={fish.canTalk ? handleTalk : undefined}
       onKeyDown={fish.canTalk ? speech.handleKeyDown : undefined}
-      onPointerDown={movable ? (event) => draggable.startDragging(event, displayPosition) : undefined}
+      onPointerDown={movable ? (event) => draggable.startDragging(event, getPosition()) : undefined}
       role={fish.canTalk ? 'button' : undefined}
       tabIndex={fish.canTalk ? 0 : undefined}
       aria-label="Cute fish"
@@ -658,13 +421,16 @@ function CuteOctopus({ movable = false, persistedStart, tankRef, tankSize, onPer
     persistedStart,
     onPersistPosition,
   })
-  const pose = useCreatureMotion({
+  const { elementRef, getPosition } = useCreatureMotion({
     tankSize,
     width: BASE_OCTOPUS_WIDTH,
     height: BASE_OCTOPUS_HEIGHT,
     startX: 0.54,
     startY: 0.62,
     speed: 32,
+    dragPosition: draggable.dragPosition,
+    motionType: 'octopus',
+    tiltFactor: 0.6,
     directionX: -1,
     directionY: -0.18,
     minY: 30,
@@ -682,18 +448,12 @@ function CuteOctopus({ movable = false, persistedStart, tankRef, tankSize, onPer
     restartKey: draggable.restartKey,
     startOverride: draggable.startOverride,
   })
-  const displayPosition = draggable.dragPosition ?? pose
 
   return (
     <div
-      className={`octopus-swim ${pose.paused ? 'paused' : ''} ${draggable.dragging ? 'dragging' : ''}`}
-      style={{
-        '--swim-x': `${displayPosition.x}px`,
-        '--swim-y': `${displayPosition.y}px`,
-        '--octopus-facing': pose.facing,
-        '--octopus-tilt': `${pose.tilt * 0.6}deg`,
-      }}
-      onPointerDown={movable ? (event) => draggable.startDragging(event, displayPosition) : undefined}
+      ref={elementRef}
+      className={`octopus-swim ${draggable.dragging ? 'dragging' : ''}`}
+      onPointerDown={movable ? (event) => draggable.startDragging(event, getPosition()) : undefined}
       aria-label="Cute octopus"
     >
       <div className="octopus-bob">
@@ -737,13 +497,16 @@ function CuteSquid({ movable = false, persistedStart, tankRef, tankSize, onPersi
     persistedStart,
     onPersistPosition,
   })
-  const pose = useCreatureMotion({
+  const { elementRef, getPosition } = useCreatureMotion({
     tankSize,
     width: BASE_SQUID_WIDTH,
     height: BASE_SQUID_HEIGHT,
     startX: 0.36,
     startY: 0.32,
     speed: 38,
+    dragPosition: draggable.dragPosition,
+    motionType: 'squid',
+    tiltFactor: 0.45,
     directionX: 1,
     directionY: 0.12,
     minY: 24,
@@ -761,18 +524,12 @@ function CuteSquid({ movable = false, persistedStart, tankRef, tankSize, onPersi
     restartKey: draggable.restartKey,
     startOverride: draggable.startOverride,
   })
-  const displayPosition = draggable.dragPosition ?? pose
 
   return (
     <div
-      className={`squid-swim ${pose.paused ? 'paused' : ''} ${draggable.dragging ? 'dragging' : ''}`}
-      style={{
-        '--swim-x': `${displayPosition.x}px`,
-        '--swim-y': `${displayPosition.y}px`,
-        '--squid-facing': pose.facing,
-        '--squid-tilt': `${pose.tilt * 0.45}deg`,
-      }}
-      onPointerDown={movable ? (event) => draggable.startDragging(event, displayPosition) : undefined}
+      ref={elementRef}
+      className={`squid-swim ${draggable.dragging ? 'dragging' : ''}`}
+      onPointerDown={movable ? (event) => draggable.startDragging(event, getPosition()) : undefined}
       aria-label="Cute squid sample"
     >
       <div className="squid-bob">
@@ -832,13 +589,16 @@ function CuteJellyfish({
     persistedStart,
     onPersistPosition,
   })
-  const pose = useCreatureMotion({
+  const { elementRef, getPosition } = useCreatureMotion({
     tankSize,
     width: BASE_JELLYFISH_WIDTH,
     height: BASE_JELLYFISH_HEIGHT,
     startX,
     startY,
     speed: 28,
+    dragPosition: draggable.dragPosition,
+    motionType: 'jellyfish',
+    tiltFactor: 0.45,
     directionX: 1,
     directionY: 0.2,
     minY: 18,
@@ -856,7 +616,6 @@ function CuteJellyfish({
     restartKey: draggable.restartKey,
     startOverride: draggable.startOverride,
   })
-  const displayPosition = draggable.dragPosition ?? pose
 
   useEffect(() => {
     return () => {
@@ -894,16 +653,11 @@ function CuteJellyfish({
 
   return (
     <div
-      className={`jellyfish-swim ${pose.paused ? 'paused' : ''} ${draggable.dragging ? 'dragging' : ''}`}
-      style={{
-        '--swim-x': `${displayPosition.x}px`,
-        '--swim-y': `${displayPosition.y}px`,
-        '--jellyfish-facing': pose.facing,
-        '--jellyfish-tilt': `${pose.tilt * 0.45}deg`,
-      }}
+      ref={elementRef}
+      className={`jellyfish-swim ${draggable.dragging ? 'dragging' : ''}`}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
-      onPointerDown={movable ? (event) => draggable.startDragging(event, displayPosition) : undefined}
+      onPointerDown={movable ? (event) => draggable.startDragging(event, getPosition()) : undefined}
       tabIndex={bubbleBurstOnClick ? 0 : undefined}
       aria-label="Cute jellyfish"
     >
@@ -937,13 +691,16 @@ function CuteCrab({ movable = false, persistedStart, startX = 0.42, tankRef, tan
     persistedStart,
     onPersistPosition,
   })
-  const pose = useCreatureMotion({
+  const { elementRef, getPosition } = useCreatureMotion({
     tankSize,
     width: BASE_CRAB_WIDTH,
     height: BASE_CRAB_HEIGHT,
     startX,
     startY: 0.78,
     speed: 26,
+    dragPosition: draggable.dragPosition,
+    motionType: 'crab',
+    tiltFactor: 0.22,
     directionX: 1,
     directionY: 0,
     minY: crabFloorY,
@@ -962,18 +719,12 @@ function CuteCrab({ movable = false, persistedStart, startX = 0.42, tankRef, tan
     restartKey: draggable.restartKey,
     startOverride: draggable.startOverride,
   })
-  const displayPosition = draggable.dragPosition ?? pose
 
   return (
     <div
-      className={`crab-swim ${pose.paused ? 'paused' : ''} ${draggable.dragging ? 'dragging' : ''}`}
-      style={{
-        '--swim-x': `${displayPosition.x}px`,
-        '--swim-y': `${displayPosition.y}px`,
-        '--crab-facing': pose.facing,
-        '--crab-tilt': `${pose.tilt * 0.22}deg`,
-      }}
-      onPointerDown={movable ? (event) => draggable.startDragging(event, displayPosition, crabFloorY) : undefined}
+      ref={elementRef}
+      className={`crab-swim ${draggable.dragging ? 'dragging' : ''}`}
+      onPointerDown={movable ? (event) => draggable.startDragging(event, getPosition(), crabFloorY) : undefined}
       aria-label="Cute crab"
     >
       <div className="crab-bob">
@@ -996,13 +747,16 @@ function CutePufferfish({ movable = false, persistedStart, tankRef, tankSize, on
     persistedStart,
     onPersistPosition,
   })
-  const pose = useCreatureMotion({
+  const { elementRef, getPosition } = useCreatureMotion({
     tankSize,
     width: BASE_PUFFER_WIDTH,
     height: BASE_PUFFER_HEIGHT,
     startX: 0.56,
     startY: 0.34,
     speed: 34,
+    dragPosition: draggable.dragPosition,
+    motionType: 'puffer',
+    tiltFactor: 0.45,
     directionX: -1,
     directionY: 0.16,
     minY: 26,
@@ -1020,18 +774,12 @@ function CutePufferfish({ movable = false, persistedStart, tankRef, tankSize, on
     restartKey: draggable.restartKey,
     startOverride: draggable.startOverride,
   })
-  const displayPosition = draggable.dragPosition ?? pose
 
   return (
     <div
-      className={`puffer-swim ${pose.paused ? 'paused' : ''} ${draggable.dragging ? 'dragging' : ''}`}
-      style={{
-        '--swim-x': `${displayPosition.x}px`,
-        '--swim-y': `${displayPosition.y}px`,
-        '--puffer-facing': pose.facing,
-        '--puffer-tilt': `${pose.tilt * 0.45}deg`,
-      }}
-      onPointerDown={movable ? (event) => draggable.startDragging(event, displayPosition) : undefined}
+      ref={elementRef}
+      className={`puffer-swim ${draggable.dragging ? 'dragging' : ''}`}
+      onPointerDown={movable ? (event) => draggable.startDragging(event, getPosition()) : undefined}
       aria-label="Cute pufferfish"
     >
       <div className="puffer-bob">
@@ -1081,13 +829,16 @@ function CuteStingray({ movable = false, persistedStart, tankRef, tankSize, onPe
     persistedStart,
     onPersistPosition,
   })
-  const pose = useCreatureMotion({
+  const { elementRef, getPosition } = useCreatureMotion({
     tankSize,
     width: BASE_STINGRAY_WIDTH,
     height: BASE_STINGRAY_HEIGHT,
     startX: 0.18,
     startY: 0.42,
     speed: 30,
+    dragPosition: draggable.dragPosition,
+    motionType: 'stingray',
+    tiltFactor: 0.35,
     directionX: 1,
     directionY: -0.12,
     minY: 34,
@@ -1105,18 +856,12 @@ function CuteStingray({ movable = false, persistedStart, tankRef, tankSize, onPe
     restartKey: draggable.restartKey,
     startOverride: draggable.startOverride,
   })
-  const displayPosition = draggable.dragPosition ?? pose
 
   return (
     <div
-      className={`stingray-swim ${pose.paused ? 'paused' : ''} ${draggable.dragging ? 'dragging' : ''}`}
-      style={{
-        '--swim-x': `${displayPosition.x}px`,
-        '--swim-y': `${displayPosition.y}px`,
-        '--stingray-facing': pose.facing,
-        '--stingray-tilt': `${pose.tilt * 0.35}deg`,
-      }}
-      onPointerDown={movable ? (event) => draggable.startDragging(event, displayPosition) : undefined}
+      ref={elementRef}
+      className={`stingray-swim ${draggable.dragging ? 'dragging' : ''}`}
+      onPointerDown={movable ? (event) => draggable.startDragging(event, getPosition()) : undefined}
       aria-label="Cute stingray"
     >
       <div className="stingray-bob">
@@ -1160,13 +905,16 @@ function CuteTurtle({ movable = false, persistedStart, tankRef, tankSize, onPers
     persistedStart,
     onPersistPosition,
   })
-  const pose = useCreatureMotion({
+  const { elementRef, getPosition } = useCreatureMotion({
     tankSize,
     width: BASE_TURTLE_WIDTH,
     height: BASE_TURTLE_HEIGHT,
     startX: 0.34,
     startY: 0.62,
     speed: 24,
+    dragPosition: draggable.dragPosition,
+    motionType: 'turtle',
+    tiltFactor: 0.35,
     directionX: -1,
     directionY: -0.1,
     minY: 40,
@@ -1184,18 +932,12 @@ function CuteTurtle({ movable = false, persistedStart, tankRef, tankSize, onPers
     restartKey: draggable.restartKey,
     startOverride: draggable.startOverride,
   })
-  const displayPosition = draggable.dragPosition ?? pose
 
   return (
     <div
-      className={`turtle-swim ${pose.paused ? 'paused' : ''} ${draggable.dragging ? 'dragging' : ''}`}
-      style={{
-        '--swim-x': `${displayPosition.x}px`,
-        '--swim-y': `${displayPosition.y}px`,
-        '--turtle-facing': pose.facing,
-        '--turtle-tilt': `${pose.tilt * 0.35}deg`,
-      }}
-      onPointerDown={movable ? (event) => draggable.startDragging(event, displayPosition) : undefined}
+      ref={elementRef}
+      className={`turtle-swim ${draggable.dragging ? 'dragging' : ''}`}
+      onPointerDown={movable ? (event) => draggable.startDragging(event, getPosition()) : undefined}
       aria-label="Cute turtle"
     >
       <div className="turtle-bob">

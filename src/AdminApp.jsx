@@ -24,6 +24,7 @@ import {
 } from './features/app/constants.js'
 import { createEmptyMessage, formatGoldChange, isAdminProfile, normalizeLoginName } from './features/app/utils.js'
 import { usePathname } from './features/app/hooks/usePathname.js'
+import { useAnimationVisibility } from './features/app/hooks/useAnimationVisibility.js'
 import CompactNavToggle from './features/layout/components/CompactNavToggle.jsx'
 import GameTopBar from './features/layout/components/GameTopBar.jsx'
 import { useResponsiveNavigation } from './features/layout/hooks/useResponsiveNavigation.js'
@@ -101,6 +102,7 @@ function saveBettaQuizBonusClaim(playerId, dateKey = createLocalDateKey()) {
 }
 
 export default function AdminApp() {
+  useAnimationVisibility()
   const { navigate, pathname } = usePathname()
   const {
     closeCompactNav,

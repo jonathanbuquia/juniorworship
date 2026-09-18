@@ -35,7 +35,7 @@ function getInitialMemoryVerseState() {
 }
 
 export function useMemoryVerseState() {
-  const initialState = getInitialMemoryVerseState()
+  const [initialState] = useState(getInitialMemoryVerseState)
   const [memoryVerseForm, setMemoryVerseForm] = useState(initialState.memoryVerseForm)
   const [activeMemoryVerse, setActiveMemoryVerse] = useState(initialState.activeMemoryVerse)
   const [memoryVerseEditorOpen, setMemoryVerseEditorOpen] = useState(initialState.memoryVerseEditorOpen)
