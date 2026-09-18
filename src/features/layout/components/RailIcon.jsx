@@ -45,6 +45,17 @@ export default function RailIcon({ type }) {
     )
   }
 
+  if (type === 'program') {
+    return (
+      <svg aria-hidden="true" viewBox="0 0 24 24">
+        <rect x="5" y="4" width="14" height="17" rx="2" />
+        <path d="M9 3h6v3H9z" />
+        <path d="M10 11h6M10 15h6M10 18h4" />
+        <path d="M8 11h.01M8 15h.01M8 18h.01" />
+      </svg>
+    )
+  }
+
   if (type === 'attendance') {
     return (
       <svg aria-hidden="true" viewBox="0 0 24 24">

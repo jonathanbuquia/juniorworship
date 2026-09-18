@@ -83,6 +83,16 @@
   width: 96px;
 }
 
+@media (min-width: 981px) and (max-height: 760px) {
+  .game-header {
+    gap: 12px;
+  }
+
+  .game-header .rail-admin-tools {
+    gap: 8px;
+  }
+}
+
 .compact-nav-toggle {
   position: fixed;
   top: 16px;
@@ -1542,6 +1552,15 @@
 .empty-state-card {
   min-height: 260px;
   place-content: center;
+}
+
+.program-page-shell {
+  width: 100%;
+  min-height: 260px;
+  display: grid;
+  align-content: start;
+  gap: 18px;
+  padding: 22px;
 }
 
 .attendance-stage {

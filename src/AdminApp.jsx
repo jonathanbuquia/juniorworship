@@ -15,6 +15,7 @@ import {
   MEMORY_VERSE_QUIZ_POINTS,
   MEMORY_PATH,
   PROFILES_PATH,
+  PROGRAM_PATH,
   QUIZ_PATH,
   SHOP_NOTICE_DURATION,
   SHOP_PATH,
@@ -37,6 +38,7 @@ import {
 import BooksPage from './features/books/components/BooksPage.jsx'
 import { usePlayerDirectory } from './features/players/hooks/usePlayerDirectory.js'
 import ProfilesPage from './features/players/components/ProfilesPage.jsx'
+import ProgramPage from './features/program/components/ProgramPage.jsx'
 import QuizPage from './features/quiz/components/QuizPage.jsx'
 import { useQuizState } from './features/quiz/hooks/useQuizState.js'
 import {
@@ -231,6 +233,7 @@ export default function AdminApp() {
   const viewingBooks = pathname === BOOKS_PATH
   const viewingMemory = pathname === MEMORY_PATH
   const viewingProfiles = pathname === PROFILES_PATH
+  const viewingProgram = pathname === PROGRAM_PATH
   const viewingQuiz = pathname === QUIZ_PATH
   const viewingShop = pathname === SHOP_PATH
   const viewingHome = pathname === DEFAULT_PATH
@@ -240,6 +243,7 @@ export default function AdminApp() {
     !viewingBooks &&
     !viewingMemory &&
     !viewingProfiles &&
+    !viewingProgram &&
     !viewingQuiz &&
     !viewingAdmin &&
     !viewingShop &&
@@ -1062,6 +1066,13 @@ export default function AdminApp() {
     navigate(MEMORY_PATH)
   }
 
+  const handleOpenProgram = () => {
+    setAuthMenuOpen(false)
+    setProfileMenuOpen(false)
+    closeCompactNav()
+    navigate(PROGRAM_PATH)
+  }
+
   const handleOpenAttendance = () => {
     setAuthMenuOpen(false)
     setProfileMenuOpen(false)
@@ -1282,6 +1293,7 @@ export default function AdminApp() {
             onOpenHome={handleOpenHome}
             onOpenMemoryVerse={handleOpenMemoryVerse}
             onOpenProfileMenu={handleOpenProfileMenu}
+            onOpenProgram={handleOpenProgram}
             onOpenQuiz={handleOpenQuiz}
             onOpenShop={handleOpenShop}
             onSelectViewedPlayer={handleSelectViewedPlayer}
@@ -1300,6 +1312,7 @@ export default function AdminApp() {
             viewingHome={viewingHome}
             viewingMemory={viewingMemory}
             viewingProfiles={viewingProfiles}
+            viewingProgram={viewingProgram}
             viewingQuiz={viewingQuiz}
             viewingShop={viewingShop}
           />
@@ -1326,6 +1339,8 @@ export default function AdminApp() {
               />
             </div>
           ) : null}
+
+          {viewingProgram && isAdmin ? <ProgramPage /> : null}
 
           {viewingAttendance && isAdmin ? (
             <div className="attendance-stage">
@@ -1444,7 +1459,7 @@ export default function AdminApp() {
             </div>
           ) : null}
 
-          {(viewingAttendance || viewingBooks || viewingMemory || viewingQuiz) && !isAdmin ? (
+          {(viewingProgram || viewingAttendance || viewingBooks || viewingMemory || viewingQuiz) && !isAdmin ? (
             <section className="panel memory-locked-panel">
               <div className="eyebrow">Admin Only</div>
               <h2>This page is only for the admin.</h2>

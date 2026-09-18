@@ -22,6 +22,7 @@ export default function GameTopBar({
   onOpenHome,
   onOpenMemoryVerse,
   onOpenProfileMenu,
+  onOpenProgram,
   onOpenQuiz,
   onOpenShop,
   onSignOut,
@@ -36,6 +37,7 @@ export default function GameTopBar({
   viewingHome,
   viewingMemory,
   viewingProfiles,
+  viewingProgram,
   viewingQuiz,
   viewingShop,
 }) {
@@ -136,6 +138,19 @@ export default function GameTopBar({
       <div className="rail-bottom">
         {isAdmin ? (
           <div className="rail-admin-tools">
+            <button
+              aria-label="Program"
+              aria-current={viewingProgram ? 'page' : undefined}
+              className={`rail-button rail-button-secondary ${viewingProgram ? 'active' : ''}`}
+              onClick={onOpenProgram}
+              type="button"
+            >
+              <span aria-hidden="true" className="rail-button-icon">
+                <RailIcon type="program" />
+              </span>
+              {!effectiveCollapsed ? <span className="rail-button-label">PROGRAM</span> : null}
+            </button>
+
             <button
               aria-label="Attendance"
               className={`rail-button rail-button-secondary ${viewingAttendance ? 'active' : ''}`}

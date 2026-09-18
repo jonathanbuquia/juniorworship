@@ -3,6 +3,7 @@ export const ATTENDANCE_PATH = '/attendance'
 export const BOOKS_PATH = '/books'
 export const MEMORY_PATH = '/memory-verse'
 export const PROFILES_PATH = '/profiles'
+export const PROGRAM_PATH = '/program'
 export const QUIZ_PATH = '/quiz'
 export const SHOP_PATH = '/shop'
 
