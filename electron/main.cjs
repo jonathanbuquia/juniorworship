@@ -1,8 +1,8 @@
-const { app, BrowserWindow } = require('electron')
+const { app, BrowserWindow, dialog, net, protocol } = require('electron')
 const path = require('node:path')
 const { pathToFileURL } = require('node:url')
 
-const DESKTOP_APP_PORT = 4177
+const { startDesktopServer } = require('./desktop-server.cjs')
 let localServer = null
 let mainWindow = null
 
@@ -19,7 +19,7 @@ async function startServer() {
 
   const serverModulePath = path.join(__dirname, '..', 'local-server.mjs')
   const { startLocalServer } = await import(pathToFileURL(serverModulePath).href)
-  localServer = await startLocalServer({ open: false, port: DESKTOP_APP_PORT })
+  localServer = await startDesktopServer(startLocalServer, { protocol, net })
 
   return localServer
 }
@@ -63,17 +63,19 @@ app.on('second-instance', () => {
   mainWindow.focus()
 })
 
-app.whenReady().then(createMainWindow).catch((error) => {
+function handleStartupError(error) {
   console.error(error)
-  app.quit()
-})
+  dialog.showErrorBox('Aquarium could not open', error.message || 'An unexpected startup error occurred.')
+  app.exit(1)
+}
+
+if (gotSingleInstanceLock) {
+  app.whenReady().then(createMainWindow).catch(handleStartupError)
+}
 
 app.on('activate', () => {
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createMainWindow().catch((error) => {
-      console.error(error)
-      app.quit()
-    })
+  if (gotSingleInstanceLock && BrowserWindow.getAllWindows().length === 0) {
+    createMainWindow().catch(handleStartupError)
   }
 })
 

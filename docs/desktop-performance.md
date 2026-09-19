@@ -6,6 +6,11 @@ Vite configuration, and environment files. It rebuilds only when those inputs ch
 or the saved build is missing. Build metadata lives in `dist/.desktop-build.json`.
 Player data is excluded from the build fingerprint.
 
+If Windows blocks port 4177 or it is in use, Electron starts the local server on an
+available port. Its internal HTTP handler keeps the window at the original
+`http://127.0.0.1:4177` origin, preserving existing localStorage, and forwards requests
+to the fallback server. Startup failures display an error instead of silently exiting.
+
 Creature movement uses a shared animation clock in `src/features/aquarium`.
 React renders each illustration and handles interactions; the clock updates movement
 transforms directly. Hidden windows stop the clock and pause decorative CSS animations.
