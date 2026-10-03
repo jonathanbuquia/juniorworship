@@ -4,6 +4,7 @@ import { findShopItemBySlug, MOON_JELLY_SLUG } from '../../shared/shopCatalog.js
 import CrabFigure from './CrabFigure.jsx'
 import JellyfishFigure from './JellyfishFigure.jsx'
 import { useCreatureMotion } from '../features/aquarium/useCreatureMotion.js'
+import { getFishGradientStyle } from '../features/aquarium/fishAppearance.js'
 
 const BASE_FISH_WIDTH = 198
 const BASE_FISH_HEIGHT = 126
@@ -134,6 +135,8 @@ function buildOwnedFishConfigs(ownedFish) {
         burstDistance: item.burstDistance ?? 0,
         canTalk: Boolean(item.canTalk),
         id: `${entry.slug}-${index + 1}`,
+        rarity: item.rarity,
+        gradientStyle: getFishGradientStyle(item),
         palette: {
           accent: item.accentColor,
           eye: '#17324f',
@@ -359,10 +362,11 @@ function NaturalFish({ fish, movable = false, persistedStart, tankRef, tankSize,
   return (
     <div
       ref={elementRef}
-      className={`fish-swim ${fish.variant ? `fish-${fish.variant}` : ''} ${fish.canTalk ? 'talking-fish' : ''} ${
+      className={`fish-swim ${fish.rarity === 'rare' ? 'fish-rare' : ''} ${fish.variant ? `fish-${fish.variant}` : ''} ${fish.canTalk ? 'talking-fish' : ''} ${
         speech.bursting ? 'bursting' : ''
       } ${draggable.dragging ? 'dragging' : ''}`}
       style={{
+        ...fish.gradientStyle,
         '--fish-scale': fish.scale,
         '--main': fish.palette.main,
         '--light': fish.palette.light,

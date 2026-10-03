@@ -2381,6 +2381,21 @@
   top: 54px;
 }
 
+/* Rare fish retain the familiar face with a continuous multicolor finish. */
+.fish-rare .fish-illustration .fish-body {
+  background: var(--rare-body-gradient);
+  box-shadow:
+    inset -7px -9px 10px rgba(28, 51, 94, 0.12),
+    inset 7px 8px 10px rgba(255, 255, 255, 0.28);
+}
+
+.fish-rare .fish-face { background: transparent; }
+.fish-rare .fish-stripe { display: none; }
+.fish-rare .fish-scale { border-color: rgba(255, 255, 255, 0.3); }
+.fish-rare .fish-gill { border-color: rgba(40, 63, 92, 0.25); }
+.fish-rare .fish-illustration .fish-tail,
+.fish-rare .fish-fin { background: var(--rare-fin-gradient); }
+
 @keyframes rippleShift {
   0%,
   100% {

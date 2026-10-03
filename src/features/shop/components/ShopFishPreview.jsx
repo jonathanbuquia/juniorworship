@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import CrabFigure from '../../../components/CrabFigure.jsx'
 import JellyfishFigure from '../../../components/JellyfishFigure.jsx'
+import { getFishGradientStyle } from '../../aquarium/fishAppearance.js'
 
 const MotionDiv = motion.div
 
@@ -63,8 +64,9 @@ export default function ShopFishPreview({ className = '', item, index = 0 }) {
           </div>
         ) : (
           <div
-            className={`fish-swim shop-card-fish ${item.slug ? `fish-${item.slug}` : ''}`}
+            className={`fish-swim shop-card-fish ${item.rarity === 'rare' ? 'fish-rare' : ''} ${item.slug ? `fish-${item.slug}` : ''}`}
             style={{
+              ...getFishGradientStyle(item),
               '--accent': item.accentColor,
               '--eye': '#1f2c46',
               '--eye-x': 0,
