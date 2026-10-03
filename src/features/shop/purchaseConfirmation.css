@@ -1,0 +1,24 @@
+.purchase-confirm-dialog {
+  width: min(440px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  margin: auto;
+  padding: clamp(20px, 4vw, 28px);
+  overflow: auto;
+  border: 1px solid #c5e4ed;
+  border-radius: 24px;
+  color: #173e54;
+  background: linear-gradient(145deg, #fff, #effaff);
+  box-shadow: 0 24px 70px #12384c40;
+}
+
+.purchase-confirm-dialog::backdrop { background: #12344980; }
+.purchase-confirm-dialog h2 { margin: 10px 0; font-size: clamp(1.4rem, 4vw, 1.8rem); overflow-wrap: anywhere; }
+.purchase-confirm-dialog > p { margin: 0; color: #56758a; font-size: 0.9rem; line-height: 1.5; }
+.purchase-confirm-details { display: grid; gap: 14px; margin: 24px 0; }
+.purchase-confirm-details > div { display: flex; justify-content: space-between; gap: 18px; }
+.purchase-confirm-details dt { color: #56758a; }
+.purchase-confirm-details dd { margin: 0; text-align: right; font-weight: 700; overflow-wrap: anywhere; min-width: 0; }
+.purchase-confirm-price { color: #926309; }
+.purchase-confirm-actions { display: flex; gap: 12px; }
+.purchase-confirm-actions > button { flex: 1; min-height: 44px; }
+.purchase-confirm-actions > button:focus-visible { outline: 3px solid #147a9c; outline-offset: 3px; }

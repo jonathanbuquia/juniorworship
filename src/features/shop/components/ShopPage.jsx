@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import {
   SHOP_CATEGORIES,
   SHOP_RARITY_FILTERS,
@@ -7,6 +7,7 @@ import {
   isEventShopItem,
 } from '../../../../shared/shopCatalog.js'
 import ShopFishPreview from './ShopFishPreview.jsx'
+import PurchaseConfirmation from './PurchaseConfirmation.jsx'
 
 export default function ShopPage({
   isAdmin,
@@ -22,11 +23,33 @@ export default function ShopPage({
 }) {
   const activeCategory = SHOP_CATEGORIES.find((category) => category.id === selectedCategory) ?? SHOP_CATEGORIES[0]
   const [rarityFilter, setRarityFilter] = useState('all')
+  const [purchase, setPurchase] = useState(null)
+  const purchaseInFlight = useRef(false)
   const showRarityFilters = activeCategory.id !== 'events'
   const visibleItems = useMemo(
     () => getShopItemsByCategoryAndRarity(activeCategory.id, showRarityFilters ? rarityFilter : 'all'),
     [activeCategory.id, rarityFilter, showRarityFilters],
   )
+
+  function requestPurchase(item) {
+    if (!isAdmin || pendingItemSlug || purchaseInFlight.current) return
+    // Keep the existing choose-player and insufficient-gold notices.
+    if (!selectedPlayer || selectedPlayer.gold < item.price) {
+      onBuyItem(item)
+      return
+    }
+    setPurchase({ item, player: selectedPlayer })
+  }
+
+  async function confirmPurchase() {
+    if (!purchase || pendingItemSlug || purchaseInFlight.current) return
+    setPurchase(null)
+    // Never approve a different recipient from the one shown in the dialog.
+    if (!isAdmin || selectedPlayer?.id !== purchase.player.id) return
+    purchaseInFlight.current = true
+    try { await onBuyItem(purchase.item) }
+    finally { purchaseInFlight.current = false }
+  }
 
   return (
     <section className="panel shop-page-shell">
@@ -152,7 +175,7 @@ export default function ShopPage({
                       <button
                         className={`primary-button compact-button ${needsMoreGold ? 'warning' : ''}`}
                         disabled={buyDisabled}
-                        onClick={isAdmin ? () => onBuyItem(item) : undefined}
+                        onClick={isAdmin ? () => requestPurchase(item) : undefined}
                         type="button"
                       >
                         {!isAdmin ? 'Admin only' : alreadyOwned ? 'Owned' : pendingItemSlug === item.slug ? 'Buying...' : 'Buy'}
@@ -175,6 +198,14 @@ export default function ShopPage({
           </div>
         )}
       </div>
+      {purchase ? (
+        <PurchaseConfirmation
+          item={purchase.item}
+          player={purchase.player}
+          onCancel={() => setPurchase(null)}
+          onConfirm={confirmPurchase}
+        />
+      ) : null}
     </section>
   )
 }
