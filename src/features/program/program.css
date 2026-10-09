@@ -1,0 +1,75 @@
+.program-workspace {
+  --program-ink: #153e55;
+  --program-line: #d5e6ee;
+  max-height: calc(100dvh - 48px);
+  overflow: auto;
+  overscroll-behavior: contain;
+  color: var(--program-ink);
+}
+.program-stage { min-width: 0; display: grid; gap: 14px; }
+.program-stage-heading, .program-navigation, .program-media-controls, .program-slide-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.program-stage-heading { justify-content: space-between; font-size: 0.85rem; }
+.program-stage-heading > strong { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.program-stage .program-fullscreen-button { width: auto; flex-shrink: 0; min-height: 44px; }
+.program-stage .program-fullscreen-button.is-exit { width: 44px; height: 44px; padding: 10px; display: grid; place-items: center; }
+.program-fullscreen-button svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.program-navigation select {
+  flex: 1;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 42px;
+  border: 1px solid var(--program-line);
+  border-radius: 10px;
+  padding: 7px 10px;
+  background: #fff;
+  color: var(--program-ink);
+  font: inherit;
+}
+.program-navigation > span { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.program-stage .program-navigation > button { width: auto; flex-shrink: 0; }
+.program-screen {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 20px;
+  background:
+    radial-gradient(ellipse at 15% 0%, #d0f6f6 0, transparent 48%),
+    radial-gradient(ellipse at 100% 100%, #b4d9e4 0, transparent 50%),
+    linear-gradient(135deg, #f4fcfc, #dfedf3);
+  border: 1px solid #c8e0e7;
+}
+.program-title-slide { width: 100%; padding: clamp(18px, 4vw, 64px); text-align: center; display: grid; justify-items: center; gap: clamp(10px, 2vw, 22px); }
+.program-screen .program-title-slide h2 { margin: 0; font-size: clamp(1.8rem, 4.6vw, 4.6rem); line-height: 1.08; letter-spacing: -0.035em; overflow-wrap: anywhere; }
+.program-title-slide p { margin: 0; font-size: clamp(0.95rem, 1.5vw, 1.5rem); line-height: 1.45; white-space: pre-wrap; }
+.program-date { color: #39758a; font-size: 0.95rem; }
+.program-lyric-image, .program-video { width: 100%; height: 100%; min-height: 0; position: absolute; inset: 0; object-fit: contain; }
+.program-lyrics-screen:has(.program-lyric-image), .program-lyrics-screen:has(video) { background: #0d202d; }
+.program-song-player { display: grid; gap: 12px; }
+.program-media-controls { flex-wrap: wrap; }
+.program-media-controls audio { flex: 1; min-width: 180px; height: 40px; }
+.program-slide-controls { margin-left: auto; flex-wrap: wrap; justify-content: center; font-variant-numeric: tabular-nums; }
+.program-stage button:disabled { cursor: not-allowed; opacity: 0.45; }
+.program-stage button:focus-visible, .program-stage select:focus-visible { outline: 3px solid #27a8c0; outline-offset: 2px; }
+.program-stage:fullscreen { padding: 18px; background: #edf6fa; color: #153e55; display: flex; flex-direction: column; overflow: auto; }
+.program-stage:fullscreen > .program-stage-heading, .program-stage:fullscreen > .program-navigation { flex-shrink: 0; }
+.program-stage:fullscreen .program-screen { flex: 1; min-height: 180px; aspect-ratio: auto; }
+.program-stage:fullscreen .program-song-player { display: flex; flex-direction: column; flex: 1; min-height: 240px; }
+.program-return-button { position: fixed; right: 24px; top: 8px; z-index: 99; pointer-events: auto; }
+@media (max-width: 980px) { .program-workspace { margin-top: 48px; max-height: calc(100dvh - 120px); } }
+@media (max-width: 600px) {
+  .program-workspace { padding: 16px; }
+  .program-navigation { flex-wrap: wrap; }
+  .program-navigation select { order: -1; flex-basis: 100%; }
+  .program-navigation > span { margin-left: auto; }
+  .program-screen .program-title-slide h2 { font-size: clamp(1.4rem, 6vw, 2.1rem); }
+  .program-title-slide { gap: 8px; }
+  .program-title-slide p, .program-date { font-size: 0.75rem; }
+  .program-slide-controls { width: 100%; margin: 0; }
+}

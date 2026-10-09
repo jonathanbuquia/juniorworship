@@ -186,6 +186,7 @@ export default function AdminApp() {
   })
 
   const [authPending, setAuthPending] = useState(false)
+  const [returnToProgram, setReturnToProgram] = useState(false)
   const [createPlayerPending, setCreatePlayerPending] = useState(false)
   const [goldPending, setGoldPending] = useState(false)
   const [deletePending, setDeletePending] = useState(false)
@@ -1328,6 +1329,7 @@ export default function AdminApp() {
         ) : null}
 
         <main className="layout-main">
+          {returnToProgram && (viewingBooks || viewingMemory || viewingQuiz) ? <button type="button" className="ghost-button compact-button program-return-button" onClick={() => { setReturnToProgram(false); handleOpenProgram() }}>Back to Program</button> : null}
           {showMaySpecialAnnouncement ? <MaySpecialAnnouncement onOpenShop={handleOpenShop} /> : null}
 
           {viewingProfiles ? (
@@ -1340,7 +1342,7 @@ export default function AdminApp() {
             </div>
           ) : null}
 
-          {viewingProgram && isAdmin ? <ProgramPage /> : null}
+          {viewingProgram && isAdmin ? <ProgramPage onOpenActivity={(activity) => { setReturnToProgram(true); navigate(activity.path) }} /> : null}
 
           {viewingAttendance && isAdmin ? (
             <div className="attendance-stage">

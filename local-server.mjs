@@ -7,6 +7,7 @@ import path from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
 import { findShopItemBySlug, formatRequirementsSummary, isEventShopItem } from './shared/shopCatalog.js'
+import { createProgramRoutes } from './server/program/routes.mjs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const PORT = Number(process.env.AQUARIUM_PORT || 4177)
@@ -587,9 +588,12 @@ async function serveStatic(req, res, url) {
 }
 
 function createAquariumServer(port) {
+  const handleProgram = createProgramRoutes()
   return http.createServer(async (req, res) => {
     try {
       const url = new URL(req.url || '/', `http://${req.headers.host || `127.0.0.1:${port}`}`)
+
+      if (await handleProgram(req, res, url)) return
 
       if (url.pathname === '/media/books-of-the-bible') {
         serveBooksOfTheBibleVideo(req, res)
