@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { PROGRAM_ACTIVITIES } from '../../../../shared/program.js'
 import SongPlayer from './SongPlayer.jsx'
 
-export default function ProgramStage({ item, song, title, navigation, onOpenActivity }) {
+export default function ProgramStage({ item, song, title, navigation, songControls, onOpenActivity }) {
   const stageRef = useRef(null)
   const [error, setError] = useState('')
   const [fullscreen, setFullscreen] = useState(false)
@@ -43,12 +43,13 @@ export default function ProgramStage({ item, song, title, navigation, onOpenActi
           {fullscreen ? <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg> : 'Full screen'}
         </button>
       </header>
-      {item?.kind === 'song' && song ? <SongPlayer key={item.id} song={song} /> : (
+      {songControls}
+      {item?.kind === 'song' && song ? <SongPlayer key={`${item.id}:${song.id}`} song={song} /> : (
         <div className="program-screen">
           <div className="program-title-slide">
             <span className="eyebrow">{title}</span>
             <h2>{item?.title || 'Your program starts here'}</h2>
-            {item?.kind === 'song' ? <p>This song is missing. Restore its folder, then reopen Program.</p> : <p>{item?.subtitle || ''}</p>}
+            {item?.kind === 'song' ? <p>This song is missing. Restore its folder, then refresh songs.</p> : <p>{songControls ? 'Choose a song above. Press Play when you are ready.' : item?.subtitle || ''}</p>}
             {item?.id === 'welcome' ? <span className="program-date">{new Intl.DateTimeFormat('en', { dateStyle: 'full' }).format(new Date())}</span> : null}
             {activity ? <button type="button" className="primary-button" onClick={openActivity}>Open {activity.title}</button> : null}
           </div>

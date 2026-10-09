@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useProgram } from '../hooks/useProgram.js'
 import ProgramStage from './ProgramStage.jsx'
+import ProgramSongSelector from './ProgramSongSelector.jsx'
 import '../program.css'
 
 function readSelectedId() {
@@ -9,11 +10,17 @@ function readSelectedId() {
 }
 
 export default function ProgramPage({ onOpenActivity }) {
-  const { program, library, libraryError, error, retrySave } = useProgram()
+  const { program, update, library, libraryError, refreshLibrary, refreshing, saved, error, retrySave } = useProgram()
   const [selectedId, setSelectedId] = useState(readSelectedId)
   const selectedIndex = Math.max(0, program?.items.findIndex((item) => item.id === selectedId) ?? 0)
   const selected = program?.items[selectedIndex]
   const song = library.songs.find((entry) => entry.id === selected?.songId)
+  const isSongSection = selected?.kind === 'song' || ['song-1', 'song-2'].includes(selected?.id)
+
+  function selectSong(songId) {
+    if (!library.songs.some((entry) => entry.id === songId)) return
+    update((current) => ({ items: current.items.map((item) => item.id === selected.id ? { ...item, kind: 'song', songId } : item) }))
+  }
 
   useEffect(() => {
     try { sessionStorage.setItem('program-view:v1', JSON.stringify({ selectedId })) }
@@ -27,12 +34,12 @@ export default function ProgramPage({ onOpenActivity }) {
   return (
     <section className="panel program-page-shell program-workspace" aria-label="Junior Worship program">
       {error ? <div className="status-line error" role="alert">{error} <button type="button" className="ghost-button compact-button" onClick={retrySave}>Retry save</button></div> : null}
-      {selected?.kind === 'song' && libraryError ? <p className="status-line error" role="alert">{libraryError}</p> : null}
       <ProgramStage
         item={selected}
         song={song}
         title={program.title}
         onOpenActivity={onOpenActivity}
+        songControls={isSongSection ? <ProgramSongSelector key={selected.id} songs={library.songs} selectedSongId={selected.songId} onSelect={selectSong} onRefresh={refreshLibrary} refreshing={refreshing} saved={saved} error={libraryError} /> : null}
         navigation={
           <nav className="program-navigation" aria-label="Program navigation">
             <button type="button" className="ghost-button compact-button" disabled={selectedIndex === 0 || !selected} onClick={() => setSelectedId(program.items[selectedIndex - 1].id)}>Back</button>

@@ -31,6 +31,15 @@
 }
 .program-navigation > span { white-space: nowrap; font-variant-numeric: tabular-nums; }
 .program-stage .program-navigation > button { width: auto; flex-shrink: 0; }
+.program-song-picker { display: grid; gap: 6px; }
+.program-song-picker-fields { display: flex; gap: 10px; flex-wrap: wrap; }
+.program-song-picker-fields input, .program-song-picker-fields select { flex: 1 1 180px; min-width: 0; width: auto; min-height: 42px; padding: 8px 12px; border: 1px solid #d5e6ee; border-radius: 10px; font: inherit; color: #153e55; background: white; }
+.program-song-picker-fields select { flex-grow: 2; }
+.program-song-picker-note { color: #527385; font-size: 0.75rem; line-height: 1.4; }
+.program-lyrics-screen { container-type: size; }
+.program-text-lyrics { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 5%; text-align: center; }
+.program-text-lyrics > span { font-size: clamp(0.65rem, 1.4cqw, 1rem); letter-spacing: 0.1em; text-transform: uppercase; color: #477186; }
+.program-text-lyrics p { margin: 0; white-space: pre-line; overflow-wrap: anywhere; font-size: clamp(0.78rem, 3.6cqw, 3.8rem); font-weight: 750; line-height: 1.4; }
 .program-screen {
   width: 100%;
   aspect-ratio: 16 / 9;
@@ -59,6 +68,7 @@
 .program-stage button:focus-visible, .program-stage select:focus-visible { outline: 3px solid #27a8c0; outline-offset: 2px; }
 .program-stage:fullscreen { padding: 18px; background: #edf6fa; color: #153e55; display: flex; flex-direction: column; overflow: auto; }
 .program-stage:fullscreen > .program-stage-heading, .program-stage:fullscreen > .program-navigation { flex-shrink: 0; }
+.program-stage:fullscreen > .program-song-picker { flex-shrink: 0; }
 .program-stage:fullscreen .program-screen { flex: 1; min-height: 180px; aspect-ratio: auto; }
 .program-stage:fullscreen .program-song-player { display: flex; flex-direction: column; flex: 1; min-height: 240px; }
 .program-return-button { position: fixed; right: 24px; top: 8px; z-index: 99; pointer-events: auto; }

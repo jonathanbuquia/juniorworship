@@ -1,6 +1,7 @@
 import { mkdir, readdir, realpath } from 'node:fs/promises'
 import { createHash } from 'node:crypto'
 import path from 'node:path'
+import { loadTextLyrics } from './lyrics.mjs'
 
 const AUDIO = new Set(['.mp3', '.m4a', '.wav', '.ogg'])
 const VIDEO = new Set(['.mp4', '.webm'])
@@ -24,18 +25,25 @@ export function createSongLibrary({ root, legacyRoot }) {
       nextMedia.set(id, { filename, allowedRoot })
       return `/media/program/${id}`
     }
-    async function addSong(directory, title, key, entries, allowedRoot) {
+    async function addSong(directory, title, key, entries, allowedRoot, lyricSources = {}) {
       const files = entries.filter((entry) => entry.isFile())
       const track = files.find((entry) => AUDIO.has(path.extname(entry.name).toLowerCase()))
         || files.find((entry) => VIDEO.has(path.extname(entry.name).toLowerCase()))
       const lyricsFolder = entries.find((entry) => entry.isDirectory() && entry.name.toLowerCase() === 'lyrics')
-      const lyricsDirectory = lyricsFolder ? path.join(directory, lyricsFolder.name) : directory
-      const slides = (lyricsFolder ? await list(lyricsDirectory) : files)
+      const lyricsDirectory = lyricSources.directory || (lyricsFolder ? path.join(directory, lyricsFolder.name) : directory)
+      let slides = (lyricsFolder || lyricSources.directory ? await list(lyricsDirectory) : files)
         .filter((entry) => entry.isFile() && IMAGES.has(path.extname(entry.name).toLowerCase()))
         .map((entry) => ({ name: entry.name, url: mediaUrl(path.join(lyricsDirectory, entry.name), allowedRoot) }))
+      if (!slides.length) {
+        slides = await loadTextLyrics(lyricSources.textPaths || [
+          path.join(lyricsDirectory, 'lyrics.txt'),
+          path.join(directory, `${track ? path.parse(track.name).name : title}.txt`),
+          path.join(directory, 'lyrics.txt'),
+        ], allowedRoot)
+      }
       if (!track && !slides.length) return
       songs.push({
-        id: idFor(key), title, slides, thumbnail: slides[0]?.url || '',
+        id: idFor(key), title, slides, thumbnail: slides.find((slide) => slide.url)?.url || '',
         mediaUrl: track ? mediaUrl(path.join(directory, track.name), allowedRoot) : '',
         mediaType: track && VIDEO.has(path.extname(track.name).toLowerCase()) ? 'video' : 'audio',
         audioName: track?.name || '',
@@ -54,6 +62,17 @@ export function createSongLibrary({ root, legacyRoot }) {
         if (entry.isFile() && (AUDIO.has(path.extname(entry.name).toLowerCase()) || VIDEO.has(path.extname(entry.name).toLowerCase()))) {
           await addSong(legacyRoot, path.parse(entry.name).name, `existing:${entry.name}`, [entry], legacyRoot)
         }
+      }
+    }
+    if (legacyRoot) {
+      const bibleDirectory = path.join(legacyRoot, 'BIBLE TRUTH KIDS SONGS')
+      for (const entry of await list(bibleDirectory)) {
+        if (!entry.isFile() || !AUDIO.has(path.extname(entry.name).toLowerCase())) continue
+        const title = path.parse(entry.name).name
+        await addSong(bibleDirectory, title, `bible-truth:${entry.name}`, [entry], bibleDirectory, {
+          directory: path.join(bibleDirectory, 'Lyrics', title),
+          textPaths: [path.join(bibleDirectory, 'Lyrics', `${title}.txt`), path.join(bibleDirectory, `${title}.txt`)],
+        })
       }
     }
     media = nextMedia

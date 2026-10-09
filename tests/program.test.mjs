@@ -8,6 +8,36 @@ import { createProgramStore } from '../server/program/store.mjs'
 import { createSongLibrary } from '../server/program/songLibrary.mjs'
 import { createProgramRoutes } from '../server/program/routes.mjs'
 import { createDefaultProgram } from '../shared/program.js'
+import { splitLyricPages } from '../server/program/lyrics.mjs'
+
+test('text lyrics preserve verse order and repeats, and limit projected page length', () => {
+  const text = '\uFEFFFirst line\r\nRepeat this line\r\nRepeat this line\r\n\r\nAnother verse'
+  assert.deepEqual(splitLyricPages(text), ['First line\nRepeat this line\nRepeat this line', 'Another verse'])
+  assert.deepEqual(splitLyricPages('  '), [])
+  const pages = splitLyricPages(Array.from({ length: 12 }, (_, index) => `Line ${index}`).join('\n'))
+  assert.equal(pages.length, 3)
+  assert.ok(pages.every((page) => page.split('\n').length <= 4))
+})
+
+test('Bible Truth folder songs match only their own lyric text or numbered pictures', async (t) => {
+  const { root, songs } = await fixture(t)
+  const legacy = path.join(root, 'existing')
+  const bible = path.join(legacy, 'BIBLE TRUTH KIDS SONGS')
+  await mkdir(path.join(bible, 'Lyrics', 'PICTURE SONG'), { recursive: true })
+  for (const title of ['TEXT SONG', 'PICTURE SONG', 'PENDING SONG']) await writeFile(path.join(bible, `${title}.mp3`), 'audio')
+  await writeFile(path.join(bible, 'Lyrics', 'TEXT SONG.txt'), 'Verified first verse\n\nVerified second verse')
+  await writeFile(path.join(bible, 'Lyrics', 'PICTURE SONG.txt'), 'Pictures take priority')
+  for (const name of ['10.png', '2.png']) await writeFile(path.join(bible, 'Lyrics', 'PICTURE SONG', name), 'picture')
+  const library = createSongLibrary({ root: songs, legacyRoot: legacy })
+  const entries = await library.scan()
+  const text = entries.find((entry) => entry.title === 'TEXT SONG')
+  assert.deepEqual(text.slides.map((slide) => slide.text), ['Verified first verse', 'Verified second verse'])
+  assert.equal(text.thumbnail, '')
+  assert.deepEqual(entries.find((entry) => entry.title === 'PICTURE SONG').slides.map((slide) => slide.name), ['2.png', '10.png'])
+  assert.deepEqual(entries.find((entry) => entry.title === 'PENDING SONG').slides, [])
+  assert.equal(await library.resolveMedia(text.mediaUrl.split('/').at(-1)), await realpath(path.join(bible, 'TEXT SONG.mp3')))
+  assert.equal((await library.scan()).find((entry) => entry.title === 'TEXT SONG').id, text.id)
+})
 
 test('default program follows the eleven requested parts and ends with Closing Prayer', () => {
   const program = createDefaultProgram()

@@ -1,17 +1,12 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 
-export default function SongPlayer({ song, playRequest = 0 }) {
+export default function SongPlayer({ song }) {
   const mediaRef = useRef(null)
   const [slide, setSlide] = useState(0)
   const [error, setError] = useState('')
   const [playing, setPlaying] = useState(false)
   const [failedImage, setFailedImage] = useState('')
   const image = song.slides[slide]
-
-  useEffect(() => {
-    if (!playRequest || !mediaRef.current) return
-    mediaRef.current.play().catch(() => setError('Press Play to start the song.'))
-  }, [playRequest])
 
   async function togglePlayback() {
     const media = mediaRef.current
@@ -30,10 +25,12 @@ export default function SongPlayer({ song, playRequest = 0 }) {
   return (
     <div className="program-song-player">
       <div className="program-screen program-lyrics-screen">
-        {song.mediaType === 'video' && song.mediaUrl ? <video {...mediaProps} className="program-video" /> : image && failedImage !== image.url ? (
+        {song.mediaType === 'video' && song.mediaUrl ? <video {...mediaProps} className="program-video" /> : image?.text ? (
+          <div className="program-text-lyrics" aria-live="polite"><span>{song.title}</span><p>{image.text}</p></div>
+        ) : image?.url && failedImage !== image.url ? (
           <img className="program-lyric-image" src={image.url} alt={`${song.title}, lyrics ${slide + 1}`} onError={() => setFailedImage(image.url)} />
         ) : (
-          <div className="program-title-slide"><span className="eyebrow">Praise &amp; Worship</span><h2>{song.title}</h2><p>{image && failedImage === image.url ? 'This lyric picture is unavailable.' : 'Lyric pictures can be added later.'}</p></div>
+          <div className="program-title-slide"><span className="eyebrow">Praise &amp; Worship</span><h2>{song.title}</h2><p>{image && failedImage === image.url ? 'This lyric picture is unavailable.' : 'Lyrics not added yet. Audio is ready to play.'}</p></div>
         )}
       </div>
       <div className="program-media-controls">
