@@ -11,30 +11,25 @@ lyrics but never starts playback; press **Play** to start the music.
 
 ## Adding songs
 
-The prepared song folder is:
+The only song source is:
 
-`E:\SUNDAY SCHOOL\JUNIOR WORSHIP\Aquarium Songs`
+`E:\SUNDAY SCHOOL\JUNIOR WORSHIP\BIBLE TRUTH KIDS SONGS`
 
-Use one folder for each song:
+Keep the audio files directly in this folder, with matched lyrics underneath:
 
 ```text
-Aquarium Songs/
-  Your Song Title/
-    Your Song Title.mp3
-    Lyrics/
+BIBLE TRUTH KIDS SONGS/
+  SONG TITLE.mp3
+  Lyrics/
+    SONG TITLE/
       01.jpg
       02.jpg
       03.jpg
 ```
 
-MP3, M4A, WAV and OGG audio, MP4/WebM video, and PNG/JPG/WebP lyric pictures
-are supported. Keep one audio track per folder. Pictures use numeric filename
-order. Empty template folders are ignored. Existing top-level audio and video
-in `JUNIOR WORSHIP` are referenced without moving or changing them.
-
-The library also reads every MP3 in:
-
-`E:\SUNDAY SCHOOL\JUNIOR WORSHIP\BIBLE TRUTH KIDS SONGS`
+MP3, M4A, WAV and OGG audio and PNG/JPG/WebP lyric pictures are supported.
+Pictures use numeric filename order. Videos, nested audio, Aquarium Songs, and
+tracks elsewhere in JUNIOR WORSHIP are excluded. No files are moved or deleted.
 
 Keep those MP3s in place. For each song, put its verified lyric text in
 `Lyrics/SONG TITLE.txt` inside that folder, or numbered lyric pictures in
@@ -63,8 +58,8 @@ controls. Moving to another program part stops the previous song.
 
 ## Storage and tests
 
-Back up both `local-data` and `Aquarium Songs`. Keep the original top-level media
-as well if it is used in a program. No internet connection is needed.
+Back up both `local-data` and `BIBLE TRUTH KIDS SONGS`, including its Lyrics
+folder. No internet connection is needed.
 
 Environment overrides for isolated tests or another installation:
 `AQUARIUM_PROGRAM_DATA_DIR`, `AQUARIUM_SONGS_DIR`, `AQUARIUM_LEGACY_SONGS_DIR`.

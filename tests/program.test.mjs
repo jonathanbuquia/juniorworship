@@ -20,7 +20,7 @@ test('text lyrics preserve verse order and repeats, and limit projected page len
 })
 
 test('Bible Truth folder songs match only their own lyric text or numbered pictures', async (t) => {
-  const { root, songs } = await fixture(t)
+  const { root } = await fixture(t)
   const legacy = path.join(root, 'existing')
   const bible = path.join(legacy, 'BIBLE TRUTH KIDS SONGS')
   await mkdir(path.join(bible, 'Lyrics', 'PICTURE SONG'), { recursive: true })
@@ -28,8 +28,11 @@ test('Bible Truth folder songs match only their own lyric text or numbered pictu
   await writeFile(path.join(bible, 'Lyrics', 'TEXT SONG.txt'), 'Verified first verse\n\nVerified second verse')
   await writeFile(path.join(bible, 'Lyrics', 'PICTURE SONG.txt'), 'Pictures take priority')
   for (const name of ['10.png', '2.png']) await writeFile(path.join(bible, 'Lyrics', 'PICTURE SONG', name), 'picture')
-  const library = createSongLibrary({ root: songs, legacyRoot: legacy })
+  await writeFile(path.join(legacy, 'OUTSIDE.mp3'), 'not a library song')
+  await writeFile(path.join(bible, 'VIDEO.mp4'), 'not a library song')
+  const library = createSongLibrary({ root: bible })
   const entries = await library.scan()
+  assert.equal(entries.length, 3, 'Ignore outside folders and videos')
   const text = entries.find((entry) => entry.title === 'TEXT SONG')
   assert.deepEqual(text.slides.map((slide) => slide.text), ['Verified first verse', 'Verified second verse'])
   assert.equal(text.thumbnail, '')
@@ -57,11 +60,13 @@ async function fixture(t) {
     return rm(root, { recursive: true, force: true })
   })
   const songs = path.join(root, 'songs')
-  const song = path.join(songs, 'Amazing Grace')
-  await mkdir(path.join(song, 'Lyrics'), { recursive: true })
+  const song = path.join(songs, 'Amazing Grace.mp3')
+  const lyrics = path.join(songs, 'Lyrics', 'Amazing Grace')
+  await mkdir(lyrics, { recursive: true })
   await mkdir(path.join(songs, 'Empty template'), { recursive: true })
-  await writeFile(path.join(song, 'song.mp3'), '0123456789')
-  for (const name of ['10.png', '2.png', '1.png']) await writeFile(path.join(song, 'Lyrics', name), 'picture')
+  await writeFile(path.join(songs, 'Empty template', 'NESTED.mp3'), 'ignored nested audio')
+  await writeFile(song, '0123456789')
+  for (const name of ['10.png', '2.png', '1.png']) await writeFile(path.join(lyrics, name), 'picture')
   return { root, songs, song }
 }
 
@@ -87,15 +92,15 @@ test('song library sorts lyrics numerically, keeps stable IDs and excludes empty
   assert.deepEqual(entries[0].slides.map((slide) => slide.name), ['1.png', '2.png', '10.png'])
   assert.equal((await library.scan())[0].id, entries[0].id)
   const mediaId = entries[0].mediaUrl.split('/').at(-1)
-  assert.equal(await library.resolveMedia(mediaId), await realpath(path.join(song, 'song.mp3')))
+  assert.equal(await library.resolveMedia(mediaId), await realpath(song))
   assert.equal(await library.resolveMedia('../../program.json'), null)
-  await rm(path.join(song, 'song.mp3'))
+  await rm(song)
   assert.equal(await library.resolveMedia(mediaId), null)
 })
 
 test('program API persists edits and streams seekable media with byte ranges', async (t) => {
   const { root, songs } = await fixture(t)
-  const handle = createProgramRoutes({ dataDirectory: root, songsDirectory: songs, legacyDirectory: '' })
+  const handle = createProgramRoutes({ dataDirectory: root, songsDirectory: songs })
   const server = http.createServer(async (req, res) => {
     if (!await handle(req, res, new URL(req.url, 'http://localhost'))) { res.writeHead(404); res.end() }
   })

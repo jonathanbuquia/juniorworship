@@ -12,7 +12,7 @@ const temporary = await mkdtemp(path.join(os.tmpdir(), 'aquarium-program-ui-'))
 process.env.AQUARIUM_PROGRAM_DATA_DIR = path.join(temporary, 'data')
 process.env.AQUARIUM_SONGS_DIR = path.join(temporary, 'songs')
 process.env.AQUARIUM_LEGACY_SONGS_DIR = path.join(temporary, 'existing')
-const lyrics = path.join(process.env.AQUARIUM_SONGS_DIR, 'Amazing Grace', 'Lyrics')
+const lyrics = path.join(process.env.AQUARIUM_SONGS_DIR, 'Lyrics', 'Amazing Grace')
 await mkdir(lyrics, { recursive: true })
 const picture = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a9WQAAAAASUVORK5CYII=', 'base64')
 for (const name of ['01.png', '02.png']) await writeFile(path.join(lyrics, name), picture)
@@ -23,8 +23,8 @@ wav.write('RIFF'); wav.writeUInt32LE(wav.length - 8, 4); wav.write('WAVEfmt ', 8
 wav.writeUInt32LE(16, 16); wav.writeUInt16LE(1, 20); wav.writeUInt16LE(1, 22)
 wav.writeUInt32LE(8000, 24); wav.writeUInt32LE(16000, 28); wav.writeUInt16LE(2, 32)
 wav.writeUInt16LE(16, 34); wav.write('data', 36); wav.writeUInt32LE(samples * 2, 40)
-await writeFile(path.join(lyrics, '..', 'song.wav'), wav)
-const bible = path.join(process.env.AQUARIUM_LEGACY_SONGS_DIR, 'BIBLE TRUTH KIDS SONGS')
+await writeFile(path.join(process.env.AQUARIUM_SONGS_DIR, 'Amazing Grace.wav'), wav)
+const bible = process.env.AQUARIUM_SONGS_DIR
 await mkdir(path.join(bible, 'Lyrics'), { recursive: true })
 await writeFile(path.join(bible, 'TEST WORSHIP.wav'), wav)
 await writeFile(path.join(bible, 'NO LYRICS.wav'), wav)
@@ -90,6 +90,7 @@ try {
 
   // Existing program songs remain usable even though customization is removed.
   const { songs } = await (await fetch(`${server.url}/api/program/songs`)).json()
+  assert.equal(songs.length, 3)
   const savedProgram = createDefaultProgram()
   savedProgram.updatedAt = Date.now()
   savedProgram.items.splice(1, 0, { id: 'test-song', kind: 'song', title: songs[0].title, songId: songs[0].id })

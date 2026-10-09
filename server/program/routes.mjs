@@ -1,11 +1,11 @@
 import { createProgramStore } from './store.mjs'
 import { createSongLibrary } from './songLibrary.mjs'
 import { streamProgramMedia } from './media.mjs'
-import { PROGRAM_DATA_DIR, SONGS_DIR, LEGACY_SONGS_DIR } from './config.mjs'
+import { PROGRAM_DATA_DIR, SONGS_DIR } from './config.mjs'
 
-export function createProgramRoutes({ dataDirectory = PROGRAM_DATA_DIR, songsDirectory = SONGS_DIR, legacyDirectory = LEGACY_SONGS_DIR } = {}) {
+export function createProgramRoutes({ dataDirectory = PROGRAM_DATA_DIR, songsDirectory = SONGS_DIR } = {}) {
   const store = createProgramStore(dataDirectory)
-  const library = createSongLibrary({ root: songsDirectory, legacyRoot: legacyDirectory })
+  const library = createSongLibrary({ root: songsDirectory })
   function json(res, status, data) {
     res.writeHead(status, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' })
     res.end(JSON.stringify(data))
