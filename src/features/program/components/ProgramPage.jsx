@@ -14,8 +14,9 @@ export default function ProgramPage({ onOpenActivity }) {
   const [selectedId, setSelectedId] = useState(readSelectedId)
   const selectedIndex = Math.max(0, program?.items.findIndex((item) => item.id === selectedId) ?? 0)
   const selected = program?.items[selectedIndex]
-  const song = library.songs.find((entry) => entry.id === selected?.songId)
-  const isSongSection = selected?.kind === 'song' || ['song-1', 'song-2'].includes(selected?.id)
+  const isOffering = selected?.id === 'offering'
+  const song = isOffering ? library.offeringSong : library.songs.find((entry) => entry.id === selected?.songId)
+  const isSongSection = !isOffering && (selected?.kind === 'song' || ['song-1', 'song-2'].includes(selected?.id))
 
   function selectSong(songId) {
     if (!library.songs.some((entry) => entry.id === songId)) return

@@ -9,6 +9,26 @@ import { createSongLibrary } from '../server/program/songLibrary.mjs'
 import { createProgramRoutes } from '../server/program/routes.mjs'
 import { createDefaultProgram } from '../shared/program.js'
 import { splitLyricPages } from '../server/program/lyrics.mjs'
+import { loadOfferingSong } from '../server/program/offeringSong.mjs'
+
+test('numbered lyrics keep complete pages without projecting the page markers', () => {
+  const first = 'First line\nSecond line\nThird line\nFourth line\nFifth line'
+  assert.deepEqual(splitLyricPages(`\uFEFF1\r\n${first}\n\n2\nNext verse\n\nRepeated verse\n3\n`), [first, 'Next verse\n\nRepeated verse'])
+  assert.deepEqual(splitLyricPages(`1\n${first}`), [first])
+  assert.deepEqual(splitLyricPages('1\n2\n'), [])
+  assert.deepEqual(splitLyricPages('Intro\n  1  \nPage one\n  2  \nPage two'), ['Intro', 'Page one', 'Page two'])
+})
+
+test('offering track is optional and does not discover unrelated files', async (t) => {
+  const { root } = await fixture(t)
+  const filename = path.join(root, 'TITHES.mp3')
+  assert.equal(await loadOfferingSong(filename), null)
+  await writeFile(filename, '')
+  assert.equal(await loadOfferingSong(filename), null)
+  await writeFile(filename, 'offering audio')
+  assert.equal((await loadOfferingSong(filename)).mediaUrl, '/media/program/offering')
+  assert.equal(await loadOfferingSong(root), null)
+})
 
 test('text lyrics preserve verse order and repeats, and limit projected page length', () => {
   const text = '\uFEFFFirst line\r\nRepeat this line\r\nRepeat this line\r\n\r\nAnother verse'
@@ -100,7 +120,9 @@ test('song library sorts lyrics numerically, keeps stable IDs and excludes empty
 
 test('program API persists edits and streams seekable media with byte ranges', async (t) => {
   const { root, songs } = await fixture(t)
-  const handle = createProgramRoutes({ dataDirectory: root, songsDirectory: songs })
+  const offeringSongPath = path.join(root, 'TITHES.mp3')
+  await writeFile(offeringSongPath, 'offering audio')
+  const handle = createProgramRoutes({ dataDirectory: root, songsDirectory: songs, offeringSongPath })
   const server = http.createServer(async (req, res) => {
     if (!await handle(req, res, new URL(req.url, 'http://localhost'))) { res.writeHead(404); res.end() }
   })
@@ -113,7 +135,16 @@ test('program API persists edits and streams seekable media with byte ranges', a
   assert.deepEqual((await (await fetch(`${base}/api/program`)).json()).program, program)
   const crossSite = await fetch(`${base}/api/program`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Sec-Fetch-Site': 'cross-site' }, body: JSON.stringify(program) })
   assert.equal(crossSite.status, 403)
-  const { songs: entries } = await (await fetch(`${base}/api/program/songs`)).json()
+  const { songs: entries, offeringSong } = await (await fetch(`${base}/api/program/songs`)).json()
+  assert.equal(entries.length, 1, 'Offering music stays outside the worship selector')
+  const offeringUrl = base + offeringSong.mediaUrl
+  const offering = await fetch(offeringUrl, { headers: { Range: 'bytes=0-7' } })
+  assert.equal(offering.status, 206)
+  assert.equal(await offering.text(), 'offering')
+  assert.equal((await fetch(offeringUrl, { method: 'HEAD' })).headers.get('content-type'), 'audio/mpeg')
+  await rm(offeringSongPath)
+  assert.equal((await fetch(offeringUrl)).status, 404)
+  assert.equal((await (await fetch(`${base}/api/program/songs`)).json()).offeringSong, null)
   const url = base + entries[0].mediaUrl
   const partial = await fetch(url, { headers: { Range: 'bytes=2-5' } })
   assert.equal(partial.status, 206)

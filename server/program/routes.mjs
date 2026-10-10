@@ -1,9 +1,10 @@
 import { createProgramStore } from './store.mjs'
 import { createSongLibrary } from './songLibrary.mjs'
 import { streamProgramMedia } from './media.mjs'
-import { PROGRAM_DATA_DIR, SONGS_DIR } from './config.mjs'
+import { loadOfferingSong } from './offeringSong.mjs'
+import { OFFERING_SONG_PATH, PROGRAM_DATA_DIR, SONGS_DIR } from './config.mjs'
 
-export function createProgramRoutes({ dataDirectory = PROGRAM_DATA_DIR, songsDirectory = SONGS_DIR } = {}) {
+export function createProgramRoutes({ dataDirectory = PROGRAM_DATA_DIR, songsDirectory = SONGS_DIR, offeringSongPath = OFFERING_SONG_PATH } = {}) {
   const store = createProgramStore(dataDirectory)
   const library = createSongLibrary({ root: songsDirectory })
   function json(res, status, data) {
@@ -14,9 +15,11 @@ export function createProgramRoutes({ dataDirectory = PROGRAM_DATA_DIR, songsDir
     if (!['/api/program', '/api/program/songs'].includes(url.pathname) && !url.pathname.startsWith('/media/program/')) return false
     try {
       if (url.pathname.startsWith('/media/program/') && ['GET', 'HEAD'].includes(req.method)) {
-        await streamProgramMedia(req, res, await library.resolveMedia(url.pathname.slice('/media/program/'.length)))
+        const filename = url.pathname === '/media/program/offering'
+          ? offeringSongPath : await library.resolveMedia(url.pathname.slice('/media/program/'.length))
+        await streamProgramMedia(req, res, filename)
       } else if (url.pathname === '/api/program/songs' && req.method === 'GET') {
-        json(res, 200, { songs: await library.scan(), folder: songsDirectory })
+        json(res, 200, { songs: await library.scan(), folder: songsDirectory, offeringSong: await loadOfferingSong(offeringSongPath) })
       } else if (url.pathname === '/api/program' && req.method === 'GET') {
         json(res, 200, { program: await store.load() })
       } else if (url.pathname === '/api/program' && req.method === 'PUT') {

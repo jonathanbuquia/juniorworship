@@ -44,12 +44,15 @@ export default function ProgramStage({ item, song, title, navigation, songContro
         </button>
       </header>
       {songControls}
-      {item?.kind === 'song' && song ? <SongPlayer key={`${item.id}:${song.id}`} song={song} /> : (
+      {(item?.kind === 'song' || item?.id === 'offering') && song ? (
+        <SongPlayer key={`${item.id}:${song.id}`} song={song} intro={item.id === 'offering' ? { eyebrow: title, subtitle: 'Press Play to begin the offering song.' } : undefined} />
+      ) : (
         <div className="program-screen">
           <div className="program-title-slide">
             <span className="eyebrow">{title}</span>
             <h2>{item?.title || 'Your program starts here'}</h2>
             {item?.kind === 'song' ? <p>This song is missing. Restore its folder, then refresh songs.</p> : <p>{songControls ? 'Choose a song above. Press Play when you are ready.' : item?.subtitle || ''}</p>}
+            {item?.id === 'offering' ? <p>Offering music unavailable. Check TITHES.mp3 in the JUNIOR WORSHIP folder, then reopen Program.</p> : null}
             {item?.id === 'welcome' ? <span className="program-date">{new Intl.DateTimeFormat('en', { dateStyle: 'full' }).format(new Date())}</span> : null}
             {activity ? <button type="button" className="primary-button" onClick={openActivity}>Open {activity.title}</button> : null}
           </div>

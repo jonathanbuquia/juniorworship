@@ -39,7 +39,7 @@
 .program-lyrics-screen { container-type: size; }
 .program-text-lyrics { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 5%; text-align: center; }
 .program-text-lyrics > span { font-size: clamp(0.65rem, 1.4cqw, 1rem); letter-spacing: 0.1em; text-transform: uppercase; color: #477186; }
-.program-text-lyrics p { margin: 0; white-space: pre-line; overflow-wrap: anywhere; font-size: clamp(0.78rem, 3.6cqw, 3.8rem); font-weight: 750; line-height: 1.4; }
+.program-text-lyrics p { margin: 0; white-space: pre-line; overflow-wrap: anywhere; font-size: min(3.6cqw, var(--lyric-height-fit), var(--lyric-width-fit), 3.8rem); font-weight: 750; line-height: 1.4; }
 .program-screen {
   width: 100%;
   aspect-ratio: 16 / 9;
@@ -64,6 +64,8 @@
 .program-media-controls { flex-wrap: wrap; }
 .program-media-controls audio { flex: 1; min-width: 180px; height: 40px; }
 .program-slide-controls { margin-left: auto; flex-wrap: wrap; justify-content: center; font-variant-numeric: tabular-nums; }
+.program-stage .program-lyric-arrow { width: 44px; height: 44px; padding: 10px; display: grid; place-items: center; }
+.program-lyric-arrow svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .program-stage button:disabled { cursor: not-allowed; opacity: 0.45; }
 .program-stage button:focus-visible, .program-stage select:focus-visible { outline: 3px solid #27a8c0; outline-offset: 2px; }
 .program-stage:fullscreen { padding: 18px; background: #edf6fa; color: #153e55; display: flex; flex-direction: column; overflow: auto; }

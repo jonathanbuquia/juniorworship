@@ -2,7 +2,15 @@ import { readFile, realpath, stat } from 'node:fs/promises'
 import path from 'node:path'
 
 export function splitLyricPages(text) {
-  return text.replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n').trim().split(/\n\s*\n/)
+  const normalized = text.replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n').trim()
+  // Standalone page numbers are boundaries, not words to project. Keep the
+  // author's entire numbered page together, including stanza breaks.
+  if (/^\s*\d+\s*$/m.test(normalized)) {
+    return normalized.split(/^[\t ]*\d+[\t ]*$/m)
+      .map((page) => page.trim().split('\n').map((line) => line.trim()).join('\n'))
+      .filter(Boolean)
+  }
+  return normalized.split(/\n\s*\n/)
     .filter(Boolean).flatMap((verse) => {
       const lines = verse.split('\n').flatMap((line) => {
         const wrapped = []
