@@ -1,4 +1,6 @@
 import { useRef, useState } from 'react'
+import { useLyricFontSize } from '../hooks/useLyricFontSize.js'
+import LyricFontControls from './LyricFontControls.jsx'
 
 export default function SongPlayer({ song, intro }) {
   const mediaRef = useRef(null)
@@ -6,11 +8,13 @@ export default function SongPlayer({ song, intro }) {
   const [error, setError] = useState('')
   const [playing, setPlaying] = useState(false)
   const [failedImage, setFailedImage] = useState('')
+  const font = useLyricFontSize(song.id)
   const currentSlide = Math.min(slide, Math.max(0, song.slides.length - 1))
   const image = song.slides[currentSlide]
   // Fit explicit pages without splitting the author's chosen page boundaries.
   const lines = image?.text?.split('\n') || []
   const textStyle = {
+    '--lyric-scale': font.size / 100,
     '--lyric-height-fit': `${65 / Math.max(1, lines.length) / 1.4}cqh`,
     '--lyric-width-fit': `${155 / Math.max(1, ...lines.map((line) => line.length))}cqw`,
   }
@@ -43,6 +47,7 @@ export default function SongPlayer({ song, intro }) {
       <div className="program-media-controls">
         {song.mediaUrl ? <button type="button" className="primary-button compact-button" onClick={togglePlayback}>{playing ? 'Pause' : 'Play'}</button> : <span className="panel-note">Add an MP3 to play this song.</span>}
         {song.mediaType !== 'video' && song.mediaUrl ? <audio {...mediaProps} aria-label={`Audio for ${song.title}`} /> : null}
+        {image?.text && song.mediaType !== 'video' ? <LyricFontControls {...font} /> : null}
         {song.slides.length > 0 && song.mediaType !== 'video' ? (
           <div className="program-slide-controls">
             {currentSlide > 0 ? <button type="button" className="ghost-button compact-button program-lyric-arrow" aria-label="Previous lyric" title="Previous lyric" onClick={() => setSlide(currentSlide - 1)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 6-6 6 6 6" /></svg></button> : null}

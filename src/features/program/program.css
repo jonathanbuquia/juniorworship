@@ -37,9 +37,9 @@
 .program-song-picker-fields select { flex-grow: 2; }
 .program-song-picker-note { color: #527385; font-size: 0.75rem; line-height: 1.4; }
 .program-lyrics-screen { container-type: size; }
-.program-text-lyrics { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 5%; text-align: center; }
-.program-text-lyrics > span { font-size: clamp(0.65rem, 1.4cqw, 1rem); letter-spacing: 0.1em; text-transform: uppercase; color: #477186; }
-.program-text-lyrics p { margin: 0; white-space: pre-line; overflow-wrap: anywhere; font-size: min(3.6cqw, var(--lyric-height-fit), var(--lyric-width-fit), 3.8rem); font-weight: 750; line-height: 1.4; }
+.program-text-lyrics { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: safe center; gap: 12px; padding: 5%; text-align: center; overflow: auto; }
+.program-text-lyrics > span { flex-shrink: 0; font-size: clamp(0.65rem, 1.4cqw, 1rem); letter-spacing: 0.1em; text-transform: uppercase; color: #477186; }
+.program-text-lyrics p { flex-shrink: 0; max-width: 100%; margin: 0; white-space: pre-line; overflow-wrap: anywhere; font-size: calc(min(3.6cqw, var(--lyric-height-fit), var(--lyric-width-fit), 3.8rem) * var(--lyric-scale, 1)); font-weight: 750; line-height: 1.4; }
 .program-screen {
   width: 100%;
   aspect-ratio: 16 / 9;
@@ -64,6 +64,8 @@
 .program-media-controls { flex-wrap: wrap; }
 .program-media-controls audio { flex: 1; min-width: 180px; height: 40px; }
 .program-slide-controls { margin-left: auto; flex-wrap: wrap; justify-content: center; font-variant-numeric: tabular-nums; }
+.program-font-controls { display: flex; align-items: center; gap: 4px; font-variant-numeric: tabular-nums; }
+.program-stage .program-font-controls > button { width: auto; min-width: 44px; min-height: 44px; padding: 8px 10px; }
 .program-stage .program-lyric-arrow { width: 44px; height: 44px; padding: 10px; display: grid; place-items: center; }
 .program-lyric-arrow svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .program-stage button:disabled { cursor: not-allowed; opacity: 0.45; }

@@ -61,6 +61,10 @@ the smaller in-app view on exactly the same page. Entering/exiting fullscreen
 does not recreate the presentation or restart a song or its lyric slide. Use
 **Previous lyric** and **Next lyric** to change lyrics while the music continues.
 These arrow buttons only appear when that previous/next lyric page exists.
+For text lyrics, use **A-** / **A+** to change the font size from 50% to 200%.
+Click the percentage to reset to 100%. Each song remembers its size on this
+device after reopening. Enlarged pages can scroll if needed. These controls
+do not change the music or lyric page and are not shown for lyric pictures.
 Selecting a different song stops the previous one and waits for **Play** again.
 
 **Tithes and Offering** has its own Play/Pause and audio controls, using only
