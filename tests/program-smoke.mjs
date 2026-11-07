@@ -128,6 +128,7 @@ try {
 
   await page.setViewportSize({ width: 1440, height: 900 })
   await page.getByLabel('Jump to program part').selectOption('song-1')
+  assert.deepEqual(await page.getByLabel('Choose a song').locator('option:not([disabled])').allTextContents(), ['Amazing Grace', 'TEST WORSHIP', 'NO LYRICS - Pending'])
   await page.getByLabel('Search songs').fill('test worship')
   assert.equal(await page.getByLabel('Choose a song').locator('option:not([disabled])').count(), 1)
   const textSong = songs.find((song) => song.title === 'TEST WORSHIP')

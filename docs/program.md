@@ -48,7 +48,8 @@ Numbered pages stay together, including stanza breaks, and the numbers are not
 projected. Text without page numbers uses blank lines and automatic short pages.
 The supplied words, order, and repeats are preserved. Pictures take
 priority when both formats exist. No lyric transcription or automatic timing
-is performed. Songs without verified lyrics are labeled **Lyrics pending**.
+is performed. The picker lists songs with lyrics first, then songs without
+lyrics marked **Pending**. Each group is alphabetical, including during search.
 
 Click **Refresh songs** in either song section after adding lyrics. Keep folder
 and track names stable for songs already selected in a program.
