@@ -39,6 +39,13 @@ export function adjustPlayerGold(accessToken, payload) {
   })
 }
 
+export function setPlayerAttendanceVisibility(accessToken, playerId, hidden) {
+  return requestJson('/api/player-attendance-visibility', {
+    method: 'POST', headers: createAuthHeaders(accessToken),
+    body: JSON.stringify({ playerId, hidden }),
+  })
+}
+
 export function deletePlayer(accessToken, playerId) {
   return requestJson('/api/delete-player', {
     method: 'POST',

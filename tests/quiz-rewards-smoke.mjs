@@ -6,6 +6,7 @@ import path from 'node:path'
 import { createRequire } from 'node:module'
 import { startLocalServer } from '../local-server.mjs'
 import { MAY_EVENT_BETTA_SLUG } from '../shared/shopCatalog.js'
+import { getAttendanceDateKey } from '../src/features/attendance/rewardAttendance.js'
 
 const require = createRequire(import.meta.url)
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright')
@@ -13,7 +14,8 @@ const temporary = await mkdtemp(path.join(os.tmpdir(), 'aquarium-quiz-ui-'))
 const filename = path.join(temporary, 'sunday-school.json')
 await writeFile(filename, JSON.stringify({
   players: ['Ada', 'Ben', 'Cara'].map((name) => ({ id: name, display_name: name, gold: 100, role: 'player' })),
-  inventory: [{ user_id: 'Ada', item_slug: MAY_EVENT_BETTA_SLUG, quantity: 1 }], attendance: {},
+  inventory: [{ user_id: 'Ada', item_slug: MAY_EVENT_BETTA_SLUG, quantity: 1 }],
+  attendance: Object.fromEntries(['Ada', 'Ben', 'Cara'].map((id) => [`${id}:${getAttendanceDateKey()}`, true])),
 }))
 const server = await startLocalServer({ port: 0, dataDirectory: temporary })
 const browser = await chromium.launch({ channel: 'msedge', headless: true })

@@ -220,7 +220,7 @@ export default function MemoryVersePage({
                 ))}
               </div>
             ) : (
-              <p className="panel-note">Create player accounts first so you can reward them here.</p>
+              <p className="panel-note">No players are marked present today. Update Attendance first.</p>
             )}
 
             {playersMessage.text ? <p className={`status-line ${playersMessage.type}`}>{playersMessage.text}</p> : null}

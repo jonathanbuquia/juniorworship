@@ -115,6 +115,7 @@ function publicPlayer(player) {
     created_at: player.created_at,
     display_name: player.display_name,
     gold: Number(player.gold || 0),
+    attendance_hidden: player.attendance_hidden === true,
     id: player.id,
     login_name: player.login_name ?? null,
     role: 'player',
@@ -354,6 +355,18 @@ async function handleApi(req, res, url, data, writeData) {
         id: player.id,
       },
     })
+  }
+
+  if (route === 'POST /api/player-attendance-visibility') {
+    const adminResult = requireAdmin(req, data)
+    if (adminResult.error) return sendJson(res, adminResult.status, { error: adminResult.error })
+    const body = await readBody(req)
+    if (typeof body.hidden !== 'boolean') return sendJson(res, 400, { error: 'Hidden must be true or false.' })
+    const player = getPlayerById(data, String(body.playerId || '').trim())
+    if (!player) return sendJson(res, 404, { error: 'That player could not be found.' })
+    player.attendance_hidden = body.hidden
+    await writeData(data)
+    return sendJson(res, 200, { player: publicPlayer(player) })
   }
 
   if (route === 'POST /api/adjust-player-gold') {

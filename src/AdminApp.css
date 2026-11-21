@@ -1451,6 +1451,10 @@
   color: #5f8093;
 }
 
+.player-visibility-list { display: grid; gap: 10px; max-height: 65dvh; overflow-y: auto; }
+.player-visibility-list .player-preview-row > div { display: grid; gap: 4px; min-width: 0; overflow-wrap: anywhere; }
+.player-visibility-list button { width: auto; flex-shrink: 0; }
+
 .player-browser-list {
   max-height: 420px;
   overflow: auto;

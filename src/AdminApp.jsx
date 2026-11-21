@@ -40,6 +40,8 @@ import ProfilesPage from './features/players/components/ProfilesPage.jsx'
 import ProgramPage from './features/program/components/ProgramPage.jsx'
 import QuizPage from './features/quiz/components/QuizPage.jsx'
 import { useQuizState } from './features/quiz/hooks/useQuizState.js'
+import { useRewardPlayers } from './features/attendance/hooks/useRewardPlayers.js'
+import { fetchPresentRewardPlayers } from './services/api/rewardPlayersService.js'
 import { buildQuizAwards, settleQuizAwards } from './features/quiz/quizRewards.js'
 import {
   HERMIT_CRAB_MEMORY_BONUS,
@@ -237,6 +239,11 @@ export default function AdminApp() {
   const viewingProfiles = pathname === PROFILES_PATH
   const viewingProgram = pathname === PROGRAM_PATH
   const viewingQuiz = pathname === QUIZ_PATH
+  const rewardPlayers = useRewardPlayers({
+    enabled: isAdmin && (viewingMemory || viewingQuiz),
+    refreshKey: `${pathname}:${memoryRewardsOpen}:${quizRewardsOpen}`,
+    players,
+  })
   const viewingShop = pathname === SHOP_PATH
   const viewingHome = pathname === DEFAULT_PATH
   const readyForProtectedView = !authLoading && !profileLoading && session && profile
@@ -818,6 +825,11 @@ export default function AdminApp() {
         throw new Error('Sign in as admin to reward players.')
       }
 
+      const presentPlayers = await fetchPresentRewardPlayers()
+      if (!presentPlayers.some((player) => player.id === playerId)) {
+        throw new Error('This player must be visible and marked present in today\'s attendance before receiving a reward.')
+      }
+
       const aquarium = await fetchPlayerAquarium(playerId)
       const ownsHermitCrab = (aquarium.fish ?? []).some(
         (item) => item.slug === HERMIT_CRAB_SLUG && Number(item.quantity) > 0,
@@ -912,7 +924,8 @@ export default function AdminApp() {
         MEMORY_VERSE_QUIZ_POINTS,
       )
       const todayKey = createLocalDateKey()
-      const awards = buildQuizAwards(players, quizAwardScores, perfectQuizScore)
+      const presentPlayers = await fetchPresentRewardPlayers()
+      const awards = buildQuizAwards(presentPlayers, quizAwardScores, perfectQuizScore)
       const { completed, failed } = await settleQuizAwards(
         awards, async ({ amount, player, score }) => {
           let bonusAwarded = false
@@ -1338,7 +1351,7 @@ export default function AdminApp() {
                 canEdit
                 loadPlayerAquarium={fetchPlayerAquarium}
                 onAttendanceChange={handleAttendanceChange}
-                players={players.length ? players : publicPlayers}
+                players={(players.length ? players : publicPlayers).filter((player) => !player.attendance_hidden)}
               />
             </div>
           ) : null}
@@ -1382,9 +1395,9 @@ export default function AdminApp() {
                 onToggleMemoryControls={() => setMemoryControlsOpen((current) => !current)}
                 onToggleMemoryFullscreen={handleToggleMemoryFullscreen}
                 onUndoCover={handleUndoCover}
-                players={players}
-                playersLoading={playersLoading}
-                playersMessage={playersMessage}
+                players={rewardPlayers.players}
+                playersLoading={playersLoading || rewardPlayers.loading}
+                playersMessage={rewardPlayers.message.text ? rewardPlayers.message : playersMessage}
                 verseAwardResult={verseAwardResult}
               />
             </div>
@@ -1413,9 +1426,9 @@ export default function AdminApp() {
                 onQuizQuestionChange={handleQuizQuestionChange}
                 onStartQuiz={handleStartQuiz}
                 onToggleQuizFullscreen={handleToggleQuizFullscreen}
-                players={players}
-                playersLoading={playersLoading}
-                playersMessage={playersMessage}
+                players={rewardPlayers.players}
+                playersLoading={playersLoading || rewardPlayers.loading}
+                playersMessage={rewardPlayers.message.text ? rewardPlayers.message : playersMessage}
                 quizAnswersOpen={quizAnswersOpen}
                 quizAwardPendingPlayerId={quizAwardPendingPlayerId}
                 quizAwardResult={quizAwardResult}
@@ -1459,6 +1472,8 @@ export default function AdminApp() {
           {viewingAdmin && readyForProtectedView && isAdmin ? (
             <div className="admin-stage">
               <AdminPanel
+                accessToken={accessToken}
+                onPlayerUpdated={applyPlayerUpdate}
                 adminSection={adminSection}
                 createPlayerForm={createPlayerForm}
                 createPlayerPending={createPlayerPending}

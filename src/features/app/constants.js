@@ -10,6 +10,7 @@ export const SHOP_PATH = '/shop'
 export const ADMIN_SECTIONS = {
   createPlayer: 'create-player',
   manageGold: 'manage-gold',
+  hidePlayers: 'hide-players',
   deletePlayer: 'delete-player',
 }
 

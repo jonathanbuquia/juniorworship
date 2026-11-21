@@ -267,7 +267,7 @@ export default function AttendancePage({ accessToken = '', canEdit = false, load
             ) : (
               <tr>
                 <td className="attendance-empty-cell" colSpan={sundayColumns.length + 1}>
-                  No players yet.
+                  No visible players. Add or unhide players in Player Controls.
                 </td>
               </tr>
             )}

@@ -1,5 +1,6 @@
 import { ADMIN_SECTIONS, QUICK_GOLD_ACTIONS } from '../../app/constants.js'
 import { formatGoldChange } from '../../app/utils.js'
+import PlayerVisibilitySection from './PlayerVisibilitySection.jsx'
 
 function CreatePlayerSection({
   createPlayerForm,
@@ -285,6 +286,8 @@ function DeletePlayerSection({
 }
 
 export default function AdminPanel({
+  accessToken,
+  onPlayerUpdated,
   adminSection,
   createPlayerForm,
   createPlayerPending,
@@ -340,6 +343,15 @@ export default function AdminPanel({
           </button>
 
           <button
+            className={`sidebar-nav-item ${adminSection === ADMIN_SECTIONS.hidePlayers ? 'active' : ''}`}
+            onClick={() => onSectionChange(ADMIN_SECTIONS.hidePlayers)}
+            type="button"
+          >
+            <span>Hide / Unhide players</span>
+            <small>Manage attendance visibility</small>
+          </button>
+
+          <button
             className={`sidebar-nav-item ${adminSection === ADMIN_SECTIONS.deletePlayer ? 'active' : ''}`}
             onClick={() => onSectionChange(ADMIN_SECTIONS.deletePlayer)}
             type="button"
@@ -380,6 +392,8 @@ export default function AdminPanel({
             playersMessage={playersMessage}
             selectedPlayer={selectedPlayer}
           />
+        ) : adminSection === ADMIN_SECTIONS.hidePlayers ? (
+          <PlayerVisibilitySection accessToken={accessToken} onPlayerUpdated={onPlayerUpdated} players={players} playersLoading={playersLoading} />
         ) : (
           <DeletePlayerSection
             deletePending={deletePending}
