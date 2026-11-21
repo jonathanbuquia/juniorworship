@@ -106,7 +106,7 @@ export default function QuizPage({
   const quizStarted = quizCurrentIndex >= 0
   const isLastQuestion = quizStarted && quizCurrentIndex === quizItems.length - 1
   const hasAwardScores = useMemo(
-    () => players.some((player) => String(quizAwardScores[player.id] || '').trim()),
+    () => players.some((player) => String(quizAwardScores[player.id] ?? '').trim()),
     [players, quizAwardScores],
   )
 
@@ -338,7 +338,7 @@ export default function QuizPage({
             ) : players.length ? (
               <div className="quiz-reward-list">
                 {players.map((player) => {
-                  const score = quizAwardScores[player.id] || ''
+                  const score = quizAwardScores[player.id] ?? ''
                   const gold = getQuizAwardGold(score)
 
                   return (
@@ -350,6 +350,7 @@ export default function QuizPage({
                       <label className="field quiz-reward-score-field">
                         <span>Score</span>
                         <input
+                          disabled={Boolean(quizAwardPendingPlayerId)}
                           inputMode="numeric"
                           onChange={(event) => onQuizAwardChange(player.id, event.target.value)}
                           value={score}

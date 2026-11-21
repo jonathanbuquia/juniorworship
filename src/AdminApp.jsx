@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import './AdminApp.css'
 import AquariumScene from './components/AquariumScene'
 import AdminPanel from './features/admin/components/AdminPanel.jsx'
@@ -10,7 +10,6 @@ import {
   ATTENDANCE_PATH,
   BOOKS_GAME_GOLD_REWARD,
   BOOKS_PATH,
-  GOLD_PER_QUIZ_POINT,
   MEMORY_VERSE_GOLD_REWARD,
   MEMORY_VERSE_QUIZ_POINTS,
   MEMORY_PATH,
@@ -41,13 +40,14 @@ import ProfilesPage from './features/players/components/ProfilesPage.jsx'
 import ProgramPage from './features/program/components/ProgramPage.jsx'
 import QuizPage from './features/quiz/components/QuizPage.jsx'
 import { useQuizState } from './features/quiz/hooks/useQuizState.js'
+import { buildQuizAwards, settleQuizAwards } from './features/quiz/quizRewards.js'
 import {
   HERMIT_CRAB_MEMORY_BONUS,
   HERMIT_CRAB_SLUG,
   MAY_EVENT_BETTA_SLUG,
   SHOP_CATEGORIES,
 } from '../shared/shopCatalog.js'
-import { createEmptyQuizAwardScores, getQuizQuestionPoints, parseQuizDraftText } from './features/quiz/quizUtils.js'
+import { getQuizQuestionPoints, parseQuizDraftText } from './features/quiz/quizUtils.js'
 import MaySpecialAnnouncement from './features/shop/components/MaySpecialAnnouncement.jsx'
 import ShopPage from './features/shop/components/ShopPage.jsx'
 import { bootstrapAdminAccount, loginAdmin } from './services/api/authService.js'
@@ -210,6 +210,7 @@ export default function AdminApp() {
   const [awardPendingPlayerId, setAwardPendingPlayerId] = useState('')
   const [booksAwardPendingPlayerId, setBooksAwardPendingPlayerId] = useState('')
   const [quizAwardPendingPlayerId, setQuizAwardPendingPlayerId] = useState('')
+  const quizAwardInFlight = useRef(false)
   const [loginForm, setLoginForm] = useState({
     loginName: '',
     password: '',
@@ -896,6 +897,8 @@ export default function AdminApp() {
   }
 
   const handleAwardQuizGold = async () => {
+    if (quizAwardInFlight.current) return
+    quizAwardInFlight.current = true
     setQuizAwardResult(createEmptyMessage())
     setQuizAwardPendingPlayerId('all')
 
@@ -909,32 +912,9 @@ export default function AdminApp() {
         MEMORY_VERSE_QUIZ_POINTS,
       )
       const todayKey = createLocalDateKey()
-      const awards = players
-        .map((player) => ({
-          player,
-          rawScore: String(quizAwardScores[player.id] || '').trim(),
-        }))
-        .filter(({ rawScore }) => rawScore)
-        .map(({ player, rawScore }) => {
-          const score = Number(rawScore)
-
-          if (!Number.isInteger(score) || score <= 0) {
-            throw new Error(`Enter a whole score greater than zero for ${player.display_name}.`)
-          }
-
-          return {
-            amount: score * GOLD_PER_QUIZ_POINT,
-            player,
-            score,
-          }
-        })
-
-      if (!awards.length) {
-        throw new Error('Type at least one player score first.')
-      }
-
-      const awardResults = await Promise.all(
-        awards.map(async ({ amount, player, score }) => {
+      const awards = buildQuizAwards(players, quizAwardScores, perfectQuizScore)
+      const { completed, failed } = await settleQuizAwards(
+        awards, async ({ amount, player, score }) => {
           let bonusAwarded = false
           let bonusAmount = 0
 
@@ -955,33 +935,40 @@ export default function AdminApp() {
             playerId: player.id,
           })
 
+          let warning = ''
           if (bonusAwarded) {
-            saveBettaQuizBonusClaim(player.id, todayKey)
+            try { saveBettaQuizBonusClaim(player.id, todayKey) }
+            catch { warning = 'Gold was saved, but the daily Betta bonus record could not be saved on this device.' }
           }
 
           return {
             bonusAwarded,
             player: data.player,
+            warning,
           }
-        }),
+        },
       )
-      const updatedPlayers = awardResults.map((result) => result.player)
-      const bettaBonusCount = awardResults.filter((result) => result.bonusAwarded).length
+      const updatedPlayers = completed.filter((result) => result.amount > 0).map((result) => result.player)
+      const bettaBonusCount = completed.filter((result) => result.bonusAwarded).length
+      const completedIds = new Set(completed.map((result) => result.playerId))
+      // Keep only failed scores available for retry; never resubmit confirmed rewards.
+      setQuizAwardScores((current) => Object.fromEntries(Object.entries(current).filter(([id]) => !completedIds.has(id))))
+      applyPlayerUpdates(updatedPlayers)
+      const warning = completed.find((result) => result.warning)?.warning || ''
 
       setQuizAwardResult({
-        type: 'success',
+        type: failed.length || warning ? 'error' : 'success',
         text: `Quiz gold added to ${updatedPlayers.length} player${updatedPlayers.length === 1 ? '' : 's'}.${
           bettaBonusCount ? ` Blue Betta perfect-score bonus added to ${bettaBonusCount} player${bettaBonusCount === 1 ? '' : 's'}.` : ''
-        }`,
+        }${failed.length ? ` Not saved: ${failed.map((result) => result.message).join(' ')} Retry the remaining scores only.` : ''}${warning ? ` ${warning}` : ''}`,
       })
-      setQuizAwardScores(createEmptyQuizAwardScores())
-      applyPlayerUpdates(updatedPlayers)
     } catch (error) {
       setQuizAwardResult({
         type: 'error',
         text: error.message,
       })
     } finally {
+      quizAwardInFlight.current = false
       setQuizAwardPendingPlayerId('')
     }
   }

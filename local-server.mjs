@@ -1,18 +1,18 @@
 import { exec } from 'node:child_process'
 import crypto from 'node:crypto'
 import { createReadStream, existsSync, statSync } from 'node:fs'
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { readFile } from 'node:fs/promises'
 import http from 'node:http'
 import path from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
 import { findShopItemBySlug, formatRequirementsSummary, isEventShopItem } from './shared/shopCatalog.js'
 import { createProgramRoutes } from './server/program/routes.mjs'
+import { createDataStore } from './server/dataStore.mjs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const PORT = Number(process.env.AQUARIUM_PORT || 4177)
 const DATA_DIR = path.join(__dirname, 'local-data')
-const DATA_PATH = path.join(DATA_DIR, 'sunday-school.json')
 const DIST_DIR = path.join(__dirname, 'dist')
 const BOOKS_OF_THE_BIBLE_VIDEO_PATH = 'E:\\SUNDAY SCHOOL\\JUNIOR WORSHIP\\BOOKS OF THE BIBLE.mp4'
 
@@ -27,16 +27,6 @@ const MIME_TYPES = new Map([
   ['.txt', 'text/plain; charset=utf-8'],
   ['.webp', 'image/webp'],
 ])
-
-function createEmptyData() {
-  return {
-    admin: null,
-    attendance: {},
-    inventory: [],
-    players: [],
-    version: 1,
-  }
-}
 
 function normalizeLoginName(value) {
   return String(value || '').trim().toLowerCase().replace(/\s+/g, ' ')
@@ -165,34 +155,6 @@ function createSession(admin) {
   }
 }
 
-async function readData() {
-  await mkdir(DATA_DIR, { recursive: true })
-
-  if (!existsSync(DATA_PATH)) {
-    const emptyData = createEmptyData()
-    await writeData(emptyData)
-    return emptyData
-  }
-
-  try {
-    const parsed = JSON.parse(await readFile(DATA_PATH, 'utf8'))
-    return {
-      ...createEmptyData(),
-      ...parsed,
-      attendance: parsed.attendance && typeof parsed.attendance === 'object' ? parsed.attendance : {},
-      inventory: Array.isArray(parsed.inventory) ? parsed.inventory : [],
-      players: Array.isArray(parsed.players) ? parsed.players : [],
-    }
-  } catch {
-    return createEmptyData()
-  }
-}
-
-async function writeData(data) {
-  await mkdir(DATA_DIR, { recursive: true })
-  await writeFile(DATA_PATH, `${JSON.stringify(data, null, 2)}\n`, 'utf8')
-}
-
 async function readBody(req) {
   const chunks = []
 
@@ -247,8 +209,7 @@ function sortedPlayers(data) {
   return [...data.players].sort((left, right) => left.display_name.localeCompare(right.display_name)).map(publicPlayer)
 }
 
-async function handleApi(req, res, url) {
-  const data = await readData()
+async function handleApi(req, res, url, data, writeData) {
   const route = `${req.method} ${url.pathname}`
 
   if (route === 'GET /api/admin-status') {
@@ -587,7 +548,7 @@ async function serveStatic(req, res, url) {
   res.end(body)
 }
 
-function createAquariumServer(port) {
+function createAquariumServer(port, store) {
   const handleProgram = createProgramRoutes()
   return http.createServer(async (req, res) => {
     try {
@@ -601,7 +562,7 @@ function createAquariumServer(port) {
       }
 
       if (url.pathname.startsWith('/api/')) {
-        await handleApi(req, res, url)
+        await store.run((data, write) => handleApi(req, res, url, data, write))
         return
       }
 
@@ -612,8 +573,9 @@ function createAquariumServer(port) {
   })
 }
 
-export function startLocalServer({ host = '127.0.0.1', open = false, port = PORT } = {}) {
-  const server = createAquariumServer(port)
+export function startLocalServer({ host = '127.0.0.1', open = false, port = PORT, dataDirectory = DATA_DIR } = {}) {
+  const store = createDataStore(dataDirectory)
+  const server = createAquariumServer(port, store)
 
   return new Promise((resolve, reject) => {
     server.once('error', reject)
@@ -625,7 +587,7 @@ export function startLocalServer({ host = '127.0.0.1', open = false, port = PORT
       const appUrl = `http://${host}:${actualPort}`
 
       console.log(`Aquarium is running at ${appUrl}`)
-      console.log(`Local data is saved in ${DATA_PATH}`)
+      console.log(`Local data is saved in ${store.filename}`)
 
       if (open) {
         const command =
